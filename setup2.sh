@@ -72,7 +72,9 @@ EOF
 	grub-mkconfig -o /boot/grub/grub.cfg
 
 	systemctl enable NetworkManager
-	systemctl enable bluetooth
+	#systemctl enable bluetooth
+	rm $0 # removes pt 2 of the install as it was in the new partition
+	exit
 }
 arch_chroot
 
