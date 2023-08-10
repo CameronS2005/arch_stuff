@@ -1,5 +1,5 @@
 #!/bin/bash
-## UPDATE TIME; Aug 10, 05:30 AM EDT
+## UPDATE TIME; Aug 10, 07:20 AM EDT
 
 ## DONT MAKE TYPOS!!!!
 
@@ -21,6 +21,9 @@ HOSTNAME="$USERNAME" # for testing... as idc ab username or hostname
 #HOSTNAME="Archie" # your installs hostname
 
 GRUB_ID="GRUB" # grub entry name
+#part_1_url="https://raw.githubusercontent.com/CameronS2005/arch_stuff/main/setup.sh"
+part_2_url="https://raw.githubusercontent.com/CameronS2005/arch_stuff/main/setup2.sh"
+
 
 #base_packages="linux linux-firmware base base-devel nano vim intel-ucode grub efibootmgr networkmanager network-manager-applet wireless_tools wpa_supplicant dialog mtools dosfstools linux-headers git curl wget bluez bluez-utils pulseaudio-bluetooth xdg-utils xdg-user-dirs" # 310 pkgs
 #base_packages="linux linux-firmware base base-devel nano vim intel-ucode grub efibootmgr networkmanager network-manager-applet wpa_supplicant wireless_tools net-tools dialog bash-completion" # 262 pkgs
@@ -126,7 +129,7 @@ genfstab -U "/mnt" >> "/mnt/etc/fstab"
 
 echo "When in chroot run : chmod +x setup; ./setup"
 
-curl -o "/mnt/setup" -fsSL "https://raw.githubusercontent.com/CameronS2005/arch_stuff/main/setup2.sh"; sleep 5 # get part 2 of the setup
+curl -o "/mnt/setup" -fsSL "$part_2_url"; sleep 5 # get part 2 of the setup
 
 arch-chroot "/mnt"
 
