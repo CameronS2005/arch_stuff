@@ -1,8 +1,8 @@
 #!/bin/bash
-## UPDATE TIME; Aug 10, 14:19 PM EDT
+## UPDATE TIME; Aug 10, 14:29 PM EDT
 ## VERSION (SED COMMANDS WILL MOST LIKELY NEED UPDATED WITH UPDATES!)
 
-## NOT BOOTING...
+## NOT BOOTING... << CURRENT ISSUE ITS TO DO WITH THE /etc/default/grub not getting configured correctly in pt2
 
 ## DONT MAKE TYPOS!!!!
 
@@ -28,15 +28,15 @@ GRUB_ID="ARCHIE" # grub entry name
 
 2nd_config() { # this is so annoying...
 cat << EOF > /mnt/variables
-DRIVE_ID="/dev/mmcblk0"
-use_LUKS=false
-use_SWAP=false
-ROOT_ID="rootcrypt"
-HOSTNAME="Arch-Box"
-USERNAME="Archie"
-auto_login=true
-enable_32b_mlib=true
-GRUB_ID="ARCHIE"
+DRIVE_ID="$DRIVE_ID"
+use_LUKS="$use_LUKS"
+use_SWAP="$use_SWAP"
+ROOT_ID="$ROOT_ID"
+HOSTNAME="$HOSTNAME"
+USERNAME="$USERNAME"
+auto_login=$auto_login
+enable_32b_mlib=$enable_32b_mlib
+GRUB_ID="$GRUB_ID"
 root_part="$root_part"
 EOF
 }
@@ -228,11 +228,11 @@ exit 0
 #!/bin/bash
 source variables # created by 2nd_config function in pt1
 
-if [[ $use_SWAP == true ]]; then
-	root_part="p3"
-else
-	root_part="p2"
-fi
+#if [[ $use_SWAP == true ]]; then
+#	root_part="p3"
+#else
+#	root_part="p2"
+#fi
 
 arch_chroot() {
 	echo "Will be prompted to enter new root password"
