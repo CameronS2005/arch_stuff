@@ -1,5 +1,5 @@
 #!/bin/bash
-## UPDATE TIME; Aug 10, 12:57 AM EDT
+## UPDATE TIME; Aug 10, 12:59 AM EDT
 
 #### FIRST RELEASE ALMOST READY!!!!!! sed commands were a bitch...
 
@@ -100,7 +100,7 @@ rank_mirrors() {
 	echo "UPDATING PACMAN MIRRORS! THIS MAY TAKE AWHILE!!"
 	pacman -Syy pacman-contrib
 	cp /etc/pacman.d/mirrorlist /etc/pacman.d/mirrorlist.bak
-
+	sleep 3
 	rankmirrors -n 6 /etc/pacman.d/mirrorlist.bak > /etc/pacman.d/mirrorlist
 }
 rank_mirrors
