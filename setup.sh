@@ -45,7 +45,7 @@ rank_mirrors() {
 
 	rankmirrors -n 6 /etc/pacman.d/mirrorlist.bak /etc/pacman.d/mirrorlist # inputs bakup mirrorlist into ranked mirrors and writes to mirrorfile
 }
-#rank_mirrors # this is hardly needed (like not at all...) # can comment out if you dont care...
+rank_mirrors # this is hardly needed (like not at all...) # can comment out if you dont care...
 
 ## Handle drive partitioning ## IN THE FUTURE MODIFY TO SUPPORT SEPERATE home PARTITION AND PERHAPS A data PARTITION
 auto_partition() { # rename to auto drive & add to handle encryption and mounting
@@ -61,14 +61,13 @@ auto_partition() { # rename to auto drive & add to handle encryption and mountin
 	drive_size=$(parted -s "$DRIVE_ID" print | awk '/Disk/ {print $3}' | sed 's/[^0-9]//g')
 	drive_size_mib=$((drive_size / 10 * 1024)) # yeah yikes...
 
-	# Calculate partition sizes (5% for ESP, 15% for swap, rest for root)
+	# Calculate partition sizes (2% for ESP/BOOT, 15% for swap, rest for root) # LEGACY MAY REQUIRE MORE THAN 2%
+	## SWAP IS SO LOW BECAUSE TESHBENCH ONLY HAS 16gb SSD
 	echo "Calculating Partition Sizes Based on Drive Size!"
-	esp_size=$((drive_size_mib * 5 / 100))
+	esp_size=$((drive_size_mib * 2 / 100))
 	swap_size=$((drive_size_mib * 15 / 100))
 	root_size=$((drive_size_mib - esp_size - swap_size))
 
-
-	
 	# Create partitions
 	## USE EQUATION TO DETERMINE SWAP SIZE (BASED ON DISK SIZE AND RAM AMOUNT)
 	echo "Creating New Partitions!"
@@ -78,7 +77,7 @@ auto_partition() { # rename to auto drive & add to handle encryption and mountin
 	parted "$DRIVE_ID" mkpart primary ext4 "$((esp_size + swap_size))MiB" 100%  # Create root partition
 	# ^^ THIS IS UNTESTED AND IDK IF THE PERCENTAGES OF THE DRIVE WILL WORK CORRECTLY
 
-	## Handle root partition encryption ## this could use some modifying... # this may need to be before formatting?
+	## Handle root partition encryption ## this could use some modifying...
 	encrypt_root() {
 		echo "Will Be Prompted for Encrypted Phrase!"
 		cryptsetup -y -v luksFormat ""$DRIVE_ID"p3"
@@ -92,19 +91,10 @@ auto_partition() { # rename to auto drive & add to handle encryption and mountin
 	echo "Formatting Partitions!"
 	mkfs.fat -F32 ""$DRIVE_ID"p1"  # Format EFI System Partition as FAT32
 	mkswap ""$DRIVE_ID"p2"         # Format swap partition
+	swapon ""$DRIVE_ID"p2"
 	mkfs.ext4 "/dev/mapper/$ROOTCRYPT_ID"      # Format root partition as ext4 (could experiment with btrfs and kernel compression? to save space)
 }
 auto_partition
-
-## Handle root partition encryption ## this could use some modifying... # this may need to be before formatting?
-#encrypt_root() {
-#	echo "Will Be Prompted for Encrypted Phrase!"
-#	cryptsetup -y -v luksFormat ""$DRIVE_ID"p3"
-#
-#	echo "Will Be Prompted to Decrypt the Encrypted Partiton!"
-#	cryptsetup open ""$DRIVE_ID"p3" "$ROOTCRYPT_ID"
-#}
-#encrypt_root
 
 ## mount the new partitions
 auto_mount() { # havent tested this...
@@ -114,13 +104,13 @@ auto_mount() { # havent tested this...
 	mount ""$DRIVE_ID"p1" /mnt/boot
 	#swapon ""$DRIVE_ID"p2"
 }
-#auto_mount
+auto_mount
 
 ## BASE PACSTRAP INSTALL
 pacstrap_install() {
 	pacstrap -K /mnt $base_packages
 }
-#pacstrap_install
+pacstrap_install
 
 ## here we finally chroot into out new FS
 arch_chroot() {
@@ -130,7 +120,7 @@ arch_chroot() {
 	echo "Will be prompted to enter new root password"
 	passwd
 
-	swapon ""$DRIVE_ID"p2"
+	#swapon ""$DRIVE_ID"p2"
 
 	sed -i 's/^#\(en_US.UTF-8 UTF-8\)/\1/' /etc/locale.gen # THIS IS UNTESTED
 	locale-gen
@@ -149,7 +139,7 @@ arch_chroot() {
 EOF
 
 	echo "Configuring Bootloader!"
-	#### THIS NEEDS DONE ASAP
+	#### THIS NEEDS DONE ASAP #########################rewoworioirwirwiroeirewirpoiewriweroiweoriewporiewpriweporieporipoweirpoewir
 	sed ### sed some bs from /etc/mkinitcpio.conf for adding encrypt to hooks list
 	mkinitcpio -p linux
 
