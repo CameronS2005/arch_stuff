@@ -2,6 +2,7 @@
 ## UPDATE TIME; Aug 10, 07:57 AM EDT
 
 ## CONFIG
+DRIVE_ID="/dev/mmcblk0"
 ROOTCRYPT_ID="rootcrypt"
 
 USERNAME="Archie" # your non-root users name
