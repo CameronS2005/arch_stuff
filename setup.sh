@@ -1,16 +1,16 @@
 #!/bin/bash
-## UPDATE TIME; Aug 10, 08:42 AM EDT
+## UPDATE TIME; Aug 10, 09:10 AM EDT
+
+#### FIRST RELEASE ALMOST READY!!!!!! sed commands were a bitch...
 
 ## DONT MAKE TYPOS!!!!
 
 #### NOTES
-## THIS SCRIPT 100% DOES NOT SUPPORT NVIDIA DRIVER DETECTION NOR AUTO CONFIGURE
-# Currently this uses grub and not Muta's BL as it would be a bit harder to automate and not neccessary AFAIK
 # add support for kernel compression
+## transfer archinstalliso wpa_supplicant config to new partion for auto-wifi?
 
 #### NEED TO TRANSFER PT2 to mnt directory for execution (REST CAN BE HANDLED AT END OF SCRIPT AND SHALL BE AUTORAN ON EXITING CHROOT!)
 ## ^^ WITHOUT SECOND SCRIPT ADD CODE IN HERE AND USE SED TO PULL FROM START AND END TAGS
-
 
 ## CONFIG
 WIFI_SSID="WiFi-2.4" # your wifi ssid # (only needed if not using ethernet) # also this script can only handle wifi using DHCP (static needs done manually)
@@ -28,7 +28,7 @@ GRUB_ID="GRUB" # grub entry name
 ### TESTING BASE PACKAGE LISTS
 #base_packages="linux linux-firmware base base-devel nano vim intel-ucode grub efibootmgr networkmanager network-manager-applet wireless_tools wpa_supplicant dialog mtools dosfstools linux-headers git curl wget bluez bluez-utils pulseaudio-bluetooth xdg-utils xdg-user-dirs" # 310 pkgs
 #base_packages="linux linux-firmware base base-devel nano vim intel-ucode grub efibootmgr networkmanager network-manager-applet wpa_supplicant wireless_tools net-tools dialog bash-completion" # 262 pkgs
-base_packages="linux linux-firmware base base-devel nano grub efibootmgr networkmanager iwd wpa_supplicant" # 173 pkgs -- testing
+base_packages="linux linux-firmware base base-devel nano grub efibootmgr networkmanager iwd wpa_supplicant dhcpcd" # 173 pkgs -- testing ## includes qrencode! # do we even need wpa_supplicant?
 #base_packages="linux linux-firmware base base-devel nano vim grub efibootmgr" # <154 pkgs (NO WIFI)
 
 ### START OF SCRIPT
@@ -140,8 +140,9 @@ post_chroot() {
 #	exit
 	echo "UNMOUNTING FS AND REQUESTING REBOOT!"
 	sudo umount -a
-	read -p "PRESS ENTER TO REBOOT"
-	sudo reboot now
+	echo "REBOOT NOW"
+	#read -p "PRESS ENTER TO REBOOT"
+	#sudo reboot now
 }
 post_chroot
 
