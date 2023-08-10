@@ -13,8 +13,7 @@ ROOTCRYPT_ID="rootcrypt"
 USERNAME="Archie" # your non-root users name
 HOSTNAME="Archie" # your installs hostname
 
-base_packages="linux linux-firmware base base-devel encrypt nano vim intel-ucode grub efibootmgr networkmanager network-manager-applet wireless_tools wpa_supplicant dialog mtools dosfstools linux-headers git curl wget bluez bluez-utils pulseaudio-bluetooth xdg-utils xdg-user-dirs" 
-
+base_packages="linux linux-firmware base base-devel nano vim intel-ucode grub efibootmgr networkmanager network-manager-applet wireless_tools wpa_supplicant dialog mtools dosfstools linux-headers git curl wget bluez bluez-utils pulseaudio-bluetooth xdg-utils xdg-user-dirs" 
 
 ### START OF SCRIPT
 
@@ -38,14 +37,14 @@ wifi() {
 wifi # can comment out if using ethernet
 
 ## Quick way of selecting best mirrors
-rank_mirrors() {
-	pacman -Syy rankmirrors # IDK ABOUT THIS ORDER
-	pacman -Syyy
-	cp /etc/pacman.d/mirrorlist /etc/pacman.d/mirrorlist.bak # backup mirrorlist in case we fucked up
-
-	rankmirrors -n 6 /etc/pacman.d/mirrorlist.bak /etc/pacman.d/mirrorlist # inputs bakup mirrorlist into ranked mirrors and writes to mirrorfile
-}
-rank_mirrors # this is hardly needed (like not at all...) # can comment out if you dont care...
+#rank_mirrors() {
+#	pacman -Syy rankmirrors # IDK ABOUT THIS ORDER
+#	pacman -Syyy
+#	cp /etc/pacman.d/mirrorlist /etc/pacman.d/mirrorlist.bak # backup mirrorlist in case we fucked up
+#
+#	rankmirrors -n 6 /etc/pacman.d/mirrorlist.bak /etc/pacman.d/mirrorlist # inputs bakup mirrorlist into ranked mirrors and writes to mirrorfile
+#}
+#rank_mirrors # this is hardly needed (like not at all...) # can comment out if you dont care...
 
 ## Handle drive partitioning ## IN THE FUTURE MODIFY TO SUPPORT SEPERATE home PARTITION AND PERHAPS A data PARTITION
 auto_partition() { # rename to auto drive & add to handle encryption and mounting
