@@ -1,5 +1,5 @@
 #!/bin/bash
-## UPDATE TIME; Aug 10, 10:55 AM EDT
+## UPDATE TIME; Aug 10, 11:29 AM EDT
 ## CURRENTLY QUITE LITERALLY JUST A COMBINED VERSION OF THE TWO PART INSTALLER (NOT OPTIMIZED YET!)
 ## THIS SCRIPT WILL NEVER SUPPORT NVIDIA AS I DONT HAVE ANY TESTBENCHES TO WORK ON WITH NVIDIA I WILL BE TESTING WITH INTEL & AMD
 ## ^^ AMD WILL BE ADDED ITF!
@@ -14,24 +14,37 @@
 ## ADD IN AUTO-LOGIN SUPPORT
 ## CREATE CUSTOM MOTD THAT GETS BROADCASTED ON TTY1 ON BOOT AND DOWNLOAD IT HERE! (ADD CONTROL VARIABLE)
 ## ECHO CONFIG INTO SOURCED EXPORT FILE INTO MOUNT SO WE DONT HAVE TO DEFINE VARIABLES TWICE...
+## BOOT PARTITION SIZE NEEDS TO BE HARDCODED AS BIGGER DRIVES WILL WASTE A BUNCH ON part1
 
 #### NEED TO TRANSFER PT2 to mnt directory for execution (REST CAN BE HANDLED AT END OF SCRIPT AND SHALL BE AUTORAN ON EXITING CHROOT!)
 ## ^^ WITHOUT SECOND SCRIPT ADD CODE IN HERE AND USE SED TO PULL FROM START AND END TAGS
 
 ## CONFIG ## BE SURE BOTH CONFIGS MATCH UNTIL WE FIND A WAY TO FIX THIS...
 WIFI_SSID="WiFi-2.4" # your wifi ssid # (only needed if not using ethernet) # also this script can only handle wifi using DHCP (static needs done manually)
-
 DRIVE_ID="/dev/mmcblk0"
 use_LUKS=false # use luksFormat Encryption on your root partition # idk how ill do this when i seperate my root and home partition!
-# ^^ off for testing ...
+nyae_swap=false # create a swap partition (currently 15% of specified drive)
 ROOT_ID="rootcrypt"
-
 USERNAME="Archie" # your non-root users name
 HOSTNAME="$USERNAME" # for testing... as idc ab username or hostname
 #auto_login=false # auto-login to your new non-root user # false/true
 #HOSTNAME="Archie" # your installs hostname
-
 GRUB_ID="ARCHIE" # grub entry name
+
+2nd_config() { # this is so annoying...
+cat << EOF > /mnt/variables
+WIFI_SSID="WiFi-2.4"
+DRIVE_ID="/dev/mmcblk0"
+use_LUKS=false
+nyae_swap=false
+ROOT_ID="rootcrypt"
+USERNAME="Archie"
+HOSTNAME="$USERNAME"
+#auto_login=false
+#HOSTNAME="Archie"
+GRUB_ID="ARCHIE"
+EOF
+}
 
 ### TESTING BASE PACKAGE LISTS ## THESE ARE THE ONLY PACKAGES INSTALLED AT ALL!
 #base_packages="linux linux-firmware base base-devel nano vim intel-ucode grub efibootmgr networkmanager network-manager-applet wireless_tools wpa_supplicant dialog mtools dosfstools linux-headers git curl wget bluez bluez-utils pulseaudio-bluetooth xdg-utils xdg-user-dirs" # 310 pkgs
@@ -45,6 +58,7 @@ base_packages="linux linux-firmware base nano grub efibootmgr networkmanager int
 ### START OF SCRIPT
 
 echo "FYI LUKS IS $use_LUKS"; sleep 3
+echo "Battery % is $(cat /sys/class/power_supply/BAT0/capacity)"
 
 ## Handle wifi connection (if no ethernet dhcp)
 wifi() {
@@ -59,13 +73,13 @@ wifi() {
 		echo "WIFI CONN ERROR!"
 		wifi
 	fi
-		sleep 10 # modify to a wait command for ipv6 with a timeout of 30s (as we need to wait for dhcp and some are slower than others...)
+		sleep 10 # modify to a wait command for ipv4 with a timeout of 30s (as we need to wait for dhcp and some are slower than others...)
 	
 		local_ipv4=$(ip -4 addr show up | grep -oP '(?<=inet\s)\d+(\.\d+){3}' | grep -v '127.0.0.1' | head -n 1)
 		echo "Local IPv4 address: $local_ipv4"
 	fi
 }
-wifi # can comment out if using ethernet # really this function is useless considering you prob configured wifi to get the script
+#wifi # can comment out if using ethernet # really this function is useless considering you prob configured wifi to get the script
 
 ## Quick way of selecting best mirrors # gracias Muta
 #rank_mirrors() { # rewatch mutas video cause i messed this up...
@@ -95,37 +109,53 @@ auto_partition() { # rename to auto drive & add to handle encryption and mountin
 	## SWAP IS SO LOW BECAUSE TESHBENCH ONLY HAS 16gb SSD
 	echo "Calculating Partition Sizes Based on Drive Size!"
 	esp_size=$((drive_size_mib * 2 / 100))
+	if [[ $nyae_swap == true ]]; then
 	swap_size=$((drive_size_mib * 15 / 100))
 	root_size=$((drive_size_mib - esp_size - swap_size))
+else
+	root_size=$((drive_size_mib - esp_size))
+fi
 
 	# Create partitions
 	## USE EQUATION TO DETERMINE SWAP SIZE (BASED ON DISK SIZE AND RAM AMOUNT)
 	echo "Creating New Partitions!"
 	parted "$DRIVE_ID" mkpart ESP fat32 1MiB "${esp_size}MiB"  # Create EFI System Partition
 	parted "$DRIVE_ID" set 1 boot on  # Set the boot flag for ESP
+	if [[ $nyae_swap == true ]]; then
 	parted "$DRIVE_ID" mkpart primary linux-swap "${esp_size}MiB" "$((esp_size + swap_size))MiB"  # Create swap partition
 	parted "$DRIVE_ID" mkpart primary ext4 "$((esp_size + swap_size))MiB" 100%  # Create root partition
+else
+	parted "$DRIVE_ID" mkpart primary ext4 "$((esp_size))MiB" 100%  # Create root partition
+fi
+
+if [[ $nyae_swap == true ]]; then
+	root_part="p3"
+else
+	root_part="p2"
+fi
 
 	## Handle root partition encryption ## this could use some modifying...
 	encrypt_root() {
 		echo "Will Be Prompted for Encrypted Phrase!"
-		cryptsetup -y -v luksFormat ""$DRIVE_ID"p3"
+		cryptsetup -y -v luksFormat "$DRIVE_ID$root_part"
 	
 		echo "Will Be Prompted to Decrypt the Encrypted Partiton!"
-		cryptsetup open ""$DRIVE_ID"p3" "$ROOTCRYPT_ID"
+		cryptsetup open "$DRIVE_ID$root_part" "$ROOTCRYPT_ID"
 	}
 	if [[ $use_LUKS == true ]]; then
 	encrypt_root
 	mkfs.ext4 "/dev/mapper/$ROOTCRYPT_ID"
 else
-	mkfs.ext4 ""$DRIVE_ID"p3"
+	mkfs.ext4 "$DRIVE_ID$root_part"
 fi
 
 	# Format partitions
 	echo "Formatting Partitions!"
 	mkfs.fat -F32 ""$DRIVE_ID"p1"  			# Format EFI System Partition as FAT32
+	if [[ $nyae_swap == true ]]; then
 	mkswap ""$DRIVE_ID"p2"         			# Format swap partition
 	swapon ""$DRIVE_ID"p2"					# Enable swap partition
+fi
 	#mkfs.ext4 "/dev/mapper/$ROOTCRYPT_ID"   # Format root partition as ext4 (could experiment with btrfs and kernel compression? to save space)
 }
 auto_partition
@@ -137,13 +167,15 @@ auto_mount() { # havent tested this...
 	if [[ $use_LUKS == true ]]; then
 	mount "/dev/mapper/$ROOTCRYPT_ID" /mnt
 else
-	mount ""$DRIVE_ID"p3" /mnt
+	mount "$DRIVE_ID$root_part" /mnt
 fi
 	mkdir /mnt/boot
 	mount ""$DRIVE_ID"p1" /mnt/boot
 	sleep 5 ## WAS FAILING DUE TO NOT ENOUGH TIME TO REGISTER MOUNTS??
 }
 auto_mount
+
+2nd_config # creates the variables file to be sourced in the second part
 
 ## BASE PACSTRAP INSTALL
 pacstrap_install() {
@@ -188,13 +220,21 @@ exit 0
 
 ##START_TAG
 #!/bin/bash
-DRIVE_ID="/dev/mmcblk0"
-use_LUKS=false
-ROOT_ID="rootcrypt"
-USERNAME="Archie"
-HOSTNAME="$USERNAME"
+#DRIVE_ID="/dev/mmcblk0"
+#use_LUKS=false
+#ROOT_ID="rootcrypt"
+#USERNAME="Archie"
+#HOSTNAME="$USERNAME"
 #auto_login=false
 #HOSTNAME="Archie"
+source variables
+
+if [[ $nyae_swap == true ]]; then
+	root_part="p3"
+else
+	root_part="p2"
+fi
+
 GRUB_ID="ARCHIE"
 arch_chroot() {
 	echo "Will be prompted to enter new root password"
@@ -246,14 +286,13 @@ EOF
 	grub-install --target=x86_64-efi --efi-directory=/boot --bootloader-id=$GRUB_ID
 	grub-mkconfig -o /boot/grub/grub.cfg
 
-	ROOT_UUID=$(blkid -s UUID -o value ""$DRIVE_ID"p3")
+	ROOT_UUID=$(blkid -s UUID -o value "$DRIVE_ID$root_part")
 
 	if [[ $use_LUKS == true ]]; then
 	new_value="cryptdevice=UUID=$ROOT_UUID:$ROOT_ID root=/dev/mapper/$ROOT_ID"
-
 	sed -i '7c\GRUB_CMDLINE_LINUX="'"$new_value"'"' "/etc/default/grub" # ...
 else
-	new_value="root=UUID=$ROOT_UUID"
+	new_value="root=UUID=$ROOT_UUID" # is this the best way to do this?
 	sed -i '7c\GRUB_CMDLINE_LINUX="'"$new_value"'"' "/etc/default/grub" # ...
 fi
 
@@ -263,7 +302,8 @@ fi
 	#systemctl enable dhcpcd
 	#systemctl enable iwd 
 	#systemctl enable bluetooth
-	
+
+	#rm variables
 	#rm $0 # removes pt 2 of the install as it was in the new partition
 	#exit
 	#echo "FINISHED! EXITING CHROOT!"
