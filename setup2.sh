@@ -23,13 +23,13 @@ arch_chroot() {
 
 	sed -i 's/^#\(en_US.UTF-8 UTF-8\)/\1/' "/etc/locale.gen"
 	locale-gen
-	echo "LANG=en_US.UTF-8" > /etc/locale.conf
+	echo "LANG=en_US.UTF-8" > "/etc/locale.conf"
 	export "LANG=en_US.UTF-8"
 
 	echo "Setting System Time & Hostname!"
 	ln -sf "/usr/share/zoneinfo/America/New_York" "/etc/localtime"
 	hwclock --systohc --utc # check 2nd argument # why is this utc?
-	echo "$HOSTNAME" > /etc/hostname
+	echo "$HOSTNAME" > "/etc/hostname"
 
 	systemctl enable fstrim.timer # ssd trimming? # add check to see if even using ssd
 
@@ -40,7 +40,7 @@ arch_chroot() {
 	#Include = /etc/pacman.d/mirrorlist
 
 	echo "Configuring Hosts File With Hostname: ($HOSTNAME)!"
-	cat << EOF >> /etc/hosts
+	cat << EOF >> "/etc/hosts"
 127.0.0.1 		localhost
 ::1 			localhost
 127.0.1.1 		$HOSTNAME.localdomain	$HOSTNAME
@@ -68,14 +68,16 @@ EOF
 	## UNTESTED! #### NEED TO SET UUID
 	CRYPT_UUID=$(blkid -s UUID -o value "$DRIVE_ID")
 	new_value="cryptdevice=UUID=$CRYPT_UUID:$ROOTCRYPT_ID root=/dev/mapper/$ROOTCRYPT_ID"
-	#sed -i "s/^GRUB_CMDLINE_LINUX=\"[^\"]*\"/GRUB_CMDLINE_LINUX=\"$new_value\"/" /etc/default/grub
-	sed -i 's/^GRUB_CMDLINE_LINUX="[^"]*"/GRUB_CMDLINE_LINUX="'"$new_value"'"/' /etc/default/grub
-	grub-mkconfig -o /boot/grub/grub.cfg
+	#sed -i "s/^GRUB_CMDLINE_LINUX=\"[^\"]*\"/GRUB_CMDLINE_LINUX=\"$new_value\"/" /etc/default/grub # THIS LINE DOESNT WORK
+	#sed -i 's/^GRUB_CMDLINE_LINUX="[^"]*"/GRUB_CMDLINE_LINUX="'"$new_value"'"/' /etc/default/grub # THIS LINE DOESNT WORK...
+	sed -i 's/GRUB_CMDLINE_LINUX="[^"]*"/GRUB_CMDLINE_LINUX="'"$new_value"'"/' "/etc/default/grub"
+
+	grub-mkconfig -o "/boot/grub/grub.cfg"
 
 	systemctl enable NetworkManager
 	#systemctl enable bluetooth
-	rm $0 # removes pt 2 of the install as it was in the new partition
-	exit
+	#rm $0 # removes pt 2 of the install as it was in the new partition
+	#exit
 }
 arch_chroot
 
