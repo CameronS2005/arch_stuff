@@ -68,7 +68,8 @@ EOF
 	## UNTESTED! #### NEED TO SET UUID
 	CRYPT_UUID=$(blkid -s UUID -o value "$DRIVE_ID")
 	new_value="cryptdevice=UUID=$CRYPT_UUID:$ROOTCRYPT_ID root=/dev/mapper/$ROOTCRYPT_ID"
-	sed -i "s/^GRUB_CMDLINE_LINUX=\"[^\"]*\"/GRUB_CMDLINE_LINUX=\"$new_value\"/" /etc/default/grub
+	#sed -i "s/^GRUB_CMDLINE_LINUX=\"[^\"]*\"/GRUB_CMDLINE_LINUX=\"$new_value\"/" /etc/default/grub
+	sed -i 's/^GRUB_CMDLINE_LINUX="[^"]*"/GRUB_CMDLINE_LINUX="'"$new_value"'"/' /etc/default/grub
 	grub-mkconfig -o /boot/grub/grub.cfg
 
 	systemctl enable NetworkManager
