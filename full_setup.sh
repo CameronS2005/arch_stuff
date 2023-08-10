@@ -1,5 +1,6 @@
 #!/bin/bash
-## UPDATE TIME; Aug 10, 09:10 AM EDT
+## UPDATE TIME; Aug 10, 09:53 AM EDT
+## CURRENTLY QUITE LITERALLY JUST A COMBINED VERSION OF THE TWO PART INSTALLER (NOT OPTIMIZED YET!)
 
 #### FIRST RELEASE ALMOST READY!!!!!! sed commands were a bitch...
 
@@ -16,10 +17,11 @@
 
 ## CONFIG
 WIFI_SSID="WiFi-2.4" # your wifi ssid # (only needed if not using ethernet) # also this script can only handle wifi using DHCP (static needs done manually)
-#WIFI_PASSWD=""
 
 DRIVE_ID="/dev/mmcblk0"
-ROOTCRYPT_ID="rootcrypt"
+use_LUKS=false # use luksFormat Encryption on your root partition # idk how ill do this when i seperate my root and home partition!
+# this script was developed with luks in mind so currenting testing with it disabled!
+ROOT_ID="rootcrypt"
 
 USERNAME="Archie" # your non-root users name
 HOSTNAME="$USERNAME" # for testing... as idc ab username or hostname
@@ -45,8 +47,10 @@ wifi() {
 		echo "Wireless Adapter Name: $wifi_adapter"
 	
 		echo "You will be prompted for your wifi password if needed!"
-		iwctl station $wifi_adapter connect $WIFI_SSID ## can just use this command to connect to wifi (replace $VARIABLES obvi)
-
+		if ! iwctl station $wifi_adapter connect $WIFI_SSID; then ## can just use this command to connect to wifi (replace $VARIABLES obvi)
+		echo "WIFI CONN ERROR!"
+		wifi
+	fi
 		sleep 10 # modify to a wait command for ipv6 with a timeout of 30s (as we need to wait for dhcp and some are slower than others...)
 	
 		local_ipv4=$(ip -4 addr show up | grep -oP '(?<=inet\s)\d+(\.\d+){3}' | grep -v '127.0.0.1' | head -n 1)
@@ -102,14 +106,19 @@ auto_partition() { # rename to auto drive & add to handle encryption and mountin
 		echo "Will Be Prompted to Decrypt the Encrypted Partiton!"
 		cryptsetup open ""$DRIVE_ID"p3" "$ROOTCRYPT_ID"
 	}
+	if [[ $use_LUKS == true ]]; then
 	encrypt_root
+	mkfs.ext4 "/dev/mapper/$ROOTCRYPT_ID"
+else
+	mkfs.ext4 ""$DRIVE_ID"p3"
+fi
 
 	# Format partitions
 	echo "Formatting Partitions!"
 	mkfs.fat -F32 ""$DRIVE_ID"p1"  			# Format EFI System Partition as FAT32
 	mkswap ""$DRIVE_ID"p2"         			# Format swap partition
 	swapon ""$DRIVE_ID"p2"					# Enable swap partition
-	mkfs.ext4 "/dev/mapper/$ROOTCRYPT_ID"   # Format root partition as ext4 (could experiment with btrfs and kernel compression? to save space)
+	#mkfs.ext4 "/dev/mapper/$ROOTCRYPT_ID"   # Format root partition as ext4 (could experiment with btrfs and kernel compression? to save space)
 }
 auto_partition
 
@@ -117,7 +126,11 @@ auto_partition
 auto_mount() { # havent tested this...
 	echo "Mounting Partitions!"
 	#mount ""$DRIVE_ID"p3" /mnt
+	if [[ $use_LUKS == true ]]; then
 	mount "/dev/mapper/$ROOTCRYPT_ID" /mnt
+else
+	mount ""$DRIVE_ID"p3" /mnt
+fi
 	mkdir /mnt/boot
 	mount ""$DRIVE_ID"p1" /mnt/boot
 	sleep 5 ## WAS FAILING DUE TO NOT ENOUGH TIME TO REGISTER MOUNTS??
@@ -168,7 +181,7 @@ exit 0
 ##START_TAG
 #!/bin/bash
 DRIVE_ID="/dev/mmcblk0"
-ROOTCRYPT_ID="rootcrypt"
+ROOT_ID="rootcrypt"
 USERNAME="Archie"
 HOSTNAME="$USERNAME"
 #auto_login=false
@@ -216,22 +229,28 @@ EOF
 	## USER WILL NOT BE IN SUDOERS UNTIL THIS IS FIXED!
 
 	echo "Configuring Bootloader!"
+	if [[ $use_LUKS == true ]]; then
 	sed -i '/^HOOKS=/ s/)$/ encrypt)/' "/etc/mkinitcpio.conf" # adds encrypt to hooks
+	fi
 	mkinitcpio -p linux
 
 	grub-install --target=x86_64-efi --efi-directory=/boot --bootloader-id=$GRUB_ID
 	grub-mkconfig -o /boot/grub/grub.cfg
 
-	CRYPT_UUID=$(blkid -s UUID -o value ""$DRIVE_ID"p3")
-	new_value="cryptdevice=UUID=$CRYPT_UUID:$ROOTCRYPT_ID root=/dev/mapper/$ROOTCRYPT_ID"
+	ROOT_UUID=$(blkid -s UUID -o value ""$DRIVE_ID"p3")
+
+	if [[ $use_LUKS == true ]]; then
+	new_value="cryptdevice=UUID=$ROOT_UUID:$ROOT_ID root=/dev/mapper/$ROOT_ID"
 
 	sed -i '7c\GRUB_CMDLINE_LINUX="'"$new_value"'"' "/etc/default/grub" # ...
+else
+	new_value="root=UUID=$ROOT_UUID" # testing this
+	true # this sed command needs fixed! #<< its actually the new_value's values
+	sed -i '7c\GRUB_CMDLINE_LINUX="'"$new_value"'"' "/etc/default/grub" # ...
+fi
 
-	#echo "UUID IS $CRYPT_UUID RIGHT???" # this was for testing...
+	grub-mkconfig -o "/boot/grub/grub.cfg"
 	
-	### TESTING HERE!!!
-	grub-mkconfig -o "/boot/grub/grub.cfg" # UNCOMMENT THIS AFTER FIXING THE SED LINE ABOVE ^^
-
 	systemctl enable NetworkManager
 	systemctl enable dhcpcd
 	systemctl enable iwd 
