@@ -23,8 +23,8 @@ HOSTNAME="$USERNAME" # for testing... as idc ab username or hostname
 GRUB_ID="GRUB" # grub entry name
 
 #base_packages="linux linux-firmware base base-devel nano vim intel-ucode grub efibootmgr networkmanager network-manager-applet wireless_tools wpa_supplicant dialog mtools dosfstools linux-headers git curl wget bluez bluez-utils pulseaudio-bluetooth xdg-utils xdg-user-dirs" # 310 pkgs
-base_packages="linux linux-firmware base base-devel nano vim intel-ucode grub efibootmgr networkmanager network-manager-applet wpa_supplicant wireless_tools net-tools dialog bash-completion" # 262 pkgs
-#base_packages="linux linux-firmware base base-devel nano vim intel-ucode grub efibootmgr" # pkgs (NO WIFI)
+#base_packages="linux linux-firmware base base-devel nano vim intel-ucode grub efibootmgr networkmanager network-manager-applet wpa_supplicant wireless_tools net-tools dialog bash-completion" # 262 pkgs
+base_packages="linux linux-firmware base base-devel nano vim intel-ucode grub efibootmgr" # pkgs -- (NO WIFI)
 
 ### START OF SCRIPT
 
@@ -137,6 +137,6 @@ post_chroot() {
 	read -p "PRESS ENTER TO REBOOT"
 	sudo reboot now
 }
-post_chroot
+#post_chroot
 
 ### END OF SCRIPT
