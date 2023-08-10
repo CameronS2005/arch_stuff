@@ -1,5 +1,5 @@
 #!/bin/bash
-## UPDATE TIME; Aug 10, 13:40 PM EDT
+## UPDATE TIME; Aug 10, 13:57 PM EDT
 ## VERSION (SED COMMANDS WILL MOST LIKELY NEED UPDATED WITH UPDATES!)
 
 ## DONT MAKE TYPOS!!!!
@@ -202,13 +202,13 @@ arch-chroot /mnt
 ## post chroot commands (we're finished here!)
 post_chroot() {
 	echo "UNMOUNTING FS AND REQUESTING REBOOT!"
-	sudo umount -a
+	umount -a
 	if [[ $use_SWAP == true ]]; then
 	swapoff ""$DRIVE_ID"p2"
 fi
 	echo "YOU CAN REBOOT NOW"
 	#read -p "PRESS ENTER TO REBOOT"
-	#sudo reboot now
+	#reboot now
 }
 post_chroot
 
@@ -227,6 +227,7 @@ exit 0
 ################################################################
 
 ##START_TAG
+#!/bin/bash
 source variables # created by 2nd_config function in pt1
 
 #if [[ $use_SWAP == true ]]; then
@@ -252,8 +253,8 @@ arch_chroot() {
 	systemctl enable fstrim.timer # ssd trimming? # add check to see if even using ssd
 
 	if [[ $enable_32b_mlib == true ]]; then
-	sed -i '89 s/^#//' "/etc/pacman.conf"
 	sed -i '90 s/^#//' "/etc/pacman.conf"
+	sed -i '91 s/^#//' "/etc/pacman.conf"
 fi
 
 	echo "Configuring Hosts File With Hostname: ($HOSTNAME)"
@@ -269,7 +270,7 @@ EOF
 
 	if [[ $auto_login == true ]]; then
 		echo "Configuring Autologin for ($USERNAME)"
-		sudo sed -i 's|^ExecStart=-/sbin/agetty \(.*\)|ExecStart=-/sbin/agetty --autologin $USERNAME \1|' "/etc/systemd/system/getty.target.wants/getty@tty1.service"
+		sed -i 's|^ExecStart=-/sbin/agetty \(.*\)|ExecStart=-/sbin/agetty --autologin $USERNAME \1|' "/etc/systemd/system/getty.target.wants/getty@tty1.service"
 	fi
 
 	echo "Will be prompted to enter new password for ($USERNAME)"
