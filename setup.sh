@@ -131,7 +131,7 @@ genfstab -U /mnt >> /mnt/etc/fstab
 
 echo "When in chroot run : chmod +x setup; ./setup"
 
-curl -o /mnt/setup -fsSL https://raw.githubusercontent.com/CameronS2005/arch_stuff/main/setup2.sh; sleep 5 # get part 2 of the setup
+curl -o /mnt/setup -fsSL https://raw.githubusercontent.com/CameronS2005/arch_stuff/main/setup_pt2.sh; sleep 5 # get part 2 of the setup
 
 arch-chroot /mnt
 
