@@ -1,7 +1,6 @@
 #!/bin/bash
-## UPDATE TIME; Aug 10, 13:09 PM EDT
-
-#### FIRST RELEASE ALMOST READY!!!!!! sed commands were a bitch...
+## UPDATE TIME; Aug 10, 13:40 PM EDT
+## VERSION (SED COMMANDS WILL MOST LIKELY NEED UPDATED WITH UPDATES!)
 
 ## DONT MAKE TYPOS!!!!
 
@@ -27,21 +26,20 @@ use_SWAP=true # create a swap partition (currently 15% of specified drive)
 ROOT_ID="rootcrypt"
 HOSTNAME="Arch-Box"
 USERNAME="Archie" # your non-root users name
-#auto_login=false # auto-login to your new non-root user # false/true
 GRUB_ID="ARCHIE" # grub entry name
 
 2nd_config() { # this is so annoying...
 cat << EOF > /mnt/variables
-WIFI_SSID="WiFi-2.4"
 DRIVE_ID="/dev/mmcblk0"
 use_LUKS=false
 use_SWAP=false
 ROOT_ID="rootcrypt"
 HOSTNAME="Arch-Box"
 USERNAME="Archie"
-#auto_login=false
+auto_login=true
+enable_32b_mlib=true
 GRUB_ID="ARCHIE"
-root_part_test="$root_part"
+root_part="$root_part"
 EOF
 }
 
@@ -205,6 +203,9 @@ arch-chroot /mnt
 post_chroot() {
 	echo "UNMOUNTING FS AND REQUESTING REBOOT!"
 	sudo umount -a
+	if [[ $use_SWAP == true ]]; then
+	swapoff ""$DRIVE_ID"p2"
+fi
 	echo "YOU CAN REBOOT NOW"
 	#read -p "PRESS ENTER TO REBOOT"
 	#sudo reboot now
@@ -228,11 +229,11 @@ exit 0
 ##START_TAG
 source variables # created by 2nd_config function in pt1
 
-if [[ $use_SWAP == true ]]; then
-	root_part="p3"
-else
-	root_part="p2"
-fi
+#if [[ $use_SWAP == true ]]; then
+#	root_part="p3"
+#else
+#	root_part="p2"
+#fi
 
 arch_chroot() {
 	echo "Will be prompted to enter new root password"
@@ -250,13 +251,12 @@ arch_chroot() {
 
 	systemctl enable fstrim.timer # ssd trimming? # add check to see if even using ssd
 
-	#sed -i '/^\s*#[multilib]/ s/^#//' "/etc/pacman.conf" # this doesnt work so fix it to automatically allow 32 bit support!
-	#pacman -Sy
+	if [[ $enable_32b_mlib == true ]]; then
+	sed -i '89 s/^#//' "/etc/pacman.conf"
+	sed -i '90 s/^#//' "/etc/pacman.conf"
+fi
 
-	#[multilib]
-	#Include = /etc/pacman.d/mirrorlist
-
-	echo "Configuring Hosts File With Hostname: ($HOSTNAME)!"
+	echo "Configuring Hosts File With Hostname: ($HOSTNAME)"
 	cat << EOF >> "/etc/hosts"
 127.0.0.1 		localhost
 ::1 			localhost
@@ -265,15 +265,15 @@ EOF
 
 	echo "Creating & Configuring non-root User: ($USERNAME)"
 	useradd -mG wheel $USERNAME # modify user permissions here
+	#useradd -m -y users -G wheel,storage,power -s /bin/bash $USERNAME
+
+	if [[ $auto_login == true ]]; then
+		echo "Configuring Autologin for ($USERNAME)"
+		sudo sed -i 's|^ExecStart=-/sbin/agetty \(.*\)|ExecStart=-/sbin/agetty --autologin $USERNAME \1|' "/etc/systemd/system/getty.target.wants/getty@tty1.service"
+	fi
+
 	echo "Will be prompted to enter new password for ($USERNAME)"
 	passwd $USERNAME
-
-	# we shall not automatically tamper with suderos
-	#EDITOR=nano visudo 
-	### add variable and check if enabled for enabling auto login for new user!
-
-	#### HOW TO UNCOMMENT WHEELS LINE IN VISUDO WITHOUT INTERACTING!!!
-	## USER WILL NOT BE IN SUDOERS UNTIL THIS IS FIXED!
 
 	echo "Configuring Bootloader!"
 	if [[ $use_LUKS == true ]]; then
