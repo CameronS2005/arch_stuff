@@ -1,6 +1,8 @@
 #!/bin/bash
-## UPDATE TIME; Aug 10, 10:37 AM EDT
+## UPDATE TIME; Aug 10, 10:55 AM EDT
 ## CURRENTLY QUITE LITERALLY JUST A COMBINED VERSION OF THE TWO PART INSTALLER (NOT OPTIMIZED YET!)
+## THIS SCRIPT WILL NEVER SUPPORT NVIDIA AS I DONT HAVE ANY TESTBENCHES TO WORK ON WITH NVIDIA I WILL BE TESTING WITH INTEL & AMD
+## ^^ AMD WILL BE ADDED ITF!
 
 #### FIRST RELEASE ALMOST READY!!!!!! sed commands were a bitch...
 
@@ -16,7 +18,7 @@
 #### NEED TO TRANSFER PT2 to mnt directory for execution (REST CAN BE HANDLED AT END OF SCRIPT AND SHALL BE AUTORAN ON EXITING CHROOT!)
 ## ^^ WITHOUT SECOND SCRIPT ADD CODE IN HERE AND USE SED TO PULL FROM START AND END TAGS
 
-## CONFIG
+## CONFIG ## BE SURE BOTH CONFIGS MATCH UNTIL WE FIND A WAY TO FIX THIS...
 WIFI_SSID="WiFi-2.4" # your wifi ssid # (only needed if not using ethernet) # also this script can only handle wifi using DHCP (static needs done manually)
 
 DRIVE_ID="/dev/mmcblk0"
@@ -37,8 +39,8 @@ GRUB_ID="ARCHIE" # grub entry name
 #base_packages="linux linux-firmware base base-devel nano grub efibootmgr networkmanager iwd wpa_supplicant dhcpcd" # 173 pkgs
 
 #base_packages="linux linux-firmware base nano grub efibootmgr networkmanager dhcpcd intel-ucode" # >150 pkgs (WIFI+DHCP+BOOT+UCODE)
-base_packages="linux linux-firmware base nano grub efibootmgr networkmanager intel-ucode" # >150 pkgs (WIFI+BOOT+UCODE)
-#base_packages="linux linux-firmware base nano grub efibootmgr" # <154 pkgs (BOOT)
+base_packages="linux linux-firmware base nano grub efibootmgr networkmanager intel-ucode" # 148 pkgs (WIFI+BOOT+UCODE)
+#base_packages="linux linux-firmware base nano grub efibootmgr intel-ucode" # <154 pkgs (BOOT+UCODE)
 
 ### START OF SCRIPT
 
@@ -187,6 +189,7 @@ exit 0
 ##START_TAG
 #!/bin/bash
 DRIVE_ID="/dev/mmcblk0"
+use_LUKS=false
 ROOT_ID="rootcrypt"
 USERNAME="Archie"
 HOSTNAME="$USERNAME"
@@ -258,7 +261,7 @@ fi
 	grub-mkconfig -o "/boot/grub/grub.cfg"
 	
 	systemctl enable NetworkManager
-	systemctl enable dhcpcd
+	#systemctl enable dhcpcd
 	#systemctl enable iwd 
 	#systemctl enable bluetooth
 	rm $0 # removes pt 2 of the install as it was in the new partition
