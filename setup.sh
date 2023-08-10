@@ -1,12 +1,12 @@
 #!/bin/bash
-## UPDATE TIME; Aug 10, 04:08 AM EDT
+## UPDATE TIME; Aug 10, 05:30 AM EDT
 
 ## DONT MAKE TYPOS!!!!
-### encrypt needs auto added to mkinitcpio conf (HOOKS)
 
 #### NOTES
 ## THIS SCRIPT 100% DOES NOT SUPPORT NVIDIA DRIVER DETECTION NOR AUTO CONFIGURE
 # Currently this uses grub and not Muta's BL as it would be a bit harder to automate and not neccessary AFAIK
+# add support for kernel compression
 
 ## CONFIG
 WIFI_SSID="WiFi-2.4" # your wifi ssid # (only needed if not using ethernet) # also this script can only handle wifi using DHCP (static needs done manually)
@@ -16,12 +16,13 @@ DRIVE_ID="/dev/mmcblk0"
 ROOTCRYPT_ID="rootcrypt"
 
 USERNAME="Archie" # your non-root users name
-HOSTNAME="Archie" # your installs hostname
+HOSTNAME="$USERNAME" # for testing... as idc ab username or hostname
+#HOSTNAME="Archie" # your installs hostname
 
 GRUB_ID="GRUB" # grub entry name
 
 #base_packages="linux linux-firmware base base-devel nano vim intel-ucode grub efibootmgr networkmanager network-manager-applet wireless_tools wpa_supplicant dialog mtools dosfstools linux-headers git curl wget bluez bluez-utils pulseaudio-bluetooth xdg-utils xdg-user-dirs" # 310 pkgs
-base_packages="linux linux-firmware base base-devel nano intel-ucode grub efibootmgr networkmanager network-manager-applet wpa_supplicant wireless_tools net-tools dialog bash-completion"
+base_packages="linux linux-firmware base base-devel nano intel-ucode grub efibootmgr networkmanager network-manager-applet wpa_supplicant wireless_tools net-tools dialog bash-completion" # 262 pkgs
 
 ### START OF SCRIPT
 
@@ -119,11 +120,14 @@ pacstrap_install() {
 }
 pacstrap_install
 
+genfstab -U /mnt >> /mnt/etc/fstab
+arch-chroot /mnt
+
 ## here we finally chroot into out new FS
 arch_chroot() {
-	genfstab -U /mnt >> /mnt/etc/fstab # generate fstab file (magically handles swap lol)
+	#genfstab -U /mnt >> /mnt/etc/fstab # generate fstab file (magically handles swap lol)
 
-	arch-chroot /mnt
+	#arch-chroot /mnt
 	echo "Will be prompted to enter new root password"
 	passwd
 
@@ -182,7 +186,7 @@ EOF
 	systemctl enable NetworkManager
 	systemctl enable bluetooth
 }
-arch_chroot
+#arch_chroot
 
 ## post chroot commands (we're finished here!)
 post_chroot() {
