@@ -1,5 +1,5 @@
 #!/bin/bash
-## UPDATE TIME; Aug 10, 11:29 AM EDT
+## UPDATE TIME; Aug 10, 11:52 AM EDT
 ## CURRENTLY QUITE LITERALLY JUST A COMBINED VERSION OF THE TWO PART INSTALLER (NOT OPTIMIZED YET!)
 ## THIS SCRIPT WILL NEVER SUPPORT NVIDIA AS I DONT HAVE ANY TESTBENCHES TO WORK ON WITH NVIDIA I WILL BE TESTING WITH INTEL & AMD
 ## ^^ AMD WILL BE ADDED ITF!
@@ -23,13 +23,15 @@
 WIFI_SSID="WiFi-2.4" # your wifi ssid # (only needed if not using ethernet) # also this script can only handle wifi using DHCP (static needs done manually)
 DRIVE_ID="/dev/mmcblk0"
 use_LUKS=false # use luksFormat Encryption on your root partition # idk how ill do this when i seperate my root and home partition!
-nyae_swap=false # create a swap partition (currently 15% of specified drive)
+nyae_swap=false # create a swap partition (currently 15% of specified drive) 
 ROOT_ID="rootcrypt"
 USERNAME="Archie" # your non-root users name
 HOSTNAME="$USERNAME" # for testing... as idc ab username or hostname
 #auto_login=false # auto-login to your new non-root user # false/true
 #HOSTNAME="Archie" # your installs hostname
 GRUB_ID="ARCHIE" # grub entry name
+
+append_install_wifi_config=true # if you've set your wifi in the installer iso using iwctl it can be copied over to your new install (provided you have networkmanager)
 
 2nd_config() { # this is so annoying...
 cat << EOF > /mnt/variables
@@ -43,6 +45,7 @@ HOSTNAME="$USERNAME"
 #auto_login=false
 #HOSTNAME="Archie"
 GRUB_ID="ARCHIE"
+root_part_test="$root_part"
 EOF
 }
 
@@ -57,8 +60,8 @@ base_packages="linux linux-firmware base nano grub efibootmgr networkmanager int
 
 ### START OF SCRIPT
 
-echo "FYI LUKS IS $use_LUKS"; sleep 3
-echo "Battery % is $(cat /sys/class/power_supply/BAT0/capacity)"
+echo "FYI LUKS IS $use_LUKS"
+echo "Battery is at $(cat /sys/class/power_supply/BAT0/capacity)%"; sleep 3
 
 ## Handle wifi connection (if no ethernet dhcp)
 wifi() {
@@ -142,34 +145,33 @@ fi
 		echo "Will Be Prompted to Decrypt the Encrypted Partiton!"
 		cryptsetup open "$DRIVE_ID$root_part" "$ROOTCRYPT_ID"
 	}
+	# Format partitions
+	echo "Formatting Partitions!"
+	
 	if [[ $use_LUKS == true ]]; then
 	encrypt_root
 	mkfs.ext4 "/dev/mapper/$ROOTCRYPT_ID"
 else
 	mkfs.ext4 "$DRIVE_ID$root_part"
 fi
-
-	# Format partitions
-	echo "Formatting Partitions!"
 	mkfs.fat -F32 ""$DRIVE_ID"p1"  			# Format EFI System Partition as FAT32
+	
 	if [[ $nyae_swap == true ]]; then
 	mkswap ""$DRIVE_ID"p2"         			# Format swap partition
 	swapon ""$DRIVE_ID"p2"					# Enable swap partition
 fi
-	#mkfs.ext4 "/dev/mapper/$ROOTCRYPT_ID"   # Format root partition as ext4 (could experiment with btrfs and kernel compression? to save space)
 }
 auto_partition
 
 ## mount the new partitions
 auto_mount() { # havent tested this...
 	echo "Mounting Partitions!"
-	#mount ""$DRIVE_ID"p3" /mnt
 	if [[ $use_LUKS == true ]]; then
-	mount "/dev/mapper/$ROOTCRYPT_ID" /mnt
+	mount "/dev/mapper/$ROOTCRYPT_ID" "/mnt"
 else
-	mount "$DRIVE_ID$root_part" /mnt
+	mount "$DRIVE_ID$root_part" "/mnt"
 fi
-	mkdir /mnt/boot
+	mkdir "/mnt/boot"
 	mount ""$DRIVE_ID"p1" /mnt/boot
 	sleep 5 ## WAS FAILING DUE TO NOT ENOUGH TIME TO REGISTER MOUNTS??
 }
@@ -179,28 +181,26 @@ auto_mount
 
 ## BASE PACSTRAP INSTALL
 pacstrap_install() {
-	pacstrap -K /mnt $base_packages
+	pacstrap -K "/mnt" "$base_packages"
 }
 pacstrap_install
 
-genfstab -U /mnt >> /mnt/etc/fstab
+genfstab -U "/mnt" >> "/mnt/etc/fstab"
 
 echo "When in chroot run : chmod +x setup; ./setup"
 
-#curl -o /mnt/setup -fsSL https://raw.githubusercontent.com/CameronS2005/arch_stuff/main/setup2.sh; sleep 5 # get part 2 of the setup
 seed="#"
-sed -n "/$seed#START_TAG/,/$seed#END_TAG/p" $0 > /mnt/setup
+sed -n "/$seed#START_TAG/,/$seed#END_TAG/p" "$0" > "/mnt/setup"
 
-arch-chroot /mnt
+arch-chroot "/mnt"
 
 ## post chroot commands (we're finished here!)
 post_chroot() {
-#	exit
 	echo "UNMOUNTING FS AND REQUESTING REBOOT!"
 	sudo umount -a
 	echo "REBOOT NOW"
-	#read -p "PRESS ENTER TO REBOOT"
-	#sudo reboot now
+	read -p "PRESS ENTER TO REBOOT"
+	sudo reboot now
 }
 post_chroot
 
@@ -219,14 +219,6 @@ exit 0
 ################################################################
 
 ##START_TAG
-#!/bin/bash
-#DRIVE_ID="/dev/mmcblk0"
-#use_LUKS=false
-#ROOT_ID="rootcrypt"
-#USERNAME="Archie"
-#HOSTNAME="$USERNAME"
-#auto_login=false
-#HOSTNAME="Archie"
 source variables
 
 if [[ $nyae_swap == true ]]; then
@@ -283,8 +275,8 @@ EOF
 	fi
 	mkinitcpio -p linux
 
-	grub-install --target=x86_64-efi --efi-directory=/boot --bootloader-id=$GRUB_ID
-	grub-mkconfig -o /boot/grub/grub.cfg
+	grub-install --target=x86_64-efi --efi-directory=/boot --bootloader-id="$GRUB_ID"
+	grub-mkconfig -o "/boot/grub/grub.cfg"
 
 	ROOT_UUID=$(blkid -s UUID -o value "$DRIVE_ID$root_part")
 
@@ -303,10 +295,12 @@ fi
 	#systemctl enable iwd 
 	#systemctl enable bluetooth
 
-	#rm variables
-	#rm $0 # removes pt 2 of the install as it was in the new partition
-	#exit
-	#echo "FINISHED! EXITING CHROOT!"
+	echo "FYI root_part_test is $root_part_test"; sleep 10 # if this isnt empty we can remove the part if statement that duped in this 2nd part of the code
+
+	rm variables
+	rm $0 # removes pt 2 of the install as it was in the new partition
+	echo "FINISHED! EXITING CHROOT!"
+	exit
 }
 arch_chroot
 #END_TAG
