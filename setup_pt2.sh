@@ -1,5 +1,5 @@
 #!/bin/bash
-## UPDATE TIME; Aug 10, 09:10 AM EDT
+## UPDATE TIME; Aug 10, 09:20 AM EDT
 
 ## CONFIG
 DRIVE_ID="/dev/mmcblk0"
