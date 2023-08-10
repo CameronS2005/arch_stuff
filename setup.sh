@@ -25,7 +25,7 @@ GRUB_ID="GRUB" # grub entry name
 ### TESTING BASE PACKAGE LISTS
 #base_packages="linux linux-firmware base base-devel nano vim intel-ucode grub efibootmgr networkmanager network-manager-applet wireless_tools wpa_supplicant dialog mtools dosfstools linux-headers git curl wget bluez bluez-utils pulseaudio-bluetooth xdg-utils xdg-user-dirs" # 310 pkgs
 #base_packages="linux linux-firmware base base-devel nano vim intel-ucode grub efibootmgr networkmanager network-manager-applet wpa_supplicant wireless_tools net-tools dialog bash-completion" # 262 pkgs
-base_packahes="linux linux_firmware base nano grub efibootmgr networkmanager iwd wpa_supplicant" # testing
+base_packahes="linux linux_firmware base base-devel nano grub efibootmgr networkmanager iwd wpa_supplicant" # testing
 #base_packages="linux linux-firmware base base-devel nano vim intel-ucode grub efibootmgr" # 154 pkgs (NO WIFI)
 
 ### START OF SCRIPT
