@@ -1,8 +1,5 @@
 #!/bin/bash
-## UPDATE TIME; Aug 10, 12:25 AM EDT
-## CURRENTLY QUITE LITERALLY JUST A COMBINED VERSION OF THE TWO PART INSTALLER (NOT OPTIMIZED YET!)
-## THIS SCRIPT WILL NEVER SUPPORT NVIDIA AS I DONT HAVE ANY TESTBENCHES TO WORK ON WITH NVIDIA I WILL BE TESTING WITH INTEL & AMD
-## ^^ AMD WILL BE ADDED ITF!
+## UPDATE TIME; Aug 10, 12:57 AM EDT
 
 #### FIRST RELEASE ALMOST READY!!!!!! sed commands were a bitch...
 
@@ -18,16 +15,15 @@
 ## ADD IN OPTIONAL PRE or POST INSTALL SEVERAL ITERATION DISK SHRED!!
 # ^^ CAN BE DONE ON A FRESH INSTALL BY MAKING A MAX SIZE FILE AND REMOVING IT SEVERAL TIMES
 ## we'll do 3 as we have nothing import to erase (if we did then we would probably do about 25) < (even though i do believe its never been proven that data has been recovered after 1 actual wipe replacing all bytes with random data)
-
-
-#### NEED TO TRANSFER PT2 to mnt directory for execution (REST CAN BE HANDLED AT END OF SCRIPT AND SHALL BE AUTORAN ON EXITING CHROOT!)
-## ^^ WITHOUT SECOND SCRIPT ADD CODE IN HERE AND USE SED TO PULL FROM START AND END TAGS
+## THIS SCRIPT WILL NEVER SUPPORT NVIDIA AS I DONT HAVE ANY TESTBENCHES TO WORK ON WITH NVIDIA I WILL BE TESTING WITH INTEL & AMD
+## ^^ AMD WILL BE ADDED ITF!
+## FIX THE SED COMMANDS TO ENABLE 32-BIT SUPPORT!
 
 ## CONFIG ## BE SURE BOTH CONFIGS MATCH UNTIL WE FIND A WAY TO FIX THIS...
 WIFI_SSID="WiFi-2.4" # your wifi ssid # (only needed if not using ethernet) # also this script can only handle wifi using DHCP (static needs done manually)
 DRIVE_ID="/dev/mmcblk0"
 use_LUKS=false # use luksFormat Encryption on your root partition # idk how ill do this when i seperate my root and home partition!
-nyae_swap=false # create a swap partition (currently 15% of specified drive) 
+use_SWAP=true # create a swap partition (currently 15% of specified drive) 
 ROOT_ID="rootcrypt"
 USERNAME="Archie" # your non-root users name
 HOSTNAME="$USERNAME" # for testing... as idc ab username or hostname
@@ -35,15 +31,14 @@ HOSTNAME="$USERNAME" # for testing... as idc ab username or hostname
 #HOSTNAME="Archie" # your installs hostname
 GRUB_ID="ARCHIE" # grub entry name
 
-#append_install_wifi_config=true # if you've set your wifi in the installer iso using iwctl it can be copied over to your new install (provided you have networkmanager)
-# this isnt setup yet...
+append_install_wifi_config=true # if you've set your wifi in the installer iso using iwctl it can be copied over to your new install (provided you have networkmanager)
 
 2nd_config() { # this is so annoying...
 cat << EOF > /mnt/variables
 WIFI_SSID="WiFi-2.4"
 DRIVE_ID="/dev/mmcblk0"
 use_LUKS=false
-nyae_swap=false
+use_SWAP=false
 ROOT_ID="rootcrypt"
 USERNAME="Archie"
 HOSTNAME="$USERNAME"
@@ -65,8 +60,19 @@ base_packages="linux linux-firmware base nano grub efibootmgr networkmanager int
 
 ### START OF SCRIPT
 
-echo "FYI LUKS IS $use_LUKS"
-echo "Battery is at $(cat /sys/class/power_supply/BAT0/capacity)%"; sleep 3
+cat << EOF
+FYI LUKS IS $use_LUKS
+FYI SWAP IS $use_SWAP
+Battery is at $(cat /sys/class/power_supply/BAT0/capacity)%
+EOF
+
+## SIMPLE BIOS CHECK!
+if [ ! "$(ls -A /sys/firmware/efi/efivars)" ]; then
+	echo "ERROR THIS SCRIPT DOESNT SUPPORT BIOS YET!"
+	exit
+fi
+
+sleep 5
 
 ## Handle wifi connection (if no ethernet dhcp)
 wifi() {
@@ -90,34 +96,33 @@ wifi() {
 wifi
 
 ## Quick way of selecting best mirrors # gracias Muta
-#rank_mirrors() { # rewatch mutas video cause i messed this up...
-#	pacman -Syy pacman-contrib # IDK ABOUT THIS ORDER
-#	#pacman -Syyy
-#	cp /etc/pacman.d/mirrorlist /etc/pacman.d/mirrorlist.bak # backup mirrorlist in case we fucked up
-#
-#	rankmirrors -n 6 /etc/pacman.d/mirrorlist.bak > /etc/pacman.d/mirrorlist # inputs bakup mirrorlist into ranked mirrors and writes to mirrorfile
-#}
-#rank_mirrors # this is hardly needed (like not at all...) # can comment out if you dont care...
+rank_mirrors() {
+	echo "UPDATING PACMAN MIRRORS! THIS MAY TAKE AWHILE!!"
+	pacman -Syy pacman-contrib
+	cp /etc/pacman.d/mirrorlist /etc/pacman.d/mirrorlist.bak
+
+	rankmirrors -n 6 /etc/pacman.d/mirrorlist.bak > /etc/pacman.d/mirrorlist
+}
+rank_mirrors
 
 ## Handle drive partitioning ## IN THE FUTURE MODIFY TO SUPPORT SEPERATE home PARTITION AND PERHAPS A data PARTITION
 auto_partition() { # rename to auto drive & add to handle encryption and mounting
-	read -p "PRESS ENTER TO PARTITION ($DRIVE_ID)" # could modify to an if check then read for inputting a new drive id (same with wifi ssid if failed to connect?)
+	read -p "PRESS ENTER TO PARTITION ($DRIVE_ID)"
 
 	# Remove existing partitions (WARNING: This will delete all data on the drive)
 	echo "Performing Partition & MBR Wipe & Creating GPT Partition Table!"
 	
 	sgdisk --zap-all "$DRIVE_ID"
-	parted "$DRIVE_ID" mklabel gpt  # Create a new GPT partition table to remove existing partitions
+	parted "$DRIVE_ID" mklabel gpt
 
 	# Get the total size of the drive in MiB
 	drive_size=$(parted -s "$DRIVE_ID" print | awk '/Disk/ {print $3}' | sed 's/[^0-9]//g')
-	drive_size_mib=$((drive_size / 10 * 1024)) # yeah yikes...
+	drive_size_mib=$((drive_size / 10 * 1024))
 
-	# Calculate partition sizes (2% for ESP/BOOT, 15% for swap, rest for root) # LEGACY/BIOS MAY REQUIRE MORE THAN 2% FOR BOOT DIR
-	## SWAP IS SO LOW BECAUSE TESHBENCH ONLY HAS 16gb SSD
 	echo "Calculating Partition Sizes Based on Drive Size!"
 	esp_size=$((drive_size_mib * 2 / 100))
-	if [[ $nyae_swap == true ]]; then
+
+	if [[ $use_SWAP == true ]]; then
 	swap_size=$((drive_size_mib * 15 / 100))
 	root_size=$((drive_size_mib - esp_size - swap_size))
 else
@@ -129,14 +134,14 @@ fi
 	echo "Creating New Partitions!"
 	parted "$DRIVE_ID" mkpart ESP fat32 1MiB "${esp_size}MiB"  # Create EFI System Partition
 	parted "$DRIVE_ID" set 1 boot on  # Set the boot flag for ESP
-	if [[ $nyae_swap == true ]]; then
+	if [[ $use_SWAP == true ]]; then
 	parted "$DRIVE_ID" mkpart primary linux-swap "${esp_size}MiB" "$((esp_size + swap_size))MiB"  # Create swap partition
 	parted "$DRIVE_ID" mkpart primary ext4 "$((esp_size + swap_size))MiB" 100%  # Create root partition
 else
 	parted "$DRIVE_ID" mkpart primary ext4 "$((esp_size))MiB" 100%  # Create root partition
 fi
 
-if [[ $nyae_swap == true ]]; then
+if [[ $use_SWAP == true ]]; then
 	root_part="p3"
 else
 	root_part="p2"
@@ -159,11 +164,11 @@ fi
 else
 	mkfs.ext4 "$DRIVE_ID$root_part"
 fi
-	mkfs.fat -F32 ""$DRIVE_ID"p1"  			# Format EFI System Partition as FAT32
+	mkfs.fat -F32 ""$DRIVE_ID"p1"
 	
-	if [[ $nyae_swap == true ]]; then
-	mkswap ""$DRIVE_ID"p2"         			# Format swap partition
-	swapon ""$DRIVE_ID"p2"					# Enable swap partition
+	if [[ $use_SWAP == true ]]; then
+	mkswap ""$DRIVE_ID"p2"
+	swapon ""$DRIVE_ID"p2"
 fi
 }
 auto_partition
@@ -190,6 +195,12 @@ pacstrap_install() {
 }
 pacstrap_install
 
+## IF ENABLED THEN TRANSFER CURRENT WIFI CONFIG FILE
+if [[ $append_install_wifi_config == true ]]; then
+	echo "APPENDING WIFI CONFIGURATION!"
+	cp -r /var/lib/iwd/* /mnt/var/lib/iwd/
+fi
+
 genfstab -U /mnt >> /mnt/etc/fstab
 
 echo "When in chroot run : chmod +x setup; ./setup"
@@ -202,12 +213,12 @@ arch-chroot /mnt
 ## post chroot commands (we're finished here!)
 post_chroot() {
 	echo "UNMOUNTING FS AND REQUESTING REBOOT!"
-	#sudo umount -a
+	sudo umount -a
 	echo "YOU CAN REBOOT NOW"
 	#read -p "PRESS ENTER TO REBOOT"
 	#sudo reboot now
 }
-#post_chroot
+post_chroot
 
 exit 0
 exit 0
@@ -295,7 +306,7 @@ fi
 	#systemctl enable bluetooth
 
 	rm variables
-	rm $0 # is this rm causing the fail to exit chroot?
+	rm $0 # 
 	echo "FINISHED! EXITING CHROOT!"
 	exit # we need to exit chroot here not just the script...
 }
