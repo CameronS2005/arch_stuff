@@ -73,7 +73,7 @@ EOF
 	#sed -i "s/^GRUB_CMDLINE_LINUX=\"[^\"]*\"/GRUB_CMDLINE_LINUX=\"$new_value\"/" /etc/default/grub # THIS LINE DOESNT WORK
 	#sed -i 's/^GRUB_CMDLINE_LINUX="[^"]*"/GRUB_CMDLINE_LINUX="'"$new_value"'"/' /etc/default/grub # THIS LINE DOESNT WORK...
 	#sed -i 's/GRUB_CMDLINE_LINUX="[^"]*"/GRUB_CMDLINE_LINUX="'"$new_value"'"/' "/etc/default/grub" ### THIS DOESNT WORK THIS IS THE FINAL ISSUE...
-	sed -i "s/^GRUB_CMDLINE_LINUX=\"[^\"]*\"/GRUB_CMDLINE_LINUX=\"$new_value\"/" /etc/default/grub
+	sed -i "s/^GRUB_CMDLINE_LINUX=\"[^\"]*\"/GRUB_CMDLINE_LINUX=\"$new_value\"/" "/etc/default/grub"
 	echo "UUID IS $CRYPT_UUID RIGHT???"
 	
 	### TESTING HERE!!!
