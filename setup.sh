@@ -24,7 +24,7 @@ GRUB_ID="GRUB" # grub entry name
 
 #base_packages="linux linux-firmware base base-devel nano vim intel-ucode grub efibootmgr networkmanager network-manager-applet wireless_tools wpa_supplicant dialog mtools dosfstools linux-headers git curl wget bluez bluez-utils pulseaudio-bluetooth xdg-utils xdg-user-dirs" # 310 pkgs
 #base_packages="linux linux-firmware base base-devel nano vim intel-ucode grub efibootmgr networkmanager network-manager-applet wpa_supplicant wireless_tools net-tools dialog bash-completion" # 262 pkgs
-base_packages="linux linux-firmware base base-devel nano vim intel-ucode grub efibootmgr" # pkgs -- (NO WIFI)
+base_packages="linux linux-firmware base base-devel nano vim intel-ucode grub efibootmgr" # 154 pkgs -- (NO WIFI)
 
 ### START OF SCRIPT
 
@@ -109,26 +109,26 @@ auto_partition
 ## mount the new partitions
 auto_mount() { # havent tested this...
 	#mount ""$DRIVE_ID"p3" /mnt
-	mount "/dev/mapper/$ROOTCRYPT_ID" /mnt
-	mkdir /mnt/boot
-	mount ""$DRIVE_ID"p1" /mnt/boot
+	mount "/dev/mapper/$ROOTCRYPT_ID" "/mnt"
+	mkdir "/mnt/boot"
+	mount ""$DRIVE_ID"p1" "/mnt/boot"
 	#swapon ""$DRIVE_ID"p2"
 }
 auto_mount
 
 ## BASE PACSTRAP INSTALL
 pacstrap_install() {
-	pacstrap -K /mnt $base_packages
+	pacstrap -K "/mnt" "$base_packages"
 }
 pacstrap_install
 
-genfstab -U /mnt >> /mnt/etc/fstab
+genfstab -U "/mnt" >> "/mnt/etc/fstab"
 
 echo "When in chroot run : chmod +x setup; ./setup"
 
-curl -o /mnt/setup -fsSL https://raw.githubusercontent.com/CameronS2005/arch_stuff/main/setup2.sh; sleep 5 # get part 2 of the setup
+curl -o "/mnt/setup" -fsSL "https://raw.githubusercontent.com/CameronS2005/arch_stuff/main/setup2.sh"; sleep 5 # get part 2 of the setup
 
-arch-chroot /mnt
+arch-chroot "/mnt"
 
 ## post chroot commands (we're finished here!)
 post_chroot() {
