@@ -1,22 +1,18 @@
 #!/bin/bash
-## UPDATE TIME; Aug 10, 13:57 PM EDT
+## UPDATE TIME; Aug 10, 14:08 PM EDT
 ## VERSION (SED COMMANDS WILL MOST LIKELY NEED UPDATED WITH UPDATES!)
 
 ## DONT MAKE TYPOS!!!!
 
 #### NOTES
 # add support for kernel compression
-## transfer archinstalliso wpa_supplicant config to new partion for auto-wifi?
-## ADD IN AUTO-LOGIN SUPPORT
-## CREATE CUSTOM MOTD THAT GETS BROADCASTED ON TTY1 ON BOOT AND DOWNLOAD IT HERE! (ADD CONTROL VARIABLE)
-## ECHO CONFIG INTO SOURCED EXPORT FILE INTO MOUNT SO WE DONT HAVE TO DEFINE VARIABLES TWICE...
 ## BOOT PARTITION SIZE NEEDS TO BE HARDCODED AS BIGGER DRIVES WILL WASTE A BUNCH ON part1
-## ADD IN OPTIONAL PRE or POST INSTALL SEVERAL ITERATION DISK SHRED!!
-# ^^ CAN BE DONE ON A FRESH INSTALL BY MAKING A MAX SIZE FILE AND REMOVING IT SEVERAL TIMES
-## we'll do 3 as we have nothing import to erase (if we did then we would probably do about 25) < (even though i do believe its never been proven that data has been recovered after 1 actual wipe replacing all bytes with random data)
+
 ## THIS SCRIPT WILL NEVER SUPPORT NVIDIA AS I DONT HAVE ANY TESTBENCHES TO WORK ON WITH NVIDIA I WILL BE TESTING WITH INTEL & AMD
 ## ^^ AMD WILL BE ADDED ITF!
-## FIX THE SED COMMANDS TO ENABLE 32-BIT SUPPORT!
+
+## ALOT OF THESE COMMANDS NEED SILENCED!
+#### INCREASE THE AUTOMATION!!!
 
 ## CONFIG ## BE SURE BOTH CONFIGS MATCH UNTIL WE FIND A WAY TO FIX THIS...
 WIFI_SSID="WiFi-2.4" # your wifi ssid # (only needed if not using ethernet) # also this script can only handle wifi using DHCP (static needs done manually)
@@ -98,7 +94,7 @@ rank_mirrors() {
 	echo "UPDATING PACMAN MIRRORS! THIS MAY TAKE AWHILE!!"
 	rankmirrors -n 6 /etc/pacman.d/mirrorlist.bak > /etc/pacman.d/mirrorlist
 }
-rank_mirrors # this could be disabled as the time it takes might out-weight the time it saves...
+#rank_mirrors # this could be disabled as the time it takes might out-weight the time it saves...
 
 ## Handle drive partitioning ## IN THE FUTURE MODIFY TO SUPPORT SEPERATE home PARTITION AND PERHAPS A data PARTITION
 auto_partition() { # rename to auto drive & add to handle encryption and mounting
