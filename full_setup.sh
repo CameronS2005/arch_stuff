@@ -1,5 +1,5 @@
 #!/bin/bash
-## UPDATE TIME; Aug 10, 12:59 AM EDT
+## UPDATE TIME; Aug 10, 13:09 PM EDT
 
 #### FIRST RELEASE ALMOST READY!!!!!! sed commands were a bitch...
 
@@ -25,13 +25,10 @@ DRIVE_ID="/dev/mmcblk0"
 use_LUKS=false # use luksFormat Encryption on your root partition # idk how ill do this when i seperate my root and home partition!
 use_SWAP=true # create a swap partition (currently 15% of specified drive) 
 ROOT_ID="rootcrypt"
+HOSTNAME="Arch-Box"
 USERNAME="Archie" # your non-root users name
-HOSTNAME="$USERNAME" # for testing... as idc ab username or hostname
 #auto_login=false # auto-login to your new non-root user # false/true
-#HOSTNAME="Archie" # your installs hostname
 GRUB_ID="ARCHIE" # grub entry name
-
-append_install_wifi_config=true # if you've set your wifi in the installer iso using iwctl it can be copied over to your new install (provided you have networkmanager)
 
 2nd_config() { # this is so annoying...
 cat << EOF > /mnt/variables
@@ -40,10 +37,9 @@ DRIVE_ID="/dev/mmcblk0"
 use_LUKS=false
 use_SWAP=false
 ROOT_ID="rootcrypt"
+HOSTNAME="Arch-Box"
 USERNAME="Archie"
-HOSTNAME="$USERNAME"
 #auto_login=false
-#HOSTNAME="Archie"
 GRUB_ID="ARCHIE"
 root_part_test="$root_part"
 EOF
@@ -97,13 +93,14 @@ wifi
 
 ## Quick way of selecting best mirrors # gracias Muta
 rank_mirrors() {
-	echo "UPDATING PACMAN MIRRORS! THIS MAY TAKE AWHILE!!"
-	pacman -Syy pacman-contrib
+	echo "Installing rankedmirrors to get the best mirrors for a faster install!"
+	pacman -Syyy pacman-contrib
 	cp /etc/pacman.d/mirrorlist /etc/pacman.d/mirrorlist.bak
 	sleep 3
+	echo "UPDATING PACMAN MIRRORS! THIS MAY TAKE AWHILE!!"
 	rankmirrors -n 6 /etc/pacman.d/mirrorlist.bak > /etc/pacman.d/mirrorlist
 }
-rank_mirrors
+rank_mirrors # this could be disabled as the time it takes might out-weight the time it saves...
 
 ## Handle drive partitioning ## IN THE FUTURE MODIFY TO SUPPORT SEPERATE home PARTITION AND PERHAPS A data PARTITION
 auto_partition() { # rename to auto drive & add to handle encryption and mounting
@@ -195,12 +192,6 @@ pacstrap_install() {
 }
 pacstrap_install
 
-## IF ENABLED THEN TRANSFER CURRENT WIFI CONFIG FILE
-if [[ $append_install_wifi_config == true ]]; then
-	echo "APPENDING WIFI CONFIGURATION!"
-	cp -r /var/lib/iwd/* /mnt/var/lib/iwd/
-fi
-
 genfstab -U /mnt >> /mnt/etc/fstab
 
 echo "When in chroot run : chmod +x setup; ./setup"
@@ -237,7 +228,12 @@ exit 0
 ##START_TAG
 source variables # created by 2nd_config function in pt1
 
-GRUB_ID="ARCHIE"
+if [[ $use_SWAP == true ]]; then
+	root_part="p3"
+else
+	root_part="p2"
+fi
+
 arch_chroot() {
 	echo "Will be prompted to enter new root password"
 	passwd
