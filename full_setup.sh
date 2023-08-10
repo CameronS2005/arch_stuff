@@ -1,6 +1,8 @@
 #!/bin/bash
-## UPDATE TIME; Aug 10, 14:08 PM EDT
+## UPDATE TIME; Aug 10, 14:19 PM EDT
 ## VERSION (SED COMMANDS WILL MOST LIKELY NEED UPDATED WITH UPDATES!)
+
+## NOT BOOTING...
 
 ## DONT MAKE TYPOS!!!!
 
@@ -226,11 +228,11 @@ exit 0
 #!/bin/bash
 source variables # created by 2nd_config function in pt1
 
-#if [[ $use_SWAP == true ]]; then
-#	root_part="p3"
-#else
-#	root_part="p2"
-#fi
+if [[ $use_SWAP == true ]]; then
+	root_part="p3"
+else
+	root_part="p2"
+fi
 
 arch_chroot() {
 	echo "Will be prompted to enter new root password"
@@ -251,6 +253,7 @@ arch_chroot() {
 	if [[ $enable_32b_mlib == true ]]; then
 	sed -i '90 s/^#//' "/etc/pacman.conf"
 	sed -i '91 s/^#//' "/etc/pacman.conf"
+	#pacman -Syyy # ?? hopefully this fixes current boot issue
 fi
 
 	echo "Configuring Hosts File With Hostname: ($HOSTNAME)"
