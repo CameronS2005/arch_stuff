@@ -5,6 +5,7 @@
 ### encrypt needs auto added to mkinitcpio conf (HOOKS)
 
 #### NOTES
+## THIS SCRIPT 100% DOES NOT SUPPORT NVIDIA DRIVER DETECTION NOR AUTO CONFIGURE
 # Currently this uses grub and not Muta's BL as it would be a bit harder to automate and not neccessary AFAIK
 
 ## CONFIG
@@ -142,6 +143,9 @@ arch_chroot() {
 
 	#sed -i '/^\s*#[multilib]/ s/^#//' "/etc/pacman.conf" # this doesnt work so fix it to automatically allow 32 bit support!
 	#pacman -Sy
+	
+#[multilib]
+#Include = /etc/pacman.d/mirrorlist
 
 	echo "Configuring Hosts File With Hostname: ($HOSTNAME)!"
 	cat << EOF >> /etc/hosts
@@ -163,7 +167,7 @@ EOF
 
 	echo "Configuring Bootloader!"
 	#### THIS NEEDS DONE ASAP #########################rewoworioirwirwiroeirewirpoiewriweroiweoriewporiewpriweporieporipoweirpoewir
-	sed ### sed some bs from /etc/mkinitcpio.conf for adding encrypt to hooks list
+	sed -i '/^HOOKS=/ s/)$/ encrypt)/' "/etc/mkinitcpio.conf" # adds encrypt to hooks
 	mkinitcpio -p linux
 
 	grub-install --target=x86_64-efi --efi-directory=/boot --bootloader-id=$GRUB_ID
@@ -178,7 +182,7 @@ EOF
 	systemctl enable NetworkManager
 	systemctl enable bluetooth
 }
-#arch_chroot
+arch_chroot
 
 ## post chroot commands (we're finished here!)
 post_chroot() {
