@@ -1,5 +1,5 @@
 #!/bin/bash
-## UPDATE TIME; Aug 10, 08:13 AM EDT
+## UPDATE TIME; Aug 10, 08:42 AM EDT
 
 ## DONT MAKE TYPOS!!!!
 
@@ -7,7 +7,10 @@
 ## THIS SCRIPT 100% DOES NOT SUPPORT NVIDIA DRIVER DETECTION NOR AUTO CONFIGURE
 # Currently this uses grub and not Muta's BL as it would be a bit harder to automate and not neccessary AFAIK
 # add support for kernel compression
+
 #### NEED TO TRANSFER PT2 to mnt directory for execution (REST CAN BE HANDLED AT END OF SCRIPT AND SHALL BE AUTORAN ON EXITING CHROOT!)
+## ^^ WITHOUT SECOND SCRIPT ADD CODE IN HERE AND USE SED TO PULL FROM START AND END TAGS
+
 
 ## CONFIG
 WIFI_SSID="WiFi-2.4" # your wifi ssid # (only needed if not using ethernet) # also this script can only handle wifi using DHCP (static needs done manually)
@@ -25,8 +28,8 @@ GRUB_ID="GRUB" # grub entry name
 ### TESTING BASE PACKAGE LISTS
 #base_packages="linux linux-firmware base base-devel nano vim intel-ucode grub efibootmgr networkmanager network-manager-applet wireless_tools wpa_supplicant dialog mtools dosfstools linux-headers git curl wget bluez bluez-utils pulseaudio-bluetooth xdg-utils xdg-user-dirs" # 310 pkgs
 #base_packages="linux linux-firmware base base-devel nano vim intel-ucode grub efibootmgr networkmanager network-manager-applet wpa_supplicant wireless_tools net-tools dialog bash-completion" # 262 pkgs
-base_packages="linux linux-firmware base base-devel nano grub efibootmgr networkmanager iwd wpa_supplicant" # testing
-#base_packages="linux linux-firmware base base-devel nano vim intel-ucode grub efibootmgr" # 154 pkgs (NO WIFI)
+base_packages="linux linux-firmware base base-devel nano grub efibootmgr networkmanager iwd wpa_supplicant" # 173 pkgs -- testing
+#base_packages="linux linux-firmware base base-devel nano vim grub efibootmgr" # <154 pkgs (NO WIFI)
 
 ### START OF SCRIPT
 
@@ -73,7 +76,7 @@ auto_partition() { # rename to auto drive & add to handle encryption and mountin
 	drive_size=$(parted -s "$DRIVE_ID" print | awk '/Disk/ {print $3}' | sed 's/[^0-9]//g')
 	drive_size_mib=$((drive_size / 10 * 1024)) # yeah yikes...
 
-	# Calculate partition sizes (2% for ESP/BOOT, 15% for swap, rest for root) # LEGACY MAY REQUIRE MORE THAN 2%
+	# Calculate partition sizes (2% for ESP/BOOT, 15% for swap, rest for root) # LEGACY/BIOS MAY REQUIRE MORE THAN 2% FOR BOOT DIR
 	## SWAP IS SO LOW BECAUSE TESHBENCH ONLY HAS 16gb SSD
 	echo "Calculating Partition Sizes Based on Drive Size!"
 	esp_size=$((drive_size_mib * 2 / 100))
@@ -135,10 +138,11 @@ arch-chroot /mnt
 ## post chroot commands (we're finished here!)
 post_chroot() {
 #	exit
+	echo "UNMOUNTING FS AND REQUESTING REBOOT!"
 	sudo umount -a
 	read -p "PRESS ENTER TO REBOOT"
 	sudo reboot now
 }
-#post_chroot
+post_chroot
 
 ### END OF SCRIPT
