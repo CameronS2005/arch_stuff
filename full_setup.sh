@@ -31,7 +31,7 @@ HOSTNAME="$USERNAME" # for testing... as idc ab username or hostname
 #HOSTNAME="Archie" # your installs hostname
 GRUB_ID="ARCHIE" # grub entry name
 
-append_install_wifi_config=true # if you've set your wifi in the installer iso using iwctl it can be copied over to your new install (provided you have networkmanager)
+#append_install_wifi_config=true # if you've set your wifi in the installer iso using iwctl it can be copied over to your new install (provided you have networkmanager)
 
 2nd_config() { # this is so annoying...
 cat << EOF > /mnt/variables
