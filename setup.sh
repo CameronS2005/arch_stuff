@@ -57,14 +57,15 @@ auto_partition() { # rename to auto drive & add to handle encryption and mountin
 	sgdisk --zap-all "$DRIVE_ID"
 	parted "$DRIVE_ID" mklabel gpt  # Create a new GPT partition table to remove existing partitions
 	
-	# Get the total size of the drive
-	drive_size=$(parted -s "$DRIVE_ID" print | awk '/Disk/ {print $3}' | sed 's/[^0-9]//g')
+	# Get the total size of the drive in MiB
+	drive_size_mib=$(parted -s "$DRIVE_ID" print | awk '/Disk/ {print $3}' | sed 's/[^0-9]//g')
 	
-	# Calculate partition sizes (5% for ESP, 15% for swap, rest for root) # these numbers are small small because test-bench only has a 16gb ssd
+	# Calculate partition sizes (5% for ESP, 15% for swap, rest for root)
 	echo "Calculating Partition Sizes Based on Drive Size!"
-	esp_size=$((drive_size * 5 / 100))
-	swap_size=$((drive_size * 15 / 100))
-	root_size=$((drive_size - esp_size - swap_size))
+	esp_size=$((drive_size_mib * 5 / 100))
+	swap_size=$((drive_size_mib * 15 / 100))
+	root_size=$((drive_size_mib - esp_size - swap_size))
+
 	
 	# Create partitions
 	## USE EQUATION TO DETERMINE SWAP SIZE (BASED ON DISK SIZE AND RAM AMOUNT)
