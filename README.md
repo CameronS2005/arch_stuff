@@ -9,5 +9,7 @@ References;
 
 https://wiki.archlinux.org/title/installation_guide
 
-https://www.youtube.com/watch?v=_JYIAaLrwcY&t=2412s (SomeOrdinaryGamers "Muta"  I Installed The Hardest System Known To Man...)
+https://www.youtube.com/watch?v=_JYIAaLrwcY&t=2412s (SomeOrdinaryGamers : "Muta" : I Installed The Hardest System Known To Man...)
 ^^ big fan btw lol <3
+https://www.youtube.com/watch?v=XNJ4oKla8B0 (EF - Linux Made Simple : Arch Linux Base Install on UEFI with LUKS Encryption)
+^^ VERY HELPFUL getting luksformat to work! (turn out it was very simple it was just my first time using cryptsetup without a gui lol)
