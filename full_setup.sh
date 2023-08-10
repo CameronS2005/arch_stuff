@@ -34,7 +34,7 @@ GRUB_ID="ARCHIE" # grub entry name
 #base_packages="linux linux-firmware base base-devel nano vim intel-ucode grub efibootmgr networkmanager network-manager-applet wireless_tools wpa_supplicant dialog mtools dosfstools linux-headers git curl wget bluez bluez-utils pulseaudio-bluetooth xdg-utils xdg-user-dirs" # 310 pkgs
 #base_packages="linux linux-firmware base base-devel nano vim intel-ucode grub efibootmgr networkmanager network-manager-applet wpa_supplicant wireless_tools net-tools dialog bash-completion" # 262 pkgs
 #base_packages="linux linux-firmware base base-devel nano grub efibootmgr networkmanager iwd wpa_supplicant dhcpcd" # 173 pkgs
-base_packages="linux linux-firmware base nano grub efibootmgr networkmanager iwd dhcpd" # remove dhcpd by setting static ip? (trying without wpa_supplicant also next try without iwd as nmcli should exist...)
+base_packages="linux linux-firmware base nano grub efibootmgr networkmanager iwd dhcpcd" # remove dhcpd by setting static ip? (trying without wpa_supplicant also next try without iwd as nmcli should exist...)
 #base_packages="linux linux-firmware base base-devel nano vim grub efibootmgr" # <154 pkgs (NO WIFI)
 
 ### START OF SCRIPT
