@@ -1,4 +1,5 @@
 #!/bin/bash
+## UPDATE TIME; Aug 10, 07:20 AM EDT
 
 ## CONFIG
 ROOTCRYPT_ID="rootcrypt"
