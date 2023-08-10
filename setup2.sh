@@ -1,5 +1,5 @@
 #!/bin/bash
-## UPDATE TIME; Aug 10, 08:42 AM EDT
+## UPDATE TIME; Aug 10, 09:10 AM EDT
 
 ## CONFIG
 DRIVE_ID="/dev/mmcblk0"
@@ -11,7 +11,6 @@ auto_login=false # auto-login to your new non-root user # false/true
 #HOSTNAME="Archie" # your installs hostname
 
 GRUB_ID="GRUB" # grub entry name
-
 
 ## START OF SCRIPT
 
@@ -73,12 +72,14 @@ EOF
 
 	sed -i '7c\GRUB_CMDLINE_LINUX="'"$new_value"'"' "/etc/default/grub" # ...
 
-	echo "UUID IS $CRYPT_UUID RIGHT???"
+	#echo "UUID IS $CRYPT_UUID RIGHT???" # this was for testing...
 	
 	### TESTING HERE!!!
 	grub-mkconfig -o "/boot/grub/grub.cfg" # UNCOMMENT THIS AFTER FIXING THE SED LINE ABOVE ^^
 
 	systemctl enable NetworkManager
+	systemctl enable dhcpcd
+	systemctl enable iwd 
 	#systemctl enable bluetooth
 	rm $0 # removes pt 2 of the install as it was in the new partition
 	exit
