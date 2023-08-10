@@ -112,7 +112,7 @@ auto_partition
 ## mount the new partitions
 auto_mount() { # havent tested this...
 	#mount ""$DRIVE_ID"p3" /mnt
-	mount "/dev/mapper/$ROOTCRYPT_ID" "/mnt"
+	mount "/dev/mapper/$ROOTCRYPT_ID" /mnt
 	mkdir "/mnt/boot"
 	mount ""$DRIVE_ID"p1" "/mnt/boot"
 	#swapon ""$DRIVE_ID"p2"
@@ -121,17 +121,17 @@ auto_mount
 
 ## BASE PACSTRAP INSTALL
 pacstrap_install() {
-	pacstrap -K "/mnt" "$base_packages"
+	pacstrap -K /mnt $base_packages
 }
 pacstrap_install
 
-genfstab -U "/mnt" >> "/mnt/etc/fstab"
+genfstab -U /mnt >> "/mnt/etc/fstab"
 
 echo "When in chroot run : chmod +x setup; ./setup"
 
 curl -o "/mnt/setup" -fsSL "$part_2_url"; sleep 5 # get part 2 of the setup
 
-arch-chroot "/mnt"
+arch-chroot /mnt
 
 ## post chroot commands (we're finished here!)
 post_chroot() {
