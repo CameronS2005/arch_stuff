@@ -22,9 +22,11 @@ HOSTNAME="$USERNAME" # for testing... as idc ab username or hostname
 
 GRUB_ID="GRUB" # grub entry name
 
+### TESTING BASE PACKAGE LISTS
 #base_packages="linux linux-firmware base base-devel nano vim intel-ucode grub efibootmgr networkmanager network-manager-applet wireless_tools wpa_supplicant dialog mtools dosfstools linux-headers git curl wget bluez bluez-utils pulseaudio-bluetooth xdg-utils xdg-user-dirs" # 310 pkgs
 #base_packages="linux linux-firmware base base-devel nano vim intel-ucode grub efibootmgr networkmanager network-manager-applet wpa_supplicant wireless_tools net-tools dialog bash-completion" # 262 pkgs
-base_packages="linux linux-firmware base base-devel nano vim intel-ucode grub efibootmgr" # 154 pkgs (NO WIFI)
+base_packahes="linux linux_firmware base nano grub efibootmgr networkmanager iwd wpa_supplicant" # testing
+#base_packages="linux linux-firmware base base-devel nano vim intel-ucode grub efibootmgr" # 154 pkgs (NO WIFI)
 
 ### START OF SCRIPT
 
@@ -85,7 +87,6 @@ auto_partition() { # rename to auto drive & add to handle encryption and mountin
 	parted "$DRIVE_ID" set 1 boot on  # Set the boot flag for ESP
 	parted "$DRIVE_ID" mkpart primary linux-swap "${esp_size}MiB" "$((esp_size + swap_size))MiB"  # Create swap partition
 	parted "$DRIVE_ID" mkpart primary ext4 "$((esp_size + swap_size))MiB" 100%  # Create root partition
-	# ^^ THIS IS UNTESTED AND IDK IF THE PERCENTAGES OF THE DRIVE WILL WORK CORRECTLY
 
 	## Handle root partition encryption ## this could use some modifying...
 	encrypt_root() {
@@ -99,10 +100,10 @@ auto_partition() { # rename to auto drive & add to handle encryption and mountin
 
 	# Format partitions
 	echo "Formatting Partitions!"
-	mkfs.fat -F32 ""$DRIVE_ID"p1"  # Format EFI System Partition as FAT32
-	mkswap ""$DRIVE_ID"p2"         # Format swap partition
-	swapon ""$DRIVE_ID"p2"
-	mkfs.ext4 "/dev/mapper/$ROOTCRYPT_ID"      # Format root partition as ext4 (could experiment with btrfs and kernel compression? to save space)
+	mkfs.fat -F32 ""$DRIVE_ID"p1"  			# Format EFI System Partition as FAT32
+	mkswap ""$DRIVE_ID"p2"         			# Format swap partition
+	swapon ""$DRIVE_ID"p2"					# Enable swap partition
+	mkfs.ext4 "/dev/mapper/$ROOTCRYPT_ID"   # Format root partition as ext4 (could experiment with btrfs and kernel compression? to save space)
 }
 auto_partition
 
@@ -113,8 +114,7 @@ auto_mount() { # havent tested this...
 	mount "/dev/mapper/$ROOTCRYPT_ID" /mnt
 	mkdir /mnt/boot
 	mount ""$DRIVE_ID"p1" /mnt/boot
-	#swapon ""$DRIVE_ID"p2"
-	sleep 5
+	sleep 5 ## WAS FAILING DUE TO NOT ENOUGH TIME TO REGISTER MOUNTS??
 }
 auto_mount
 
