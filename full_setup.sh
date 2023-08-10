@@ -67,7 +67,7 @@ wifi() {
 }
 wifi # can comment out if using ethernet # really this function is useless considering you prob configured wifi to get the script
 
-## Quick way of selecting best mirrors
+## Quick way of selecting best mirrors # gracias Muta
 #rank_mirrors() { # rewatch mutas video cause i messed this up...
 #	pacman -Syy pacman-contrib # IDK ABOUT THIS ORDER
 #	#pacman -Syyy
@@ -253,8 +253,7 @@ EOF
 
 	sed -i '7c\GRUB_CMDLINE_LINUX="'"$new_value"'"' "/etc/default/grub" # ...
 else
-	new_value="root=UUID=$ROOT_UUID" # testing this
-	true # this sed command needs fixed! #<< its actually the new_value's values
+	new_value="root=UUID=$ROOT_UUID"
 	sed -i '7c\GRUB_CMDLINE_LINUX="'"$new_value"'"' "/etc/default/grub" # ...
 fi
 
@@ -264,9 +263,10 @@ fi
 	#systemctl enable dhcpcd
 	#systemctl enable iwd 
 	#systemctl enable bluetooth
-	rm $0 # removes pt 2 of the install as it was in the new partition
-	exit
-	echo "FINISHED! EXITING CHROOT!"
+	
+	#rm $0 # removes pt 2 of the install as it was in the new partition
+	#exit
+	#echo "FINISHED! EXITING CHROOT!"
 }
 arch_chroot
 #END_TAG
