@@ -1,9 +1,17 @@
 # arch_stuff
 A collection of my arch linux scripts (I am very new to arch so its nothing to impressive just a personal archive)
 
-BE CAREFUL WITH THIS SCRIPT AS IT COULD CAUSE DAMAGE TO YOUR DRIVES IF NOT CONFIGURED PROPERLEY 
+Testbench: Dell Chromebook 3100, MFG YR: 2021
 
-to use on a fresh copy of the archiso, simply modify the variables in the config of the script, and run "curl -s setup.sh -fsSL https://raw.githubusercontent.com/CameronS2005/arch_stuff/main/setup.sh; chmod +x setup.sh; ./setup.sh"
+Arch Version: 2023.08.01, Kernel: 6.4.7
+
+# -------------------------------- #
+
+BE CAREFUL WITH THESE SCRIPTS AS THEY COULD CAUSE DAMAGE TO YOUR DRIVES IF NOT CONFIGURED PROPERLEY!
+
+to use on a fresh copy of the archiso, simply modify the variables in the config of the script, and run "curl -s setup.sh -fsSL https://raw.githubusercontent.com/CameronS2005/arch_stuff/main/setup.sh; chmod +x setup.sh; ./setup.sh" and follow the directions!
+
+# -------------------------------- #
 
 References;
 
