@@ -1,5 +1,5 @@
 #!/bin/bash
-## UPDATE TIME; Aug 10, 08:23 AM EDT
+## UPDATE TIME; Aug 10, 08:42 AM EDT
 
 ## CONFIG
 DRIVE_ID="/dev/mmcblk0"
@@ -7,6 +7,7 @@ ROOTCRYPT_ID="rootcrypt"
 
 USERNAME="Archie" # your non-root users name
 HOSTNAME="$USERNAME" # for testing... as idc ab username or hostname
+auto_login=false # auto-login to your new non-root user # false/true
 #HOSTNAME="Archie" # your installs hostname
 
 GRUB_ID="GRUB" # grub entry name
@@ -55,6 +56,7 @@ EOF
 
 	# we shall not automatically tamper with suderos
 	#EDITOR=nano visudo 
+	### add variable and check if enabled for enabling auto login for new user!
 
 	#### HOW TO UNCOMMENT WHEELS LINE IN VISUDO WITHOUT INTERACTING!!!
 	## USER WILL NOT BE IN SUDOERS UNTIL THIS IS FIXED!
@@ -66,14 +68,11 @@ EOF
 	grub-install --target=x86_64-efi --efi-directory=/boot --bootloader-id=$GRUB_ID
 	grub-mkconfig -o /boot/grub/grub.cfg
 
-	## UNTESTED! #### NEED TO SET UUID
 	CRYPT_UUID=$(blkid -s UUID -o value ""$DRIVE_ID"p3")
 	new_value="cryptdevice=UUID=$CRYPT_UUID:$ROOTCRYPT_ID root=/dev/mapper/$ROOTCRYPT_ID"
-	#################################### THIS NEEDS FIXED AS CURRENTLY THE BOOTLOADER DOESNT EVEN TRY TO DECRYPT THE ROOT DRIVE WHICH MEANS IT'LL NEVER FIND THE UUID OF THE DECRYPTED PARTITION
-	#sed -i "s/^GRUB_CMDLINE_LINUX=\"[^\"]*\"/GRUB_CMDLINE_LINUX=\"$new_value\"/" /etc/default/grub # THIS LINE DOESNT WORK
-	#sed -i 's/^GRUB_CMDLINE_LINUX="[^"]*"/GRUB_CMDLINE_LINUX="'"$new_value"'"/' /etc/default/grub # THIS LINE DOESNT WORK...
-	#sed -i 's/GRUB_CMDLINE_LINUX="[^"]*"/GRUB_CMDLINE_LINUX="'"$new_value"'"/' "/etc/default/grub" ### THIS DOESNT WORK THIS IS THE FINAL ISSUE...
-	sed -i "s/^GRUB_CMDLINE_LINUX=\"[^\"]*\"/GRUB_CMDLINE_LINUX=\"$new_value\"/" "/etc/default/grub"
+
+	sed -i '7c\GRUB_CMDLINE_LINUX="'"$new_value"'"' "/etc/default/grub" # ...
+
 	echo "UUID IS $CRYPT_UUID RIGHT???"
 	
 	### TESTING HERE!!!
@@ -81,8 +80,9 @@ EOF
 
 	systemctl enable NetworkManager
 	#systemctl enable bluetooth
-	#rm $0 # removes pt 2 of the install as it was in the new partition
-	#exit
+	rm $0 # removes pt 2 of the install as it was in the new partition
+	exit
+	echo "FINISHED! EXITING CHROOT!"
 }
 arch_chroot
 
