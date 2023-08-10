@@ -1,5 +1,5 @@
 #!/bin/bash
-## UPDATE TIME; Aug 10, 14:29 PM EDT
+## UPDATE TIME; Aug 10, 14:39 PM EDT
 ## VERSION (SED COMMANDS WILL MOST LIKELY NEED UPDATED WITH UPDATES!)
 
 ## NOT BOOTING... << CURRENT ISSUE ITS TO DO WITH THE /etc/default/grub not getting configured correctly in pt2
@@ -25,6 +25,8 @@ ROOT_ID="rootcrypt"
 HOSTNAME="Arch-Box"
 USERNAME="Archie" # your non-root users name
 GRUB_ID="ARCHIE" # grub entry name
+## JUST SED THESE LINES INTO VARIABLES INSTEAD OF SEDDING? ^^
+
 
 2nd_config() { # this is so annoying...
 cat << EOF > /mnt/variables
@@ -146,14 +148,15 @@ fi
 		cryptsetup -y -v luksFormat "$DRIVE_ID$root_part"
 	
 		echo "Will Be Prompted to Decrypt the Encrypted Partiton!"
-		cryptsetup open "$DRIVE_ID$root_part" "$ROOTCRYPT_ID"
+		cryptsetup open "$DRIVE_ID$root_part" "$ROOT_ID"
+		sleep 3
 	}
 	# Format partitions
 	echo "Formatting Partitions!"
 	
 	if [[ $use_LUKS == true ]]; then
 	encrypt_root
-	mkfs.ext4 "/dev/mapper/$ROOTCRYPT_ID"
+	mkfs.ext4 "/dev/mapper/$ROOT_ID"
 else
 	mkfs.ext4 "$DRIVE_ID$root_part"
 fi
@@ -170,7 +173,7 @@ auto_partition
 auto_mount() { # havent tested this...
 	echo "Mounting Partitions!"
 	if [[ $use_LUKS == true ]]; then
-	mount "/dev/mapper/$ROOTCRYPT_ID" /mnt
+	mount "/dev/mapper/$ROOT_ID" /mnt
 else
 	mount "$DRIVE_ID$root_part" /mnt
 fi
@@ -228,12 +231,6 @@ exit 0
 #!/bin/bash
 source variables # created by 2nd_config function in pt1
 
-#if [[ $use_SWAP == true ]]; then
-#	root_part="p3"
-#else
-#	root_part="p2"
-#fi
-
 arch_chroot() {
 	echo "Will be prompted to enter new root password"
 	passwd
@@ -253,7 +250,7 @@ arch_chroot() {
 	if [[ $enable_32b_mlib == true ]]; then
 	sed -i '90 s/^#//' "/etc/pacman.conf"
 	sed -i '91 s/^#//' "/etc/pacman.conf"
-	#pacman -Syyy # ?? hopefully this fixes current boot issue
+	pacman -Syyy # ?? hopefully this fixes current boot issue
 fi
 
 	echo "Configuring Hosts File With Hostname: ($HOSTNAME)"
