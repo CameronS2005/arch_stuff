@@ -1,5 +1,5 @@
 #!/bin/bash
-## UPDATE TIME; Aug 10, 12:00 AM EDT
+## UPDATE TIME; Aug 10, 12:25 AM EDT
 ## CURRENTLY QUITE LITERALLY JUST A COMBINED VERSION OF THE TWO PART INSTALLER (NOT OPTIMIZED YET!)
 ## THIS SCRIPT WILL NEVER SUPPORT NVIDIA AS I DONT HAVE ANY TESTBENCHES TO WORK ON WITH NVIDIA I WILL BE TESTING WITH INTEL & AMD
 ## ^^ AMD WILL BE ADDED ITF!
@@ -15,6 +15,10 @@
 ## CREATE CUSTOM MOTD THAT GETS BROADCASTED ON TTY1 ON BOOT AND DOWNLOAD IT HERE! (ADD CONTROL VARIABLE)
 ## ECHO CONFIG INTO SOURCED EXPORT FILE INTO MOUNT SO WE DONT HAVE TO DEFINE VARIABLES TWICE...
 ## BOOT PARTITION SIZE NEEDS TO BE HARDCODED AS BIGGER DRIVES WILL WASTE A BUNCH ON part1
+## ADD IN OPTIONAL PRE or POST INSTALL SEVERAL ITERATION DISK SHRED!!
+# ^^ CAN BE DONE ON A FRESH INSTALL BY MAKING A MAX SIZE FILE AND REMOVING IT SEVERAL TIMES
+## we'll do 3 as we have nothing import to erase (if we did then we would probably do about 25) < (even though i do believe its never been proven that data has been recovered after 1 actual wipe replacing all bytes with random data)
+
 
 #### NEED TO TRANSFER PT2 to mnt directory for execution (REST CAN BE HANDLED AT END OF SCRIPT AND SHALL BE AUTORAN ON EXITING CHROOT!)
 ## ^^ WITHOUT SECOND SCRIPT ADD CODE IN HERE AND USE SED TO PULL FROM START AND END TAGS
@@ -73,7 +77,7 @@ wifi() {
 		echo "Wireless Adapter Name: $wifi_adapter"
 	
 		echo "You will be prompted for your wifi password if needed!"
-		if ! iwctl station $wifi_adapter connect $WIFI_SSID; then ## can just use this command to connect to wifi (replace $VARIABLES obvi)
+		if ! iwctl station $wifi_adapter connect $WIFI_SSID; then
 		echo "WIFI CONN ERROR!"
 		wifi
 	fi
@@ -83,7 +87,7 @@ wifi() {
 		echo "Local IPv4 address: $local_ipv4"
 	fi
 }
-#wifi # can comment out if using ethernet # really this function is useless considering you prob configured wifi to get the script
+wifi
 
 ## Quick way of selecting best mirrors # gracias Muta
 #rank_mirrors() { # rewatch mutas video cause i messed this up...
@@ -174,7 +178,7 @@ else
 fi
 	mkdir /mnt/boot
 	mount ""$DRIVE_ID"p1" /mnt/boot
-	sleep 5 ## WAS FAILING DUE TO NOT ENOUGH TIME TO REGISTER MOUNTS??
+	sleep 10 ## WAS FAILING DUE TO NOT ENOUGH TIME TO REGISTER MOUNTS??
 }
 auto_mount
 
@@ -193,17 +197,17 @@ echo "When in chroot run : chmod +x setup; ./setup"
 seed="#"
 sed -n "/$seed#START_TAG/,/$seed#END_TAG/p" "$0" > /mnt/setup
 
-arch-chroot "/mnt"
+arch-chroot /mnt
 
 ## post chroot commands (we're finished here!)
 post_chroot() {
 	echo "UNMOUNTING FS AND REQUESTING REBOOT!"
-	sudo umount -a
-	echo "REBOOT NOW"
-	read -p "PRESS ENTER TO REBOOT"
-	sudo reboot now
+	#sudo umount -a
+	echo "YOU CAN REBOOT NOW"
+	#read -p "PRESS ENTER TO REBOOT"
+	#sudo reboot now
 }
-post_chroot
+#post_chroot
 
 exit 0
 exit 0
@@ -220,13 +224,7 @@ exit 0
 ################################################################
 
 ##START_TAG
-source variables
-
-if [[ $nyae_swap == true ]]; then
-	root_part="p3"
-else
-	root_part="p2"
-fi
+source variables # created by 2nd_config function in pt1
 
 GRUB_ID="ARCHIE"
 arch_chroot() {
@@ -296,12 +294,11 @@ fi
 	#systemctl enable iwd 
 	#systemctl enable bluetooth
 
-	echo "FYI root_part_test is $root_part_test"; sleep 10 # if this isnt empty we can remove the part if statement that duped in this 2nd part of the code
-
 	rm variables
-	rm $0 # removes pt 2 of the install as it was in the new partition
+	rm $0 # is this rm causing the fail to exit chroot?
 	echo "FINISHED! EXITING CHROOT!"
-	exit
+	exit # we need to exit chroot here not just the script...
 }
 arch_chroot
+exit
 #END_TAG
