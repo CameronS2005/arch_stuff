@@ -1,5 +1,5 @@
 #!/bin/bash
-## UPDATE TIME; Aug 10, 07:57 AM EDT
+## UPDATE TIME; Aug 10, 08:14 AM EDT
 
 ## CONFIG
 DRIVE_ID="/dev/mmcblk0"
@@ -72,8 +72,10 @@ EOF
 	#################################### THIS NEEDS FIXED AS CURRENTLY THE BOOTLOADER DOESNT EVEN TRY TO DECRYPT THE ROOT DRIVE WHICH MEANS IT'LL NEVER FIND THE UUID OF THE DECRYPTED PARTITION
 	#sed -i "s/^GRUB_CMDLINE_LINUX=\"[^\"]*\"/GRUB_CMDLINE_LINUX=\"$new_value\"/" /etc/default/grub # THIS LINE DOESNT WORK
 	#sed -i 's/^GRUB_CMDLINE_LINUX="[^"]*"/GRUB_CMDLINE_LINUX="'"$new_value"'"/' /etc/default/grub # THIS LINE DOESNT WORK...
-	#sed -i 's/GRUB_CMDLINE_LINUX="[^"]*"/GRUB_CMDLINE_LINUX="'"$new_value"'"/' "/etc/default/grub" ### THIS DOESNT WORK THIS IS THE FINAL ISSUE...
+	sed -i 's/GRUB_CMDLINE_LINUX="[^"]*"/GRUB_CMDLINE_LINUX="'"$new_value"'"/' "/etc/default/grub" ### THIS DOESNT WORK THIS IS THE FINAL ISSUE...
 	echo "UUID IS $CRYPT_UUID RIGHT???"
+	### TESTING HERE!!!
+
 
 	#grub-mkconfig -o "/boot/grub/grub.cfg" # UNCOMMENT THIS AFTER FIXING THE SED LINE ABOVE ^^
 
