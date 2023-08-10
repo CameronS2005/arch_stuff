@@ -34,7 +34,7 @@ wifi() {
 		echo "Wireless Adapter Name: $wifi_adapter"
 	
 		echo "You will be prompted for your wifi password if needed!"
-		iwctl station $wifi_adapter connect $WIFI_SSID 
+		iwctl station $wifi_adapter connect $WIFI_SSID ## can just use this command to connect to wifi (replace $VARIABLES obvi)
 
 		sleep 10 # modify to a wait command for ipv6 with a timeout of 30s
 	
@@ -42,17 +42,17 @@ wifi() {
 		echo "Local IPv4 address: $local_ipv4"
 	fi
 }
-wifi # can comment out if using ethernet
+wifi # can comment out if using ethernet # really this function is useless considering you prob configured wifi to get the script
 
 ## Quick way of selecting best mirrors
-rank_mirrors() {
-	pacman -Syy pacman-contrib # IDK ABOUT THIS ORDER
-	#pacman -Syyy
-	cp /etc/pacman.d/mirrorlist /etc/pacman.d/mirrorlist.bak # backup mirrorlist in case we fucked up
-
-	rankmirrors -n 6 /etc/pacman.d/mirrorlist.bak > /etc/pacman.d/mirrorlist # inputs bakup mirrorlist into ranked mirrors and writes to mirrorfile
-}
-rank_mirrors # this is hardly needed (like not at all...) # can comment out if you dont care...
+#rank_mirrors() { # rewatch mutas video cause i messed this up...
+#	pacman -Syy pacman-contrib # IDK ABOUT THIS ORDER
+#	#pacman -Syyy
+#	cp /etc/pacman.d/mirrorlist /etc/pacman.d/mirrorlist.bak # backup mirrorlist in case we fucked up
+#
+#	rankmirrors -n 6 /etc/pacman.d/mirrorlist.bak > /etc/pacman.d/mirrorlist # inputs bakup mirrorlist into ranked mirrors and writes to mirrorfile
+#}
+#rank_mirrors # this is hardly needed (like not at all...) # can comment out if you dont care...
 
 ## Handle drive partitioning ## IN THE FUTURE MODIFY TO SUPPORT SEPERATE home PARTITION AND PERHAPS A data PARTITION
 auto_partition() { # rename to auto drive & add to handle encryption and mounting
@@ -143,9 +143,9 @@ arch_chroot() {
 
 	#sed -i '/^\s*#[multilib]/ s/^#//' "/etc/pacman.conf" # this doesnt work so fix it to automatically allow 32 bit support!
 	#pacman -Sy
-	
-#[multilib]
-#Include = /etc/pacman.d/mirrorlist
+
+	#[multilib]
+	#Include = /etc/pacman.d/mirrorlist
 
 	echo "Configuring Hosts File With Hostname: ($HOSTNAME)!"
 	cat << EOF >> /etc/hosts
