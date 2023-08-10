@@ -1,5 +1,5 @@
 #!/bin/bash
-## UPDATE TIME; Aug 10, 10:13 AM EDT
+## UPDATE TIME; Aug 10, 10:37 AM EDT
 ## CURRENTLY QUITE LITERALLY JUST A COMBINED VERSION OF THE TWO PART INSTALLER (NOT OPTIMIZED YET!)
 
 #### FIRST RELEASE ALMOST READY!!!!!! sed commands were a bitch...
@@ -9,6 +9,7 @@
 #### NOTES
 # add support for kernel compression
 ## transfer archinstalliso wpa_supplicant config to new partion for auto-wifi?
+## ADD IN AUTO-LOGIN SUPPORT
 ## CREATE CUSTOM MOTD THAT GETS BROADCASTED ON TTY1 ON BOOT AND DOWNLOAD IT HERE! (ADD CONTROL VARIABLE)
 ## ECHO CONFIG INTO SOURCED EXPORT FILE INTO MOUNT SO WE DONT HAVE TO DEFINE VARIABLES TWICE...
 
@@ -34,8 +35,10 @@ GRUB_ID="ARCHIE" # grub entry name
 #base_packages="linux linux-firmware base base-devel nano vim intel-ucode grub efibootmgr networkmanager network-manager-applet wireless_tools wpa_supplicant dialog mtools dosfstools linux-headers git curl wget bluez bluez-utils pulseaudio-bluetooth xdg-utils xdg-user-dirs" # 310 pkgs
 #base_packages="linux linux-firmware base base-devel nano vim intel-ucode grub efibootmgr networkmanager network-manager-applet wpa_supplicant wireless_tools net-tools dialog bash-completion" # 262 pkgs
 #base_packages="linux linux-firmware base base-devel nano grub efibootmgr networkmanager iwd wpa_supplicant dhcpcd" # 173 pkgs
-base_packages="linux linux-firmware base nano grub efibootmgr networkmanager iwd dhcpcd" # remove dhcpcd by setting static ip? (trying without wpa_supplicant also next try without iwd as nmcli should exist...)
-#base_packages="linux linux-firmware base base-devel nano vim grub efibootmgr" # <154 pkgs (NO WIFI)
+
+#base_packages="linux linux-firmware base nano grub efibootmgr networkmanager dhcpcd intel-ucode" # >150 pkgs (WIFI+DHCP+BOOT+UCODE)
+base_packages="linux linux-firmware base nano grub efibootmgr networkmanager intel-ucode" # >150 pkgs (WIFI+BOOT+UCODE)
+#base_packages="linux linux-firmware base nano grub efibootmgr" # <154 pkgs (BOOT)
 
 ### START OF SCRIPT
 
@@ -189,7 +192,7 @@ USERNAME="Archie"
 HOSTNAME="$USERNAME"
 #auto_login=false
 #HOSTNAME="Archie"
-GRUB_ID="GRUB"
+GRUB_ID="ARCHIE"
 arch_chroot() {
 	echo "Will be prompted to enter new root password"
 	passwd
@@ -256,7 +259,7 @@ fi
 	
 	systemctl enable NetworkManager
 	systemctl enable dhcpcd
-	systemctl enable iwd 
+	#systemctl enable iwd 
 	#systemctl enable bluetooth
 	rm $0 # removes pt 2 of the install as it was in the new partition
 	exit
