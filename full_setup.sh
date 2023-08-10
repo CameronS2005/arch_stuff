@@ -19,7 +19,7 @@
 ## CONFIG ## BE SURE BOTH CONFIGS MATCH UNTIL WE FIND A WAY TO FIX THIS...
 WIFI_SSID="WiFi-2.4" # your wifi ssid # (only needed if not using ethernet) # also this script can only handle wifi using DHCP (static needs done manually)
 DRIVE_ID="/dev/mmcblk0"
-use_LUKS=false # use luksFormat Encryption on your root partition # idk how ill do this when i seperate my root and home partition!
+use_LUKS=true # use luksFormat Encryption on your root partition # idk how ill do this when i seperate my root and home partition!
 use_SWAP=true # create a swap partition (currently 15% of specified drive) 
 ROOT_ID="rootcrypt"
 HOSTNAME="Arch-Box"
