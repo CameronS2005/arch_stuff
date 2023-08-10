@@ -1,7 +1,11 @@
 #!/bin/bash
+## UPDATE TIME; Aug 10, 04:08 AM EDT
 
 ## DONT MAKE TYPOS!!!!
 ### encrypt needs auto added to mkinitcpio conf (HOOKS)
+
+#### NOTES
+# Currently this uses grub and not Muta's BL as it would be a bit harder to automate and not neccessary AFAIK
 
 ## CONFIG
 WIFI_SSID="WiFi-2.4" # your wifi ssid # (only needed if not using ethernet) # also this script can only handle wifi using DHCP (static needs done manually)
@@ -13,7 +17,10 @@ ROOTCRYPT_ID="rootcrypt"
 USERNAME="Archie" # your non-root users name
 HOSTNAME="Archie" # your installs hostname
 
-base_packages="linux linux-firmware base base-devel nano vim intel-ucode grub efibootmgr networkmanager network-manager-applet wireless_tools wpa_supplicant dialog mtools dosfstools linux-headers git curl wget bluez bluez-utils pulseaudio-bluetooth xdg-utils xdg-user-dirs" 
+GRUB_ID="GRUB" # grub entry name
+
+#base_packages="linux linux-firmware base base-devel nano vim intel-ucode grub efibootmgr networkmanager network-manager-applet wireless_tools wpa_supplicant dialog mtools dosfstools linux-headers git curl wget bluez bluez-utils pulseaudio-bluetooth xdg-utils xdg-user-dirs" # 310 pkgs
+base_packages="linux linux-firmware base base-devel nano intel-ucode grub efibootmgr networkmanager network-manager-applet wpa_supplicant wireless_tools net-tools dialog bash-completion"
 
 ### START OF SCRIPT
 
@@ -37,14 +44,14 @@ wifi() {
 wifi # can comment out if using ethernet
 
 ## Quick way of selecting best mirrors
-#rank_mirrors() {
-#	pacman -Syy rankmirrors # IDK ABOUT THIS ORDER
-#	pacman -Syyy
-#	cp /etc/pacman.d/mirrorlist /etc/pacman.d/mirrorlist.bak # backup mirrorlist in case we fucked up
-#
-#	rankmirrors -n 6 /etc/pacman.d/mirrorlist.bak /etc/pacman.d/mirrorlist # inputs bakup mirrorlist into ranked mirrors and writes to mirrorfile
-#}
-#rank_mirrors # this is hardly needed (like not at all...) # can comment out if you dont care...
+rank_mirrors() {
+	pacman -Syy pacman-contrib # IDK ABOUT THIS ORDER
+	#pacman -Syyy
+	cp /etc/pacman.d/mirrorlist /etc/pacman.d/mirrorlist.bak # backup mirrorlist in case we fucked up
+
+	rankmirrors -n 6 /etc/pacman.d/mirrorlist.bak > /etc/pacman.d/mirrorlist # inputs bakup mirrorlist into ranked mirrors and writes to mirrorfile
+}
+rank_mirrors # this is hardly needed (like not at all...) # can comment out if you dont care...
 
 ## Handle drive partitioning ## IN THE FUTURE MODIFY TO SUPPORT SEPERATE home PARTITION AND PERHAPS A data PARTITION
 auto_partition() { # rename to auto drive & add to handle encryption and mounting
@@ -113,7 +120,7 @@ pacstrap_install
 
 ## here we finally chroot into out new FS
 arch_chroot() {
-	genfstab -U /mnt >> /mnt/etc/fstab # generate fstab file
+	genfstab -U /mnt >> /mnt/etc/fstab # generate fstab file (magically handles swap lol)
 
 	arch-chroot /mnt
 	echo "Will be prompted to enter new root password"
@@ -121,14 +128,20 @@ arch_chroot() {
 
 	#swapon ""$DRIVE_ID"p2"
 
-	sed -i 's/^#\(en_US.UTF-8 UTF-8\)/\1/' /etc/locale.gen # THIS IS UNTESTED
+	sed -i 's/^#\(en_US.UTF-8 UTF-8\)/\1/' "/etc/locale.gen"
 	locale-gen
-	echo "LANG=en_US.UTF-8" >> /etc/locale.conf
+	echo "LANG=en_US.UTF-8" > /etc/locale.conf
+	export "LANG=en_US.UTF-8"
 
 	echo "Setting System Time & Hostname!"
-	ln -sf /usr/share/zoneinfo/America/New_York /etc/localtime # check this command
-	hwclock --systohc --EDT # check 2nd argument
+	ln -sf "/usr/share/zoneinfo/America/New_York" "/etc/localtime"
+	hwclock --systohc --utc # check 2nd argument # why is this utc?
 	echo "$HOSTNAME" > /etc/hostname
+
+	systemctl enable fstrim.timer # ssd trimming? # add check to see if even using ssd
+
+	#sed -i '/^\s*#[multilib]/ s/^#//' "/etc/pacman.conf" # this doesnt work so fix it to automatically allow 32 bit support!
+	#pacman -Sy
 
 	echo "Configuring Hosts File With Hostname: ($HOSTNAME)!"
 	cat << EOF >> /etc/hosts
@@ -137,30 +150,33 @@ arch_chroot() {
 127.0.1.1 		$HOSTNAME.localdomain	$HOSTNAME
 EOF
 
+	echo "Creating & Configuring non-root User: ($USERNAME)"
+	useradd -mG wheel $USERNAME # modify user permissions here
+	echo "Will be prompted to enter new password for ($USERNAME)"
+	passwd $USERNAME
+
+	# we shall not automatically tamper with suderos
+	#EDITOR=nano visudo 
+
+	#### HOW TO UNCOMMENT WHEELS LINE IN VISUDO WITHOUT INTERACTING!!!
+	## USER WILL NOT BE IN SUDOERS UNTIL THIS IS FIXED!
+
 	echo "Configuring Bootloader!"
 	#### THIS NEEDS DONE ASAP #########################rewoworioirwirwiroeirewirpoiewriweroiweoriewporiewpriweporieporipoweirpoewir
 	sed ### sed some bs from /etc/mkinitcpio.conf for adding encrypt to hooks list
 	mkinitcpio -p linux
 
-	grub-install --target=x86_64-efi --efi-directory=/boot --bootloader-id=GRUB
-	# ADD VARIABLE FOR ENTRY NAME!
+	grub-install --target=x86_64-efi --efi-directory=/boot --bootloader-id=$GRUB_ID
 	grub-mkconfig -o /boot/grub/grub.cfg
 
-	## UNTESTED!
+	## UNTESTED! #### NEED TO SET UUID
+	CRYPT_UUID=$(blkid -s UUID -o value "$DRIVE_ID")
 	new_value="cryptdevice=UUID=$CRYPT_UUID:$ROOTCRYPT_ID root=/dev/mapper/$ROOTCRYPT_ID"
 	sed -i "s/^GRUB_CMDLINE_LINUX=\"[^\"]*\"/GRUB_CMDLINE_LINUX=\"$new_value\"/" /etc/default/grub
 	grub-mkconfig -o /boot/grub/grub.cfg
 
 	systemctl enable NetworkManager
 	systemctl enable bluetooth
-
-	echo "Creating & Configuring non-root User: ($USERNAME)"
-	useradd -mG wheel $USERNAME
-	echo "Will be prompted to enter new password for ($USERNAME)"
-	passwd $USERNAME
-
-	#### HOW TO UNCOMMENT WHEELS LINE IN VISUDO WITHOUT INTERACTING!!!
-	## USER WILL NOT BE IN SUDOERS UNTIL THIS IS FIXED!
 }
 #arch_chroot
 
