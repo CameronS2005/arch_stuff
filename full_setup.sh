@@ -1,5 +1,5 @@
 #!/bin/bash
-## UPDATE TIME; Aug 10, 11:52 AM EDT
+## UPDATE TIME; Aug 10, 12:00 AM EDT
 ## CURRENTLY QUITE LITERALLY JUST A COMBINED VERSION OF THE TWO PART INSTALLER (NOT OPTIMIZED YET!)
 ## THIS SCRIPT WILL NEVER SUPPORT NVIDIA AS I DONT HAVE ANY TESTBENCHES TO WORK ON WITH NVIDIA I WILL BE TESTING WITH INTEL & AMD
 ## ^^ AMD WILL BE ADDED ITF!
@@ -32,6 +32,7 @@ HOSTNAME="$USERNAME" # for testing... as idc ab username or hostname
 GRUB_ID="ARCHIE" # grub entry name
 
 #append_install_wifi_config=true # if you've set your wifi in the installer iso using iwctl it can be copied over to your new install (provided you have networkmanager)
+# this isnt setup yet...
 
 2nd_config() { # this is so annoying...
 cat << EOF > /mnt/variables
@@ -167,11 +168,11 @@ auto_partition
 auto_mount() { # havent tested this...
 	echo "Mounting Partitions!"
 	if [[ $use_LUKS == true ]]; then
-	mount "/dev/mapper/$ROOTCRYPT_ID" "/mnt"
+	mount "/dev/mapper/$ROOTCRYPT_ID" /mnt
 else
-	mount "$DRIVE_ID$root_part" "/mnt"
+	mount "$DRIVE_ID$root_part" /mnt
 fi
-	mkdir "/mnt/boot"
+	mkdir /mnt/boot
 	mount ""$DRIVE_ID"p1" /mnt/boot
 	sleep 5 ## WAS FAILING DUE TO NOT ENOUGH TIME TO REGISTER MOUNTS??
 }
@@ -181,16 +182,16 @@ auto_mount
 
 ## BASE PACSTRAP INSTALL
 pacstrap_install() {
-	pacstrap -K "/mnt" "$base_packages"
+	pacstrap -K /mnt $base_packages
 }
 pacstrap_install
 
-genfstab -U "/mnt" >> "/mnt/etc/fstab"
+genfstab -U /mnt >> /mnt/etc/fstab
 
 echo "When in chroot run : chmod +x setup; ./setup"
 
 seed="#"
-sed -n "/$seed#START_TAG/,/$seed#END_TAG/p" "$0" > "/mnt/setup"
+sed -n "/$seed#START_TAG/,/$seed#END_TAG/p" "$0" > /mnt/setup
 
 arch-chroot "/mnt"
 
