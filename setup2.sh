@@ -1,5 +1,5 @@
 #!/bin/bash
-## UPDATE TIME; Aug 10, 07:20 AM EDT
+## UPDATE TIME; Aug 10, 07:57 AM EDT
 
 ## CONFIG
 ROOTCRYPT_ID="rootcrypt"
@@ -59,7 +59,6 @@ EOF
 	## USER WILL NOT BE IN SUDOERS UNTIL THIS IS FIXED!
 
 	echo "Configuring Bootloader!"
-	#### THIS NEEDS DONE ASAP #########################rewoworioirwirwiroeirewirpoiewriweroiweoriewporiewpriweporieporipoweirpoewir
 	sed -i '/^HOOKS=/ s/)$/ encrypt)/' "/etc/mkinitcpio.conf" # adds encrypt to hooks
 	mkinitcpio -p linux
 
@@ -69,11 +68,13 @@ EOF
 	## UNTESTED! #### NEED TO SET UUID
 	CRYPT_UUID=$(blkid -s UUID -o value "$DRIVE_ID")
 	new_value="cryptdevice=UUID=$CRYPT_UUID:$ROOTCRYPT_ID root=/dev/mapper/$ROOTCRYPT_ID"
+	#################################### THIS NEEDS FIXED AS CURRENTLY THE BOOTLOADER DOESNT EVEN TRY TO DECRYPT THE ROOT DRIVE WHICH MEANS IT'LL NEVER FIND THE UUID OF THE DECRYPTED PARTITION
 	#sed -i "s/^GRUB_CMDLINE_LINUX=\"[^\"]*\"/GRUB_CMDLINE_LINUX=\"$new_value\"/" /etc/default/grub # THIS LINE DOESNT WORK
 	#sed -i 's/^GRUB_CMDLINE_LINUX="[^"]*"/GRUB_CMDLINE_LINUX="'"$new_value"'"/' /etc/default/grub # THIS LINE DOESNT WORK...
-	sed -i 's/GRUB_CMDLINE_LINUX="[^"]*"/GRUB_CMDLINE_LINUX="'"$new_value"'"/' "/etc/default/grub"
+	#sed -i 's/GRUB_CMDLINE_LINUX="[^"]*"/GRUB_CMDLINE_LINUX="'"$new_value"'"/' "/etc/default/grub" ### THIS DOESNT WORK THIS IS THE FINAL ISSUE...
+	echo "UUID IS $CRYPT_UUID RIGHT???"
 
-	grub-mkconfig -o "/boot/grub/grub.cfg"
+	#grub-mkconfig -o "/boot/grub/grub.cfg" # UNCOMMENT THIS AFTER FIXING THE SED LINE ABOVE ^^
 
 	systemctl enable NetworkManager
 	#systemctl enable bluetooth
