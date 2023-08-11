@@ -1,5 +1,5 @@
 #!/bin/bash
-## UPDATE TIME; Aug 11, 03:49 AM EDT
+## UPDATE TIME; Aug 11, 03:57 AM EDT
 ## VERSION (SED COMMANDS WILL MOST LIKELY NEED UPDATED WITH UPDATES!)
 
 #### HOLY FUCK TRY THIS chroot /path/to/chroot/env /bin/bash <<EOF   CHROOT CODE    EOF
@@ -21,10 +21,10 @@ DRIVE_ID="/dev/mmcblk0"
 lang="en_US" # IS HARDCODED TO BE UTF-8 (MAY ADD ISO SOON)
 timezone="America/New_York"
 
-use_LUKS=false # if home or data directory are enabled they will also be encrypted with luks!
+use_LUKS=true # if home or data directory are enabled they will also be encrypted with luks!
 #LUKS_header=false # not implemented
 #header_dir="~/tmp" # not implemented # in this case the header would need extracted before a reboot
-use_SWAP=false
+use_SWAP=true
 ######## WHEN ADDING THE HOME & DATA DIRECTORIES IT WILL BE EASIEST TO REMOVE HARDCODED PERCENTS AND ASK USER!
 use_HOME=false # not implemented # home partition # TESTING
 use_DATA=false # not implemented # data partition # TESTING
@@ -35,9 +35,9 @@ DATA_ID="data_crypt" # TESTING
 
 HOSTNAME="Archie"
 USERNAME="Archie"
-auto_login=false
+auto_login=true
 #BOOTLOADER="GRUB" # currently only supports grub
-enable_32b_mlib=false
+enable_32b_mlib=true
 GRUB_ID="GRUB"
 #OS_PROBER=false # not implemented
 #is_AMD=false # not implemented
@@ -76,7 +76,7 @@ swap_size_gb="$swap_size_gb"
 root_size_gb="$root_size_gb"
 home_size_gb="$home_size_gb"
 data_size_gb="$data_size_gb"
-#root_part="$root_part"
+#root_part="$root_part" # currently reset in pt 2 as i think it causes a boot error
 EOF
 }
 
@@ -247,7 +247,13 @@ echo "When in chroot run : chmod +x setup; ./setup"
 seed="#"
 sed -n "/$seed#START_TAG/,/$seed#END_TAG/p" "$0" > /mnt/setup
 
-arch-chroot /mnt
+#arch-chroot /mnt
+
+arch-chroot /mnt /bin/bash << EOF
+echo "Executing Part 2"
+chmod +x setup; ./setup
+exit
+EOF
 
 ## post chroot commands (we're finished here!)
 post_chroot() {
@@ -257,8 +263,8 @@ post_chroot() {
 	swapoff ""$DRIVE_ID"p2"
 fi
 	echo "YOU CAN REBOOT NOW"
-	#read -p "PRESS ENTER TO REBOOT"
-	#reboot now
+	read -p "PRESS ENTER TO REBOOT"
+	reboot
 }
 post_chroot
 
