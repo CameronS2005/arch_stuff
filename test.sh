@@ -1,5 +1,8 @@
 #!/bin/bash
-rel_date="UPDATE TIME; Aug 11, 14:27 PM EDT"
+rel_date="UPDATE TIME; Aug 11, 14:37 PM EDT"
+
+#### URL == "https://raw.githubusercontent.com/CameronS2005/arch_stuff/main/test.sh"
+
 ## VERSION (SED COMMANDS WILL MOST LIKELY NEED UPDATED WITH UPDATES!)
 
 #### HOLY FUCK TRY THIS 
@@ -464,7 +467,7 @@ EOF
 
 	if [[ $use_LUKS == true ]]; then # can test adding multiple encrypted drives here
 	if [[ $use_HOME == true ]]; then
-	new_value="cryptdevice=UUID=$ROOT_UUID:$ROOT_ID root=/dev/mapper/$ROOT_ID cryptdevice=UUID=$HOME_UUID home=/dev/mapper/$HOME_ID" # TESTING THIS LINE!
+	new_value="cryptdevice=UUID=$ROOT_UUID:$ROOT_ID root=/dev/mapper/$ROOT_ID cryptdevice=UUID=$HOME_UUID:$HOME_ID home=/dev/mapper/$HOME_ID" # TESTING THIS LINE!
 else
 	new_value="cryptdevice=UUID=$ROOT_UUID:$ROOT_ID root=/dev/mapper/$ROOT_ID"
 fi
