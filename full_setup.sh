@@ -1,5 +1,5 @@
 #!/bin/bash
-## UPDATE TIME; Aug 11, 03:57 AM EDT
+rel_date="UPDATE TIME; Aug 11, 04:39 AM EDT"
 ## VERSION (SED COMMANDS WILL MOST LIKELY NEED UPDATED WITH UPDATES!)
 
 #### HOLY FUCK TRY THIS chroot /path/to/chroot/env /bin/bash <<EOF   CHROOT CODE    EOF
@@ -21,33 +21,33 @@ DRIVE_ID="/dev/mmcblk0"
 lang="en_US" # IS HARDCODED TO BE UTF-8 (MAY ADD ISO SOON)
 timezone="America/New_York"
 
-use_LUKS=true # if home or data directory are enabled they will also be encrypted with luks!
-#LUKS_header=false # not implemented
-#header_dir="~/tmp" # not implemented # in this case the header would need extracted before a reboot
+use_LUKS=true
+#LUKS_header=false
+#header_dir="~/tmp"
 use_SWAP=true
 ######## WHEN ADDING THE HOME & DATA DIRECTORIES IT WILL BE EASIEST TO REMOVE HARDCODED PERCENTS AND ASK USER!
-use_HOME=false # not implemented # home partition # TESTING
-use_DATA=false # not implemented # data partition # TESTING
+#use_HOME=false
+#use_DATA=false
 
 ROOT_ID="root_crypt"
-HOME_ID="home_crypt" # TESTING
-DATA_ID="data_crypt" # TESTING
+#HOME_ID="home_crypt"
+#DATA_ID="data_crypt"
 
 HOSTNAME="Archie"
 USERNAME="Archie"
-auto_login=true
-#BOOTLOADER="GRUB" # currently only supports grub
+auto_login=false
+#BOOTLOADER="GRUB"
 enable_32b_mlib=true
 GRUB_ID="GRUB"
-#OS_PROBER=false # not implemented
-#is_AMD=false # not implemented
+#OS_PROBER=false
+#is_AMD=false
 
 ## NOT IMPLEMENTED
-boot_size_mb=""	# TESTING
-swap_size_gb=""	# TESTING
-root_size_gb=""	# TESTING
-#home_size_gb="2"	# TESTING
-#data_size_gb="2"	# TESTING
+boot_size_mb=""
+swap_size_gb=""
+root_size_gb=""
+#home_size_gb="2"
+#data_size_gb="2"
 
 base_packages="base linux linux-firmware nano grub efibootmgr networkmanager intel-ucode" # 148/126?? pkgs (UEFI-BOOT+WIFI+UCODE)
 #base_packages="base linux linux-firmware nano grub efibootmgr" # 126?? pkgs (UEFI-BOOT)
@@ -89,6 +89,8 @@ fi
 ### START OF SCRIPT
 
 cat << EOF
+RELEASE DATE; ($rel_date)
+
 FYI LUKS IS $use_LUKS
 FYI SWAP IS $use_SWAP
 Battery is at $(cat /sys/class/power_supply/BAT0/capacity)%
