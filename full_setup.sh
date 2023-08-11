@@ -1,8 +1,9 @@
 #!/bin/bash
-## UPDATE TIME; Aug 11, 02:16 AM EDT
+## UPDATE TIME; Aug 11, 03:19 AM EDT
 ## VERSION (SED COMMANDS WILL MOST LIKELY NEED UPDATED WITH UPDATES!)
 
 #### HOLY FUCK TRY THIS chroot /path/to/chroot/env /bin/bash <<EOF   CHROOT CODE    EOF
+### ^^^ THIS WORKS HOLY SHIT!!!
 
 #### NOTES
 # add support for kernel compression
@@ -25,15 +26,15 @@ use_LUKS=false # if home or data directory are enabled they will also be encrypt
 #header_dir="~/tmp" # not implemented # in this case the header would need extracted before a reboot
 use_SWAP=true
 ######## WHEN ADDING THE HOME & DATA DIRECTORIES IT WILL BE EASIEST TO REMOVE HARDCODED PERCENTS AND ASK USER!
-use_HOME=true # not implemented # home partition # TESTING
-use_DATA=true # not implemented # data partition # TESTING
+use_HOME=false # not implemented # home partition # TESTING
+use_DATA=false # not implemented # data partition # TESTING
 
 ROOT_ID="root_crypt"
 HOME_ID="home_crypt" # TESTING
 DATA_ID="data_crypt" # TESTING
 
-HOSTNAME="Haxor-Machine"
-USERNAME="Jiminy"
+HOSTNAME="Archie"
+USERNAME="Archie"
 auto_login=true
 #BOOTLOADER="GRUB" # currently only supports grub
 enable_32b_mlib=true
@@ -48,8 +49,8 @@ root_size_gb="8"	# TESTING
 #home_size_gb="2"	# TESTING
 #data_size_gb="2"	# TESTING
 
-#base_packages="base linux linux-firmware nano grub efibootmgr networkmanager intel-ucode" # 148 pkgs (UEFI-BOOT+WIFI+UCODE)
-base_packages="base linux linux-firmware nano grub efibootmgr" # pkgs (UEFI-BOOT)
+base_packages="base linux linux-firmware nano grub efibootmgr networkmanager intel-ucode" # 148/126?? pkgs (UEFI-BOOT+WIFI+UCODE)
+#base_packages="base linux linux-firmware nano grub efibootmgr" # 126?? pkgs (UEFI-BOOT)
 
 2nd_config() { # this is so annoying...
 cat << EOF > /mnt/variables
@@ -164,10 +165,10 @@ if [[ ! -z "$boot_size_mb" ]]; then
 	boot_size="$boot_size_mb"
 fi; if [[ ! -z "$swap_size_gb" && $use_SWAP == true ]]; then
 	echo "OVERRIDDEN SWAP PART SIZE!"
-	swap_size=$((swap_size_gb * 1024))
+	swap_size=$((swap_size_gb * 1024)) # gb to mb
 fi; if [[ ! -z "$root_size_gb" ]]; then	
 	echo "OVERRIDDEN ROOT PART SIZE!"
-	root_size=$((root_size_gb * 1024))
+	root_size=$((root_size_gb * 1024)) # gb to mb
 fi
 
 
@@ -299,7 +300,7 @@ arch_chroot() {
 	if [[ $enable_32b_mlib == true ]]; then
 	sed -i '90 s/^#//' "/etc/pacman.conf"
 	sed -i '91 s/^#//' "/etc/pacman.conf"
-	#pacman -Syyy
+	pacman -Sy
 fi
 
 	echo "Configuring Hosts File With Hostname: ($HOSTNAME)"
