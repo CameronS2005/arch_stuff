@@ -1,5 +1,5 @@
 #!/bin/bash
-rel_date="UPDATE TIME; Aug 11, 12:30 PM EDT"
+rel_date="UPDATE TIME; Aug 11, 12:39 PM EDT"
 ## VERSION (SED COMMANDS WILL MOST LIKELY NEED UPDATED WITH UPDATES!)
 
 #### HOLY FUCK TRY THIS 
@@ -34,8 +34,8 @@ use_HOME=true
 #use_DATA=false
 
 ROOT_ID="root_crypt"
-#HOME_ID="home_crypt"
-#DATA_ID="data_crypt"
+HOME_ID="home_crypt"
+DATA_ID="data_crypt"
 
 HOSTNAME="Archie"
 USERNAME="Archie"
@@ -67,6 +67,8 @@ use_SWAP="$use_SWAP"
 use_HOME="$use_HOME"
 use_DATA="$use_DATA"
 ROOT_ID="$ROOT_ID"
+HOME_ID="$HOME_ID"
+DATA_ID="$DATA_ID"
 HOSTNAME="$HOSTNAME"
 USERNAME="$USERNAME"
 auto_login="$auto_login"
@@ -95,8 +97,41 @@ fi
 cat << EOF
 RELEASE DATE; ($rel_date)
 
-FYI LUKS IS $use_LUKS
-FYI SWAP IS $use_SWAP
+CURRENT CONFIG;
+
+# ---------------------------------------------------------------- #
+
+DRIVE_ID="$DRIVE_ID"
+lang="$lang"
+
+use_LUKS="$use_LUKS"
+LUKS_header="$LUKS_header"
+header_dir="$header_dir"
+
+use_SWAP="$use_SWAP"
+use_HOME="$use_HOME"
+use_DATA="$use_DATA"
+
+ROOT_ID="$ROOT_ID"
+HOME_ID="$HOME_ID"
+DATA_ID="$DATA_ID"
+
+HOSTNAME="$HOSTNAME"
+USERNAME="$USERNAME"
+auto_login="$auto_login"
+
+BOOTLOADER="$BOOTLOADER"
+enable_32b_mlib=$enable_32b_mlib
+GRUB_ID="$GRUB_ID"
+OS_PROBER="$OS_PROBER"
+is_AMD="$is_AMD"
+
+boot_size_mb="$boot_size_mb"
+swap_size_gb="$swap_size_gb"
+root_size_gb="$root_size_gb"
+home_size_gb="$home_size_gb"
+data_size_gb="$data_size_gb"
+
 Battery is at $(cat /sys/class/power_supply/BAT0/capacity)%
 EOF
 
