@@ -1,5 +1,5 @@
 #!/bin/bash
-rel_date="UPDATE TIME; Aug 11, 05:15 AM EDT"
+rel_date="UPDATE TIME; Aug 11, 10:51 AM EDT"
 ## VERSION (SED COMMANDS WILL MOST LIKELY NEED UPDATED WITH UPDATES!)
 
 #### HOLY FUCK TRY THIS chroot /path/to/chroot/env /bin/bash <<EOF   CHROOT CODE    EOF
@@ -21,7 +21,7 @@ DRIVE_ID="/dev/mmcblk0"
 lang="en_US" # IS HARDCODED TO BE UTF-8 (MAY ADD ISO SOON)
 timezone="America/New_York"
 
-use_LUKS=true
+use_LUKS=false # disabled for testing 
 #LUKS_header=false
 #header_dir="~/tmp"
 use_SWAP=true
@@ -35,7 +35,7 @@ ROOT_ID="root_crypt"
 
 HOSTNAME="Archie"
 USERNAME="Archie"
-auto_login=false # cause of current boot error
+auto_login=true # cause of current boot error ## POSSIBLE FIX
 #BOOTLOADER="GRUB"
 enable_32b_mlib=true
 GRUB_ID="GRUB"
@@ -329,8 +329,10 @@ EOF
 	#useradd -m -y users -G wheel,storage,power -s /bin/bash $USERNAME
 
 	if [[ $auto_login == true ]]; then
+		new_getty_args=" -o '-p -f -- \\u' --noclear --autologin username %I \$TERM"
+		echo "new_getty_args are >> $new_getty_args << END HERE !!"
 		echo "Configuring Autologin for ($USERNAME)"
-		sed -i "s|^ExecStart=-/sbin/agetty \(.*\)|ExecStart=-/sbin/agetty --autologin $USERNAME \1|" "/etc/systemd/system/getty.target.wants/getty@tty1.service"
+		sed -i "s|^ExecStart=-/sbin/agetty \(.*\)|ExecStart=-/sbin/agetty $new_getty_args \1|" "/etc/systemd/system/getty.target.wants/getty@tty1.service"
 	fi
 
 	echo "Will be prompted to enter new password for ($USERNAME)"
