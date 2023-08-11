@@ -1,5 +1,5 @@
 #!/bin/bash
-rel_date="UPDATE TIME; Aug 11, 14:10 PM EDT"
+rel_date="UPDATE TIME; Aug 11, 14:27 PM EDT"
 ## VERSION (SED COMMANDS WILL MOST LIKELY NEED UPDATED WITH UPDATES!)
 
 #### HOLY FUCK TRY THIS 
@@ -27,7 +27,7 @@ DRIVE_ID="/dev/mmcblk0"
 lang="en_US" # IS HARDCODED TO BE UTF-8 (MAY ADD ISO SOON)
 timezone="America/New_York"
 
-use_LUKS=false # disabled for testing 
+use_LUKS=true # disabled for testing 
 #LUKS_header=false
 #header_dir="~/tmp"
 use_SWAP=true ############# WHY IS SWAP NOT ENCRYPTED!!!! (ALSO)
@@ -42,7 +42,7 @@ HOSTNAME="Archie"
 USERNAME="Archie"
 auto_login=false # currently causes a boot error when enabled ### NEEDS FIXED ## SKIPPING FOR NOW AS ITS EATING UP TOO MUCH TIME AND IM A SED NOVICE!
 #BOOTLOADER="GRUB"
-enable_32b_mlib=true # enable 32-bit multilib
+enable_32b_mlib=true
 GRUB_ID="GRUB"
 #OS_PROBER=false
 #is_AMD=false
@@ -398,6 +398,7 @@ fi
 arch_chroot() {
 	echo "Will be prompted to enter new root password"
 	if ! passwd; then # TESTING THIS LOOP IN CASE A VERIFY FAILS
+		echo "PASSWORD MUST MATCH DUMBASS"
 		passwd
 	fi
 
@@ -445,6 +446,7 @@ EOF
 
 	echo "Will be prompted to enter new password for ($USERNAME)"
 	if ! passwd $USERNAME; then
+		echo "PASSWORD MUST MATCH DUMBASS"
 		passwd $USERNAME
 	fi
 
@@ -458,13 +460,16 @@ EOF
 	grub-mkconfig -o "/boot/grub/grub.cfg"
 
 	ROOT_UUID=$(blkid -s UUID -o value "$DRIVE_ID$root_part")
+	HOME_UUID=$(blkid -s UUID -o value "$DRIVE_ID$home_part")
 
 	if [[ $use_LUKS == true ]]; then # can test adding multiple encrypted drives here
+	if [[ $use_HOME == true ]]; then
+	new_value="cryptdevice=UUID=$ROOT_UUID:$ROOT_ID root=/dev/mapper/$ROOT_ID cryptdevice=UUID=$HOME_UUID home=/dev/mapper/$HOME_ID" # TESTING THIS LINE!
+else
 	new_value="cryptdevice=UUID=$ROOT_UUID:$ROOT_ID root=/dev/mapper/$ROOT_ID"
-	#sed -i '7c\GRUB_CMDLINE_LINUX="'"$new_value"'"' "/etc/default/grub" # ...
+fi
 else
 	new_value="root=UUID=$ROOT_UUID" # is this the best way to do this?
-	#sed -i '7c\GRUB_CMDLINE_LINUX="'"$new_value"'"' "/etc/default/grub" # ...
 fi
 
 	sed -i '7c\GRUB_CMDLINE_LINUX="'"$new_value"'"' "/etc/default/grub" # ...
