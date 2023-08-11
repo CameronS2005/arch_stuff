@@ -1,5 +1,5 @@
 #!/bin/bash
-rel_date="UPDATE TIME; Aug 11, 12:39 PM EDT"
+rel_date="UPDATE TIME; Aug 11, 13:51 PM EDT"
 ## VERSION (SED COMMANDS WILL MOST LIKELY NEED UPDATED WITH UPDATES!)
 
 #### HOLY FUCK TRY THIS 
@@ -29,13 +29,12 @@ use_LUKS=false # disabled for testing
 #LUKS_header=false
 #header_dir="~/tmp"
 use_SWAP=true
-######## WHEN ADDING THE HOME & DATA DIRECTORIES IT WILL BE EASIEST TO REMOVE HARDCODED PERCENTS AND ASK USER!
-use_HOME=true
-#use_DATA=false
+use_HOME=true # TESTING
+#use_DATA=false # NOT IMPLEMENTED
 
 ROOT_ID="root_crypt"
 HOME_ID="home_crypt"
-DATA_ID="data_crypt"
+#DATA_ID="data_crypt"
 
 HOSTNAME="Archie"
 USERNAME="Archie"
@@ -48,9 +47,9 @@ GRUB_ID="GRUB"
 
 ## NOT IMPLEMENTED ## CURRENTLY TESTING (PERCENTAGE CODE IS COMPLETELY COMMENTED OUT WHILE TESTING!)
 boot_size_mb="300"
-swap_size_gb="4"
-root_size_gb="4"
-home_size_gb="2"
+swap_size_gb="4"; swap_size_mb=$((swap_size_gb * 1024)) # at this point i might aswell make a simple function to convert from gb to mb and reverse
+root_size_gb="4"; root_size_mb=$((root_size_gb * 1024))
+home_size_gb="2"; home_size_mb=$((home_size_gb * 1024))
 #data_size_gb="2"
 
 base_packages="base linux linux-firmware nano grub efibootmgr networkmanager intel-ucode" # 148/126?? pkgs (UEFI-BOOT+WIFI+UCODE)
@@ -85,12 +84,6 @@ data_size_gb="$data_size_gb"
 #root_part="$root_part" # currently reset in pt 2 as i think it causes a boot error
 EOF
 }
-
-if [[ $use_SWAP == true ]]; then # current hotfix for not using swap.. (this is quite lazy..)
-	root_part="p3" # the p is because i use a chromebook with emmc storage with is detected as /dev/mmcblk0 and parts a mmcblk0p1 and so on
-else
-	root_part="p2"
-fi
 
 ### START OF SCRIPT
 
@@ -195,7 +188,7 @@ auto_partition() { # rename to auto drive & add to handle encryption and mountin
 #
 #	if [[ $use_SWAP == true ]]; then
 #	swap_size=$((drive_size_mib * 15 / 100))
-#	root_size=$((drive_size_mib - boot_size - swap_size))
+#	root_size=$((drive_size_mib - boot_size_mb - swap_size))
 #else
 #	root_size=$((drive_size_mib - boot_size))
 #fi
@@ -212,38 +205,63 @@ auto_partition() { # rename to auto drive & add to handle encryption and mountin
 #	root_size=$((root_size_gb * 1024)) # gb to mb
 #fi
 
-	boot_size="$boot_size_mb"
-	swap_size="$swap_size_gb"
-	root_size="$root_size_gb"
-	home_size="$home_size_gb"
-	data_size="$data_size_gb"
+	#boot_size="$boot_size_mb"
+	#swap_size="$swap_size_gb"
+	#root_size="$root_size_gb"
+	#home_size="$home_size_gb"
+	#data_size="$data_size_gb"
 
 	# Create partitions
-	## USE EQUATION TO DETERMINE SWAP SIZE (BASED ON DISK SIZE AND RAM AMOUNT)
+	## USE EQUATION TO DETERMINE SWAP SIZE (BASED ON DISK SIZE AND RAM AMOUNT) << THIS WOULD BE NICE!bi
 	echo "Creating New Partitions!"
-	parted "$DRIVE_ID" mkpart ESP fat32 1MiB "${boot_size}MiB"  # Create EFI System Partition
-	parted "$DRIVE_ID" set 1 boot on  # Set the boot flag for ESP
+	parted "$DRIVE_ID" mkpart ESP fat32 1MiB "${boot_size}MiB"  # Create ESP Partition
+	parted "$DRIVE_ID" set 1 boot on  # Set the boot flag for the ESP partition
 
 	if [[ $use_SWAP == true ]]; then
-	parted "$DRIVE_ID" mkpart primary linux-swap "${boot_size}MiB" "$((boot_size + swap_size))MiB"  # Create swap partition
-	parted "$DRIVE_ID" mkpart primary ext4 "$((boot_size + swap_size))MiB" 100%  # Create root partition
-else
-	if [[ $use_HOME == false ]]; then
-	parted "$DRIVE_ID" mkpart primary ext4 "$((boot_size))MiB" 100%
-else
-	#parted "$DRIVE_ID" mkpart primary ext4 "$((boot_size))MiB" 100%
-	parted "$DRIVE_ID" mkpart primary ext4 "$((boot_size))MiB" "$((boot_size + $home_size * 1024))MiB" # testing this line
-fi; fi
-
-	if [[ $use_HOME == true ]]; then # TESTING HOME DIRECTORY
-		if [[ $use_SWAP == true ]]; then
+		root_part="p3"
+		if [[ $use_HOME == true ]]; then
 			home_part="p4"
+			parted "$DRIVE_ID" mkpart primary linux-swap "${boot_size}MiB" "$((boot_size_mb + swap_size_mb))MiB" # Create swap partition
+			parted "$DRIVE_ID" mkpart primary ext4 "$((boot_size_mb + swap_size_mb))MiB" "$((boot_size_mb + swap_size_mb + root_size_mb))MiB"  # Create root partition
+			parted "$DRIVE_ID" mkpart primary ext4 "$((boot_size_mb + swap_size_mb + root_size_mb))MiB" 100% # Create home partition
 		else
-			home_part="p3"
+			parted "$DRIVE_ID" mkpart primary linux-swap "${boot_size}MiB" "$((boot_size_mb + swap_size_mb))MiB" # Create swap partition
+			parted "$DRIVE_ID" mkpart primary ext4 "$((boot_size_mb + swap_size_mb))MiB" 100%  # Create root partition
 		fi
-
-		parted "$DRIVE_ID" mkpart primary ext4 "$((boot_size + $home_size_gb * 1024))MiB" 100%
+	else
+		root_part="p2"
+		if [[ $use_HOME == true ]]; then
+			home_part="p3"
+			parted "$DRIVE_ID" mkpart primary ext4 "$((boot_size))MiB" "$((boot_size_mb + root_size_mb))MiB" # Create root partition
+			parted "$DRIVE_ID" mkpart primary ext4 "$((boot_size_mb + root_size_mb))MiB" 100% # Create home partition
+		else
+			parted "$DRIVE_ID" mkpart primary ext4 "$((boot_size))MiB" 100% # Create root partition
+		fi
 	fi
+
+
+
+#	if [[ $use_SWAP == true ]]; then
+#	parted "$DRIVE_ID" mkpart primary linux-swap "${boot_size}MiB" "$((boot_size_mb + swap_size))MiB"  # Create swap partition
+#	parted "$DRIVE_ID" mkpart primary ext4 "$((boot_size_mb + swap_size))MiB" 100%  # Create root partition
+#else
+#	if [[ $use_HOME == false ]]; then
+#	parted "$DRIVE_ID" mkpart primary ext4 "$((boot_size))MiB" 100%
+#else
+#	#parted "$DRIVE_ID" mkpart primary ext4 "$((boot_size))MiB" 100%
+#	parted "$DRIVE_ID" mkpart primary ext4 "$((boot_size))MiB" "$((boot_size_mb + $home_size * 1024))MiB" # testing this line
+#fi; 
+#fi
+
+#	if [[ $use_HOME == true ]]; then # TESTING HOME DIRECTORY
+#		if [[ $use_SWAP == true ]]; then
+#			home_part="p4"
+#		else
+#			home_part="p3"
+#		fi
+#
+#		parted "$DRIVE_ID" mkpart primary ext4 "$((boot_size_mb + $home_size_gb * 1024))MiB" 100%
+#	fi
 
 	## Handle root partition encryption ## this could use some modifying...
 	encrypt_root() {
