@@ -1,5 +1,5 @@
 #!/bin/bash
-rel_date="UPDATE TIME; Aug 11, 04:39 AM EDT"
+rel_date="UPDATE TIME; Aug 11, 05:15 AM EDT"
 ## VERSION (SED COMMANDS WILL MOST LIKELY NEED UPDATED WITH UPDATES!)
 
 #### HOLY FUCK TRY THIS chroot /path/to/chroot/env /bin/bash <<EOF   CHROOT CODE    EOF
@@ -35,7 +35,7 @@ ROOT_ID="root_crypt"
 
 HOSTNAME="Archie"
 USERNAME="Archie"
-auto_login=false
+auto_login=false # cause of current boot error
 #BOOTLOADER="GRUB"
 enable_32b_mlib=true
 GRUB_ID="GRUB"
@@ -249,13 +249,13 @@ echo "When in chroot run : chmod +x setup; ./setup"
 seed="#"
 sed -n "/$seed#START_TAG/,/$seed#END_TAG/p" "$0" > /mnt/setup
 
-#arch-chroot /mnt
+arch-chroot /mnt
 
-arch-chroot /mnt /bin/bash << EOF
-echo "Executing Part 2"
-chmod +x setup; ./setup
-exit
-EOF
+#arch-chroot /mnt /bin/bash << EOF
+#echo "Executing Part 2"
+#chmod +x setup; ./setup
+#exit
+#EOF
 
 ## post chroot commands (we're finished here!)
 post_chroot() {
