@@ -1,5 +1,5 @@
 #!/bin/bash
-## UPDATE TIME; Aug 11, 03:19 AM EDT
+## UPDATE TIME; Aug 11, 03:49 AM EDT
 ## VERSION (SED COMMANDS WILL MOST LIKELY NEED UPDATED WITH UPDATES!)
 
 #### HOLY FUCK TRY THIS chroot /path/to/chroot/env /bin/bash <<EOF   CHROOT CODE    EOF
@@ -17,14 +17,14 @@
 ## CONFIG ## BE SURE BOTH CONFIGS MATCH UNTIL WE FIND A WAY TO FIX THIS...
 WIFI_SSID="WiFi-2.4"
 DRIVE_ID="/dev/mmcblk0"
-#keymap # not implemented as we use default...
+#keymap= # not implemented as we use default...
 lang="en_US" # IS HARDCODED TO BE UTF-8 (MAY ADD ISO SOON)
 timezone="America/New_York"
 
 use_LUKS=false # if home or data directory are enabled they will also be encrypted with luks!
 #LUKS_header=false # not implemented
 #header_dir="~/tmp" # not implemented # in this case the header would need extracted before a reboot
-use_SWAP=true
+use_SWAP=false
 ######## WHEN ADDING THE HOME & DATA DIRECTORIES IT WILL BE EASIEST TO REMOVE HARDCODED PERCENTS AND ASK USER!
 use_HOME=false # not implemented # home partition # TESTING
 use_DATA=false # not implemented # data partition # TESTING
@@ -35,17 +35,17 @@ DATA_ID="data_crypt" # TESTING
 
 HOSTNAME="Archie"
 USERNAME="Archie"
-auto_login=true
+auto_login=false
 #BOOTLOADER="GRUB" # currently only supports grub
-enable_32b_mlib=true
-GRUB_ID="GRUB-MONSTER"
+enable_32b_mlib=false
+GRUB_ID="GRUB"
 #OS_PROBER=false # not implemented
 #is_AMD=false # not implemented
 
 ## NOT IMPLEMENTED
-boot_size_mb="300"	# TESTING
-swap_size_gb="5"	# TESTING
-root_size_gb="8"	# TESTING
+boot_size_mb=""	# TESTING
+swap_size_gb=""	# TESTING
+root_size_gb=""	# TESTING
 #home_size_gb="2"	# TESTING
 #data_size_gb="2"	# TESTING
 
@@ -76,7 +76,7 @@ swap_size_gb="$swap_size_gb"
 root_size_gb="$root_size_gb"
 home_size_gb="$home_size_gb"
 data_size_gb="$data_size_gb"
-root_part="$root_part"
+#root_part="$root_part"
 EOF
 }
 
@@ -160,16 +160,16 @@ else
 fi
 
 	## HANDLE OVERRIDES
-if [[ ! -z "$boot_size_mb" ]]; then
-	echo "OVERRIDDEN BOOT PART SIZE!"
-	boot_size="$boot_size_mb"
-fi; if [[ ! -z "$swap_size_gb" && $use_SWAP == true ]]; then
-	echo "OVERRIDDEN SWAP PART SIZE!"
-	swap_size=$((swap_size_gb * 1024)) # gb to mb
-fi; if [[ ! -z "$root_size_gb" ]]; then	
-	echo "OVERRIDDEN ROOT PART SIZE!"
-	root_size=$((root_size_gb * 1024)) # gb to mb
-fi
+#if [[ ! -z "$boot_size_mb" ]]; then
+#	echo "OVERRIDDEN BOOT PART SIZE!"
+#	boot_size="$boot_size_mb"
+#fi; if [[ ! -z "$swap_size_gb" && $use_SWAP == true ]]; then
+#	echo "OVERRIDDEN SWAP PART SIZE!"
+#	swap_size=$((swap_size_gb * 1024)) # gb to mb
+#fi; if [[ ! -z "$root_size_gb" ]]; then	
+#	echo "OVERRIDDEN ROOT PART SIZE!"
+#	root_size=$((root_size_gb * 1024)) # gb to mb
+#fi
 
 
 	# Create partitions
@@ -279,6 +279,12 @@ exit 0
 ##START_TAG
 #!/bin/bash
 source variables # created by 2nd_config function in pt1
+
+if [[ $use_SWAP == true ]]; then # current hotfix for not using swap.. (this is quite lazy..)
+	root_part="p3" # the p is because i use a chromebook with emmc storage with is detected as /dev/mmcblk0 and parts a mmcblk0p1 and so on
+else
+	root_part="p2"
+fi
 
 arch_chroot() {
 	echo "Will be prompted to enter new root password"
