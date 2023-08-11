@@ -1,5 +1,5 @@
 #!/bin/bash
-rel_date="UPDATE TIME; Aug 11, 13:55 PM EDT"
+rel_date="UPDATE TIME; Aug 11, 14:05 PM EDT"
 ## VERSION (SED COMMANDS WILL MOST LIKELY NEED UPDATED WITH UPDATES!)
 
 #### HOLY FUCK TRY THIS 
@@ -22,10 +22,11 @@ rel_date="UPDATE TIME; Aug 11, 13:55 PM EDT"
 WIFI_SSID="WiFi-2.4"
 DRIVE_ID="/dev/mmcblk0"
 #keymap= # not implemented as we use default...
-lang="en_US" # IS HARDCODED TO BE UTF-8 (MAY ADD ISO SOON)
+lang="en_U
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++S" # IS HARDCODED TO BE UTF-8 (MAY ADD ISO SOON)
 timezone="America/New_York"
 
-use_LUKS=false # disabled for testing 
+use_LUKS=true # disabled for testing 
 #LUKS_header=false
 #header_dir="~/tmp"
 use_SWAP=true
@@ -324,7 +325,7 @@ else
 	mount "$DRIVE_ID$root_part" /mnt
 	if [[ $use_HOME == true ]]; then
 		mkdir /mnt/home #???
-		mount "/dev/mapper/$HOME_ID" /mnt/home
+		mount "$DRIVE_ID$home_part" /mnt/home
 	fi
 fi
 	mkdir /mnt/boot
