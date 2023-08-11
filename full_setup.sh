@@ -1,5 +1,5 @@
 #!/bin/bash
-## UPDATE TIME; Aug 11, 02:07 AM EDT
+## UPDATE TIME; Aug 11, 02:16 AM EDT
 ## VERSION (SED COMMANDS WILL MOST LIKELY NEED UPDATED WITH UPDATES!)
 
 #### HOLY FUCK TRY THIS chroot /path/to/chroot/env /bin/bash <<EOF   CHROOT CODE    EOF
@@ -42,7 +42,7 @@ GRUB_ID="GRUB-MONSTER"
 #is_AMD=false # not implemented
 
 ## NOT IMPLEMENTED
-boot_size_mb="300M"	# TESTING
+boot_size_mb="300"	# TESTING
 swap_size_gb="5"	# TESTING
 root_size_gb="8"	# TESTING
 #home_size_gb="2"	# TESTING
