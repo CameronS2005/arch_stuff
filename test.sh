@@ -1,5 +1,5 @@
 #!/bin/bash
-rel_date="UPDATE TIME; Aug 11, 14:37 PM EDT"
+rel_date="UPDATE TIME; Aug 11, 14:57 PM EDT"
 
 #### URL == "https://raw.githubusercontent.com/CameronS2005/arch_stuff/main/test.sh"
 
@@ -44,11 +44,11 @@ HOME_ID="home_crypt"
 HOSTNAME="Archie"
 USERNAME="Archie"
 auto_login=false # currently causes a boot error when enabled ### NEEDS FIXED ## SKIPPING FOR NOW AS ITS EATING UP TOO MUCH TIME AND IM A SED NOVICE!
-#BOOTLOADER="GRUB"
+#BOOTLOADER="GRUB" # SCRIPT ONLY SUPPORTS GRUB RIGHT NOW
 enable_32b_mlib=true
 GRUB_ID="GRUB"
-#OS_PROBER=false
-#is_AMD=false
+#OS_PROBER=false # NOT IMPLEMENTED
+#is_AMD=false # NOT IMPLEMENTED (WILL CHOOSE BETWEEN GRAPHICS DRIVERS AND UCODE)
 
 ## NOT IMPLEMENTED ## CURRENTLY TESTING (PERCENTAGE CODE IS COMPLETELY COMMENTED OUT WHILE TESTING!)
 boot_size_mb="300"
@@ -271,23 +271,35 @@ auto_partition() { # rename to auto drive & add to handle encryption and mountin
 	## Handle root partition encryption ## this could use some modifying...
 	encrypt_root() {
 		echo "Will Be Prompted for Encrypted Phrase! (ROOT PARTITION ($root_part))"
-		cryptsetup -y -v luksFormat "$DRIVE_ID$root_part"
+		if ! cryptsetup -y -v luksFormat "$DRIVE_ID$root_part"; then
+			echo "PASSWORDS MUST MATCH DUMBASS"
+			encrypt_root
+		fi
 	
 		echo "Will Be Prompted to Decrypt the Encrypted Partiton!"
-		cryptsetup open "$DRIVE_ID$root_part" "$ROOT_ID"
+		if ! cryptsetup open "$DRIVE_ID$root_part" "$ROOT_ID"
+			echo "PASSWORDS MUST MATCH DUMBASS"
+			encrypt_root
+
 		if [[ $use_HOME == false ]]; then
 			sleep 3
-		fi
+		fi; fi
 	}
 
 	## Handle home partition encryption
 	encrypt_home() {
 		echo "Will Be Prompted for Encrypted Phrase! (HOME PARTITION ($home_part))"
-		cryptsetup -y -v luksFormat "$DRIVE_ID$home_part"
+		if ! cryptsetup -y -v luksFormat "$DRIVE_ID$home_part"; then
+			echo "PASSWORDS MUST MATCH DUMBASS"
+			encrypt_home
+		fi
 	
 		echo "Will Be Prompted to Decrypt the Encrypted Partiton!"
-		cryptsetup open "$DRIVE_ID$home_part" "$HOME_ID"
-		sleep 3
+		if ! cryptsetup open "$DRIVE_ID$home_part" "$HOME_ID"; then
+			sleep 3
+			echo "PASSWORDS MUST MATCH DUMBASS"
+			encrypt_home
+		fi
 	}
 
 	# Format partitions
@@ -296,10 +308,12 @@ auto_partition() { # rename to auto drive & add to handle encryption and mountin
 	if [[ $use_LUKS == true ]]; then
 	encrypt_root
 	mkfs.ext4 "/dev/mapper/$ROOT_ID"
+
 	if [[ $use_HOME == true ]]; then
 		encrypt_home
 		mkfs.ext4 "/dev/mapper/$HOME_ID"
 	fi
+
 else
 	mkfs.ext4 "$DRIVE_ID$root_part"
 	if [[ $use_HOME == true ]]; then
@@ -325,6 +339,7 @@ auto_mount() { # havent tested this...
 		mkdir /mnt/home #???
 		mount "/dev/mapper/$HOME_ID" /mnt/home
 	fi
+
 else
 	mount "$DRIVE_ID$root_part" /mnt
 	if [[ $use_HOME == true ]]; then
@@ -351,7 +366,7 @@ genfstab -U /mnt >> /mnt/etc/fstab
 echo "When in chroot run : chmod +x setup; ./setup"
 
 seed="#"
-sed -n "/$seed#START_TAG/,/$seed#END_TAG/p" "$0" > /mnt/setup
+sed -n "/$seed#START_TAG/,/$seed#END_TAG/p" "$0" > /mnt/setup # the tags must be seeded or sed detects this line as the occurences!
 
 arch-chroot /mnt
 
