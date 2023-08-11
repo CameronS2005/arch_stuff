@@ -1,5 +1,5 @@
 #!/bin/bash
-## UPDATE TIME; Aug 11, 02:05 AM EDT
+## UPDATE TIME; Aug 11, 02:07 AM EDT
 ## VERSION (SED COMMANDS WILL MOST LIKELY NEED UPDATED WITH UPDATES!)
 
 #### HOLY FUCK TRY THIS chroot /path/to/chroot/env /bin/bash <<EOF   CHROOT CODE    EOF
@@ -20,7 +20,7 @@ DRIVE_ID="/dev/mmcblk0"
 lang="en_US" # IS HARDCODED TO BE UTF-8 (MAY ADD ISO SOON)
 timezone="America/New_York"
 
-use_LUKS=true # if home or data directory are enabled they will also be encrypted with luks!
+use_LUKS=false # if home or data directory are enabled they will also be encrypted with luks!
 #LUKS_header=false # not implemented
 #header_dir="~/tmp" # not implemented # in this case the header would need extracted before a reboot
 use_SWAP=true
