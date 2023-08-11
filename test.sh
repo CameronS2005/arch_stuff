@@ -1,5 +1,5 @@
 #!/bin/bash
-rel_date="UPDATE TIME; Aug 11, 13:51 PM EDT"
+rel_date="UPDATE TIME; Aug 11, 13:55 PM EDT"
 ## VERSION (SED COMMANDS WILL MOST LIKELY NEED UPDATED WITH UPDATES!)
 
 #### HOLY FUCK TRY THIS 
@@ -214,18 +214,18 @@ auto_partition() { # rename to auto drive & add to handle encryption and mountin
 	# Create partitions
 	## USE EQUATION TO DETERMINE SWAP SIZE (BASED ON DISK SIZE AND RAM AMOUNT) << THIS WOULD BE NICE!bi
 	echo "Creating New Partitions!"
-	parted "$DRIVE_ID" mkpart ESP fat32 1MiB "${boot_size}MiB"  # Create ESP Partition
+	parted "$DRIVE_ID" mkpart ESP fat32 1MiB "${boot_size_mb}MiB"  # Create ESP Partition
 	parted "$DRIVE_ID" set 1 boot on  # Set the boot flag for the ESP partition
 
 	if [[ $use_SWAP == true ]]; then
 		root_part="p3"
 		if [[ $use_HOME == true ]]; then
 			home_part="p4"
-			parted "$DRIVE_ID" mkpart primary linux-swap "${boot_size}MiB" "$((boot_size_mb + swap_size_mb))MiB" # Create swap partition
+			parted "$DRIVE_ID" mkpart primary linux-swap "${boot_size_mb}MiB" "$((boot_size_mb + swap_size_mb))MiB" # Create swap partition
 			parted "$DRIVE_ID" mkpart primary ext4 "$((boot_size_mb + swap_size_mb))MiB" "$((boot_size_mb + swap_size_mb + root_size_mb))MiB"  # Create root partition
 			parted "$DRIVE_ID" mkpart primary ext4 "$((boot_size_mb + swap_size_mb + root_size_mb))MiB" 100% # Create home partition
 		else
-			parted "$DRIVE_ID" mkpart primary linux-swap "${boot_size}MiB" "$((boot_size_mb + swap_size_mb))MiB" # Create swap partition
+			parted "$DRIVE_ID" mkpart primary linux-swap "${boot_size_mb}MiB" "$((boot_size_mb + swap_size_mb))MiB" # Create swap partition
 			parted "$DRIVE_ID" mkpart primary ext4 "$((boot_size_mb + swap_size_mb))MiB" 100%  # Create root partition
 		fi
 	else
@@ -242,7 +242,7 @@ auto_partition() { # rename to auto drive & add to handle encryption and mountin
 
 
 #	if [[ $use_SWAP == true ]]; then
-#	parted "$DRIVE_ID" mkpart primary linux-swap "${boot_size}MiB" "$((boot_size_mb + swap_size))MiB"  # Create swap partition
+#	parted "$DRIVE_ID" mkpart primary linux-swap "${boot_size_mb}MiB" "$((boot_size_mb + swap_size))MiB"  # Create swap partition
 #	parted "$DRIVE_ID" mkpart primary ext4 "$((boot_size_mb + swap_size))MiB" 100%  # Create root partition
 #else
 #	if [[ $use_HOME == false ]]; then
