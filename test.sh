@@ -1,5 +1,7 @@
 #!/bin/bash
-rel_date="UPDATE TIME; Aug 11, 14:57 PM EDT"
+rel_date="UPDATE TIME; Aug 12, 03:46 AM EDT"
+#################################### MASSIVE ISSUE the ! checks added to the new if statments for encrypt and decrypt and perhaps the passwd commands
+## are recursive callers and cause loops!
 
 #### URL == "https://raw.githubusercontent.com/CameronS2005/arch_stuff/main/test.sh"
 
@@ -34,7 +36,7 @@ use_LUKS=true # disabled for testing
 #LUKS_header=false
 #header_dir="~/tmp"
 use_SWAP=true ############# WHY IS SWAP NOT ENCRYPTED!!!! (ALSO)
-use_HOME=true # TESTING
+use_HOME=false # TESTING
 #use_DATA=false # NOT IMPLEMENTED
 
 ROOT_ID="root_crypt"
@@ -53,8 +55,8 @@ GRUB_ID="GRUB"
 ## NOT IMPLEMENTED ## CURRENTLY TESTING (PERCENTAGE CODE IS COMPLETELY COMMENTED OUT WHILE TESTING!)
 boot_size_mb="300"
 swap_size_gb="4"; swap_size_mb=$((swap_size_gb * 1024)) # at this point i might aswell make a simple function to convert from gb to mb and reverse
-root_size_gb="4"; root_size_mb=$((root_size_gb * 1024))
-home_size_gb="2"; home_size_mb=$((home_size_gb * 1024))
+root_size_gb="8"; root_size_mb=$((root_size_gb * 1024))
+#home_size_gb="2"; home_size_mb=$((home_size_gb * 1024)) # CURRENTLY NOT EVEN USED AT THE LAST DIRECTORY ENDS UP USING THE REST OF THE SPACE I THINK!
 #data_size_gb="2"
 
 base_packages="base linux linux-firmware nano grub efibootmgr networkmanager intel-ucode" # 148/126?? pkgs (UEFI-BOOT+WIFI+UCODE)
@@ -277,13 +279,14 @@ auto_partition() { # rename to auto drive & add to handle encryption and mountin
 		fi
 	
 		echo "Will Be Prompted to Decrypt the Encrypted Partiton!"
-		if ! cryptsetup open "$DRIVE_ID$root_part" "$ROOT_ID"
+		if ! cryptsetup open "$DRIVE_ID$root_part" "$ROOT_ID"; then
 			echo "PASSWORDS MUST MATCH DUMBASS"
 			encrypt_root
+		fi
 
 		if [[ $use_HOME == false ]]; then
 			sleep 3
-		fi; fi
+		fi
 	}
 
 	## Handle home partition encryption
