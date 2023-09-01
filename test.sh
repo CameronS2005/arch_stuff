@@ -59,7 +59,7 @@ root_size_gb="8"; root_size_mb=$((root_size_gb * 1024))
 #home_size_gb="2"; home_size_mb=$((home_size_gb * 1024)) # CURRENTLY NOT EVEN USED AT THE LAST DIRECTORY ENDS UP USING THE REST OF THE SPACE I THINK!
 #data_size_gb="2"
 
-base_packages="base base-devel linux linux-firmware nano grub efibootmgr networkmanager intel-ucode" # 148/126?? pkgs (UEFI-BOOT+WIFI+UCODE)
+base_packages="base base-devel linux linux-firmware nano grub efibootmgr networkmanager intel-ucode sudo" # 148/126?? pkgs (UEFI-BOOT+WIFI+UCODE)
 #base_packages="base linux linux-firmware nano grub efibootmgr" # 126?? pkgs (UEFI-BOOT)
 
 2nd_config() { # this is so annoying...
