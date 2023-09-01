@@ -1,5 +1,5 @@
 #!/bin/bash
-rel_date="UPDATE TIME; Aug 12, 03:46 AM EDT"
+rel_date="UPDATE TIME; Sep 1, 03:40 PM EDT"
 #################################### MASSIVE ISSUE the ! checks added to the new if statments for encrypt and decrypt and perhaps the passwd commands
 ## are recursive callers and cause loops!
 
