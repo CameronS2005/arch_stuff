@@ -5,6 +5,13 @@ Testbench: Dell Chromebook 3100, MFG YR: 2021
 
 Arch Version: 2023.08.01, Kernel: 6.4.7
 
+## CURRENT VARIANT;
+- test.sh
+
+## Depreacted Scripts;
+- setup.sh
+- setup_pt2.sh
+- full_setup.sh
 # -------------------------------- #
 
 BE CAREFUL WITH THESE SCRIPTS AS THEY COULD CAUSE DAMAGE TO YOUR DRIVES IF NOT CONFIGURED PROPERLEY!
