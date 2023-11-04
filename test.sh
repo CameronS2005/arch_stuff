@@ -1,5 +1,5 @@
 #!/bin/bash
-rel_date="UPDATE TIME; Sep 1, 03:40 PM EDT"
+rel_date="UPDATE TIME; Nov 4, 04:52 PM EDT"
 #################################### MASSIVE ISSUE the ! checks added to the new if statments for encrypt and decrypt and perhaps the passwd commands
 ## are recursive callers and cause loops!
 
@@ -53,9 +53,9 @@ GRUB_ID="GRUB"
 #is_AMD=false # NOT IMPLEMENTED (WILL CHOOSE BETWEEN GRAPHICS DRIVERS AND UCODE)
 
 ## NOT IMPLEMENTED ## CURRENTLY TESTING (PERCENTAGE CODE IS COMPLETELY COMMENTED OUT WHILE TESTING!)
-boot_size_mb="300"
-swap_size_gb="4"; swap_size_mb=$((swap_size_gb * 1024)) # at this point i might aswell make a simple function to convert from gb to mb and reverse
-root_size_gb="8"; root_size_mb=$((root_size_gb * 1024))
+boot_size_mb="500"
+swap_size_gb="8"; swap_size_mb=$((swap_size_gb * 1024)) # at this point i might aswell make a simple function to convert from gb to mb and reverse
+root_size_gb="20"; root_size_mb=$((root_size_gb * 1024))
 #home_size_gb="2"; home_size_mb=$((home_size_gb * 1024)) # CURRENTLY NOT EVEN USED AT THE LAST DIRECTORY ENDS UP USING THE REST OF THE SPACE I THINK!
 #data_size_gb="2"
 
