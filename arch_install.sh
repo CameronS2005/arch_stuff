@@ -1,7 +1,9 @@
 #!/bin/bash
 rel_date="UPDATE TIME; Jun 30, 04:20 PM EDT (2024)"
 
-VERSION="0.1a"
+SCRIPT_VERSION="0.1a"
+
+ARCH_VERSION="2024.06.01"
 
 #### URL == "https://raw.githubusercontent.com/CameronS2005/arch_stuff/main/test.sh"
 
@@ -14,18 +16,24 @@ VERSION="0.1a"
 ### ^^^ THIS WORKS HOLY SHIT!!!
 
 ##### ADD AUTO BACKUP OF HEADER.bin (cryptsetup luksHeaderBackup $DRIVEID$ROOT_PART --header-backup-file HEADER_BACKUP.bin)
+##### ADD AUTO EXECUTION OF PART 2 OF SETUP!
+##### Fix auto_login & luks header dump
+##### FIX OPTION FOR DATA PARTITION
+##### FIX OPTION TO INCLUDE BOTH WIFI SSID & PASSWORD IN CONFIG!
+
+############ RENAME VARIABLES AND CLEAN UP CODE!!!
 
 ### ORGANIZE CONFIG BETTER!
 ## CONFIG ## BE SURE BOTH CONFIGS MATCH UNTIL WE FIND A WAY TO FIX THIS...
-WIFI_SSID="redacted"
-WIFI_PASSWORD="redacted"
+WIFI_SSID="dacrib"
+#WIFI_PASSWORD="redacted"
 DRIVE_ID="/dev/mmcblk0"
 #keymap= # not implemented as we use default...
 lang="en_US" # UTF-8
 timezone="America/New_York"
 
 use_LUKS=true
-#LUKS_header=false
+#LUKS_header_backup=false ## (THIS WILL CREATE A BACKUP OF LUKS HEADER FOR ALL ENCRYPTED PARTITIONS, BACKUPS WILL BE PLACED IN ROOT PARTITION OF THE NEW INSTALL, THEY MUST BE COPIED ELSEWHERE IN ORDER TO BE USEFUL FOR A RECOVERY!)
 #header_dir="~/tmp"
 use_SWAP=true 
 use_HOME=true
