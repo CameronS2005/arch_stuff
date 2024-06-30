@@ -1,20 +1,21 @@
 # arch_stuff
 A collection of my arch linux scripts (I am very new to arch so its nothing to impressive just a personal archive)
 
-Testbench: Dell Chromebook 3100, MFG YR: 2021
+Testbench: Dell Chromebook 3100, MFG YR: 2021 (Fleex Motherboard)
 
-Arch Version: 2023.08.01, Kernel: 6.4.7
+Arch Version: 2024.06.01, Kernel: 6.9.3
 
 ## CURRENT VARIANT;
-- test.sh
+- arch_install.sh
 
 ## Depreacted Scripts;
 - setup.sh
 - setup_pt2.sh
 - full_setup.sh
+- test.sh
 # -------------------------------- #
 
-BE CAREFUL WITH THESE SCRIPTS AS THEY COULD CAUSE DAMAGE TO YOUR DRIVES IF NOT CONFIGURED PROPERLEY!
+BE CAREFUL WITH THESE SCRIPTS AS THEY COULD CAUSE DAMAGE TO YOUR DATA IF NOT CONFIGURED PROPERLEY!
 
 to use on a fresh copy of the archiso, simply modify the variables in the config of the script, and run "curl -s setup.sh -fsSL https://raw.githubusercontent.com/CameronS2005/arch_stuff/main/setup.sh; chmod +x setup.sh; ./setup.sh" and follow the directions!
 
