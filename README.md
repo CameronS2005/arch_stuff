@@ -17,7 +17,7 @@ Arch Version: 2024.06.01, Kernel: 6.9.3
 
 BE CAREFUL WITH THESE SCRIPTS AS THEY COULD CAUSE DAMAGE TO YOUR DATA IF NOT CONFIGURED PROPERLEY!
 
-to use on a fresh copy of the archiso, simply modify the variables in the config of the script, and run "curl -s setup.sh -fsSL https://raw.githubusercontent.com/CameronS2005/arch_stuff/main/setup.sh; chmod +x setup.sh; ./setup.sh" and follow the directions!
+to use on a fresh copy of the archiso, simply modify the variables in the config of the script, and run "curl -s arch_install.sh -fsSL https://raw.githubusercontent.com/CameronS2005/arch_stuff/main/arch_install.sh; chmod +x arch_install.sh; ./arch_install.sh" and follow the directions!
 
 # -------------------------------- #
 
