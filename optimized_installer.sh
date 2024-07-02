@@ -10,9 +10,10 @@
 
 ###VARIABLES_START
 # Define global variables
-rel_date="UPDATE TIME; Jul 02, 04:38 PM EDT (2024)"
+rel_date="UPDATE TIME; Jul 02, 06:30 PM EDT (2024)"
 SCRIPT_VERSION="0.1a"
 ARCH_VERSION="2024.06.01"
+##
 WIFI_SSID="dacrib"
 DRIVE_ID="/dev/mmcblk0"
 lang="en_US.UTF-8"
@@ -20,28 +21,33 @@ timezone="America/New_York"
 use_LUKS=true
 use_SWAP=true
 use_HOME=false
-use_DATA=false # should be quite easy to implement, basically just a second home partition
+use_DATA=false
 ROOT_ID="root_crypt"
 HOME_ID="home_crypt"
 HOSTNAME="Archie"
 USERNAME="Archie"
+USER_PASSWD_HASH="" ### FIGURE OUT HOW TO MANUALLY SET HASH's INSTEAD OF RUNNING passwd COMMAND TWICE...
+ROOT_PASSWD_HASH=""
 enable_32b_mlib=true
 GRUB_ID="GRUB"
 DESKTOP_ENVIRONMENT="cinnamon" # none/plasma/gnome/xfce/lxqt/cinnamon/mate
 ## Manual drive config
+auto_part_sizing=false ## <<< NOT IMPLEMENTED YET... :(
 boot_size_mb="500"
 swap_size_gb="4"; swap_size_mb=$((swap_size_gb * 1024))
 root_size_gb="10"; root_size_mb=$((root_size_gb * 1024))
 # Base packages for installation
 base_packages="base base-devel linux linux-firmware nano grub efibootmgr networkmanager intel-ucode sudo"
-custom_packages="wget git curl screen nano firefox konsole thunar" # << include auto sublime text install
+custom_packages="wget git curl screen nano firefox konsole thunar"
+yay_aur_helper=true
+aur_packages="cloudflare-warp-bin sublime-text-4"
 # Desktop environment base packages
 xorg_base="xorg-server xorg-apps xorg-xinit xorg-twm xorg-xclock xterm"
 plasmaD="plasma-meta sddm"
 gnomeD="gnome gdm"
-xfceD="xfce4 lightdm"
-lxqtD="lxqt lightdm"
-cinnamonD="cinnamon lightdm"
+xfceD="xfce4 sddm"
+lxqtD="lxqt sddm"
+cinnamonD="cinnamon sddm"
 mateD="mate lightdm"
 ###VARIABLES_END
 
@@ -87,15 +93,15 @@ wifi_connect() {
             wifi_connect
         fi
         sleep 10 # Wait for DHCP and IP assignment
-        #local_ipv4=$(ip -4 addr show up | grep -oP '(?<=inet\s)\d+(\.\d+){3}' | grep -v '127.0.0.1' | head -n 1)
-        #echo "Local IPv4 address: $local_ipv4"
+        local_ipv4=$(ip -4 addr show up | grep -oP '(?<=inet\s)\d+(\.\d+){3}' | grep -v '127.0.0.1' | head -n 1)
+        echo "Local IPv4 address: $local_ipv4"
     fi
 }
 
 # Function to rank pacman mirrors
 rank_mirrors() {
     echo "Installing rankedmirrors to get the best mirrors for a faster install!"
-    pacman -Syyy pacman-contrib
+    yes | pacman -Syyy pacman-contrib
     cp /etc/pacman.d/mirrorlist /etc/pacman.d/mirrorlist.bak
     sleep 3
     echo "UPDATING PACMAN MIRRORS! THIS MAY TAKE AWHILE!!"
@@ -124,9 +130,9 @@ auto_partition() {
     if [[ $use_HOME == true ]]; then
         if [[ $use_SWAP == true ]]; then
         	#home_part="p4"
-        	echo "HEREEEEEE!!!!!!"
+        	#echo "HEREEEEEE!!!!!!"
             parted "$DRIVE_ID" mkpart primary ext4 "$((boot_size_mb + root_size_mb + swap_size_mb))MiB" 100% #>/dev/null 2>&1
-            echo "TOODALOO!!!!!"
+            #echo "TOODALOO!!!!!"
         else
         	#home_part="p3"
             parted "$DRIVE_ID" mkpart primary ext4 "$((boot_size_mb + root_size_mb))MiB" 100% #>/dev/null 2>&1
@@ -136,25 +142,25 @@ auto_partition() {
     # Encrypt partitions if LUKS is enabled
     if [[ $use_LUKS == true ]]; then
         echo "Encrypting Partitions!"
-        echo "HERE I AM FIRST!!!"
+        #echo "HERE I AM FIRST!!!"
         cryptsetup luksFormat "$DRIVE_ID"p3
-        echo "HERE I AM SECOND!!!!"
+        #echo "HERE I AM SECOND!!!!"
         cryptsetup luksOpen "$DRIVE_ID"p3 "$ROOT_ID"
-        mkfs.ext4 "/dev/mapper/$ROOT_ID"
+        mkfs.ext4 "/dev/mapper/$ROOT_ID" >/dev/null 2>&1
 
         if [[ $use_HOME == true ]]; then
             cryptsetup luksFormat "$DRIVE_ID"p4
             cryptsetup luksOpen "$DRIVE_ID"p4 "$HOME_ID"
-            mkfs.ext4 "/dev/mapper/$HOME_ID"
+            mkfs.ext4 "/dev/mapper/$HOME_ID" >/dev/null 2>&1
         fi
     else
-        mkfs.ext4 "$DRIVE_ID"p2
+        mkfs.ext4 "$DRIVE_ID"p2 >/dev/null 2>&1
         if [[ $use_HOME == true ]]; then
-            mkfs.ext4 "$DRIVE_ID"p3
+            mkfs.ext4 "$DRIVE_ID"p3 >/dev/null 2>&1
         fi
     fi
 
-    mkfs.fat -F32 "$DRIVE_ID"p1
+    mkfs.fat -F32 "$DRIVE_ID"p1 >/dev/null 2>&1
 
     if [[ $use_SWAP == true ]]; then
         mkswap "$DRIVE_ID"p2
@@ -186,10 +192,31 @@ auto_mount() {
 # Function to perform pacstrap installation
 pacstrap_install() {
     echo "Installing Base System Packages!"
-    pacstrap -i /mnt $base_packages $custom_packages
-    #if ! pacstrap -i /mnt $base_packages #$custom_packages; then
-    #	echo "PACSTRAP FAILED!"
-    #	pacstrap_install
+
+  	case $DESKTOP_ENVIRONMENT in
+	 plasma)
+	     desktop_packages="$xorg_base $plasmaD"
+	     ;;
+	 gnome)
+	     desktop_packages="$xorg_base $gnomeD"
+	     ;;
+	 xfce)
+	     desktop_packages="$xorg_base $xfceD"
+	     ;;
+	 lxqt)	desktop_packages="$xorg_base $lxqtD"
+	     ;;
+	 cinnamon)	desktop_packages="$xorg_base $cinnamonD"
+	     ;;
+	 mate)	desktop_packages="$xorg_base $mateD"
+	     ;;
+	 none)  desktop_packages=""
+	 *)
+	     echo "Invalid Desktop Environment Option!"
+	     ;;
+esac
+
+    yes | pacstrap -i /mnt $base_packages $desktop_packages $custom_packages
+
 }
 
 # Function to generate fstab
@@ -206,13 +233,9 @@ chroot_setup() {
 	sed -n "/$seed##VARIABLES_START/,/$seed##VARIABLES_END/p" "$0" > /mnt/variables
 	sed -n "/$seed##PART2_START/,/$seed##PART2_ENV/p" "$0" > /mnt/setup.sh
 
-    # Execute part 2 script inside chroot
-    echo "WE SHALL WAIT HERE!!!!"
-    exit 0
-    #arch-chroot /mnt /bin/bash -c "chmod +x setup.sh && ./setup.sh && exit"
-    #chroot /mnt #/bin/bash #<< EOF ## <<< MAKE PART 2 AUTOMATIC!!!!!
-#	chmod +x setup.sh; ./setup.sh; exit
-#EOF
+    arch-chroot /mnt /bin/bash << EOF
+chmod +x setup.sh && ./setup.sh
+EOF
 }
 
 # Function to run post-chroot commands
@@ -293,22 +316,22 @@ arch_chroot() {
 	fi
 
 	sed -i "s/^#\($lang.UTF-8 UTF-8\)/\1/" "/etc/locale.gen"
-	locale-gen
+	locale-gen >/dev/null 2>&1
 	echo "LANG=$lang.UTF-8" > "/etc/locale.conf"
 	export "LANG=$lang.UTF-8"
 
 	echo "Setting System Time & Hostname!"
-	ln -sf "/usr/share/zoneinfo/$timezone" "/etc/localtime"
+	ln -sf "/usr/share/zoneinfo/$timezone" "/etc/localtime" >/dev/null 2>&1
 	#hwclock --systohc --utc # check 2nd argument # why is this utc? # i dont even use utc...
-	sudo hwclock --systohc --localtime
+	sudo hwclock --systohc --localtime >/dev/null 2>&1
 	echo "$HOSTNAME" > "/etc/hostname"
 
-	systemctl enable fstrim.timer # ssd trimming? # add check to see if even using ssd
+	systemctl enable fstrim.timer >/dev/null 2>&1 # ssd trimming? # add check to see if even using ssd
 
 	if [[ $enable_32b_mlib == true ]]; then
 	sed -i '90 s/^#//' "/etc/pacman.conf"
 	sed -i '91 s/^#//' "/etc/pacman.conf"
-	pacman -Sy
+	yes | pacman -Sy >/dev/null 2>&1
 	fi
 
 	echo "Configuring Hosts File With Hostname: ($HOSTNAME)"
@@ -319,7 +342,8 @@ arch_chroot() {
 EOF
 
 	echo "Creating & Configuring non-root User: ($USERNAME)"
-	useradd -mG wheel $USERNAME # modify user permissions here
+	groupapp sudo
+	useradd -mG wheel,sudo $USERNAME # modify user permissions here
 	#useradd -m -y users -G wheel,storage,power -s /bin/bash $USERNAME
 
 	if [[ $auto_login == true ]]; then
@@ -346,8 +370,8 @@ EOF
 	fi
 	mkinitcpio -p linux
 
-	grub-install --target=x86_64-efi --efi-directory=/boot --bootloader-id="$GRUB_ID"
-	grub-mkconfig -o "/boot/grub/grub.cfg"
+	grub-install --target=x86_64-efi --efi-directory=/boot --bootloader-id="$GRUB_ID" >/dev/null 2>&1
+	grub-mkconfig -o "/boot/grub/grub.cfg" >/dev/null 2>&1
 
 	ROOT_UUID=$(blkid -s UUID -o value "$DRIVE_ID$root_part")
 	HOME_UUID=$(blkid -s UUID -o value "$DRIVE_ID$home_part")
@@ -363,49 +387,16 @@ else
 fi
 
 	sed -i '7c\GRUB_CMDLINE_LINUX="'"$new_value"'"' "/etc/default/grub" # ...
-	grub-mkconfig -o "/boot/grub/grub.cfg"
+	grub-mkconfig -o "/boot/grub/grub.cfg" >/dev/null 2>&1
 	
-	systemctl enable NetworkManager
-	#systemctl enable dhcpcd
-	#systemctl enable iwd 
-	#systemctl enable bluetooth
+	systemctl enable NetworkManager >/dev/null 2>&1
 
-	case $DESKTOP_ENVIRONMENT in
-	    plasma)
-	        desktop_packages="$xorg_base $plasmaD"
-	        ;;
-	    gnome)
-	        desktop_packages="$xorg_base $gnomeD"
-	        ;;
-	    xfce)
-	        desktop_packages="$xorg_base $xfceD"
-	        ;;
-	    lxqt)
-			desktop_packages="$xorg_base $lxqtD"
-	        ;;
-	    cinnamon)
-			desktop_packages="$xorg_base $cinnamonD"
-	        ;;
-	    mate)
-			desktop_packages="$xorg_base $mateD"
-	        ;;
-	    *)
-	        echo "Invalid Desktop Environment Option!"
-	        ;;
-	esac
-
-	cat << EOF > dm_install.sh
-#!/bin/bash
-sudo pacman -Syyyuuuu
-sudo pacman -S $desktop_packages
-sudo systemctl enable sddm.service
-sudo systemctl enable gdm.service
-sudo systemctl enable lightdm.service
-
-echo "INSTALL FINISHED!"
-read -p "PRESS ENTER TO REBOOT!"
-reboot now
-EOF
+	if [[ $yay_aur_helper == true ]]; then ## TESTING!!
+    	git clone https://aur.archlinux.org/yay.git
+    	cd yay
+    	yes | makepkg -si
+    	yes | yay -S $aur_packages
+    fi
 
 	rm variables
 	rm $0 # 
