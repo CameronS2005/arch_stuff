@@ -10,7 +10,7 @@
 
 ###VARIABLES_START
 # Define global variables
-rel_date="UPDATE TIME; Jul 02, 01:06 PM EDT (2024)"
+rel_date="UPDATE TIME; Jul 02, 03:02 PM EDT (2024)"
 SCRIPT_VERSION="0.1a"
 ARCH_VERSION="2024.06.01"
 WIFI_SSID="dacrib"
@@ -184,7 +184,9 @@ auto_mount() {
 # Function to perform pacstrap installation
 pacstrap_install() {
     echo "Installing Base System Packages!"
-    pacstrap -i /mnt $base_packages $custom_packages
+    if ! pacstrap -i /mnt $base_packages #$custom_packages; then
+    	echo "PACSTRAP FAILED!"
+    	pacstrap_install
 }
 
 # Function to generate fstab
@@ -203,9 +205,9 @@ chroot_setup() {
 
     # Execute part 2 script inside chroot
     #arch-chroot /mnt /bin/bash -c "chmod +x setup.sh && ./setup.sh && exit"
-    chroot /mnt /bin/bash << EOF
-	chmod +x setup.sh; ./setup.sh; exit
-EOF
+    chroot /mnt #/bin/bash #<< EOF ## <<< MAKE PART 2 AUTOMATIC!!!!!
+#	chmod +x setup.sh; ./setup.sh; exit
+#EOF
 }
 
 # Function to run post-chroot commands
