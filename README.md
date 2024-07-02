@@ -5,8 +5,9 @@ Testbench: Dell Chromebook 3100, MFG YR: 2021 (Fleex Motherboard)
 
 Arch Version: 2024.06.01, Kernel: 6.9.3
 
-## CURRENT VARIANT;
+## CURRENT VARIANT(s);
 - arch_install.sh
+- optimized_installer.sh
 
 ## Depreacted Scripts;
 - setup.sh
