@@ -2,6 +2,7 @@
 
 #### TDL
 ## Code to fix; (auto_login, luks_header_dump, data_partition, password mismatch loops, silence commands)
+### FIX AUTO PARTITION SIZING BY USING EITHER PERCENTAGES OR MANUAL OVERRIDES
 
 #### COMAND SILENCING: 
 # Redirect stdout and stderr to /dev/null
@@ -9,7 +10,7 @@
 
 ###VARIABLES_START
 # Define global variables
-rel_date="UPDATE TIME; Jul 02, 10:30 PM EDT (2024)"
+rel_date="UPDATE TIME; Jul 02, 10:41 PM EDT (2024)"
 SCRIPT_VERSION="0.1a"
 ARCH_VERSION="2024.06.01"
 WIFI_SSID="dacrib"
@@ -19,6 +20,7 @@ timezone="America/New_York"
 use_LUKS=true
 use_SWAP=true
 use_HOME=false
+use_DATA=false # should be quite easy to implement, basically just a second home partition
 ROOT_ID="root_crypt"
 HOME_ID="home_crypt"
 HOSTNAME="Archie"
@@ -32,6 +34,7 @@ swap_size_gb="4"; swap_size_mb=$((swap_size_gb * 1024))
 root_size_gb="10"; root_size_mb=$((root_size_gb * 1024))
 # Base packages for installation
 base_packages="base base-devel linux linux-firmware nano grub efibootmgr networkmanager intel-ucode sudo"
+custom_packages="wget git curl screen nano firefox konsole thunar" # << include auto sublime text install
 # Desktop environment base packages
 xorg_base="xorg-server xorg-apps xorg-xinit xorg-twm xorg-xclock xterm"
 plasmaD="plasma-meta sddm"
@@ -70,7 +73,7 @@ Battery is at $(cat /sys/class/power_supply/BAT0/capacity)%
 EOF
 }
 
-# Function to handle WiFi connection
+# Function to handle WiFi connection #### MAY REMOVE AS WIFI MUST BE CONFIGURED BEFORE GETTING THE SCRIPT ANYWAYS...
 wifi_connect() {
     if ! ping 1.1.1.1 -c 1 &> /dev/null; then
         echo "1.1.1.1 PING FAILED! Attempting wireless config!"
@@ -84,8 +87,8 @@ wifi_connect() {
             wifi_connect
         fi
         sleep 10 # Wait for DHCP and IP assignment
-        local_ipv4=$(ip -4 addr show up | grep -oP '(?<=inet\s)\d+(\.\d+){3}' | grep -v '127.0.0.1' | head -n 1)
-        echo "Local IPv4 address: $local_ipv4"
+        #local_ipv4=$(ip -4 addr show up | grep -oP '(?<=inet\s)\d+(\.\d+){3}' | grep -v '127.0.0.1' | head -n 1)
+        #echo "Local IPv4 address: $local_ipv4"
     fi
 }
 
@@ -179,7 +182,7 @@ auto_mount() {
 # Function to perform pacstrap installation
 pacstrap_install() {
     echo "Installing Base System Packages!"
-    pacstrap -i /mnt $base_packages
+    pacstrap -i /mnt "$base_packages $custom_packages"
 }
 
 # Function to generate fstab
@@ -194,7 +197,7 @@ chroot_setup() {
 
  	seed="#"
 	sed -n "/$seed##VARIABLES_START/,/$seed##VARIABLES_END/p" "$0" > /mnt/variables
-	sed -n "/$seed##PART2_TAG/,/$seed##PART2_TAG/p" "$0" > /mnt/setup.sh
+	sed -n "/$seed##PART2_START/,/$seed##PART2_ENV/p" "$0" > /mnt/setup.sh
 
     # Execute part 2 script inside chroot
     arch-chroot /mnt /bin/bash -c "chmod +x setup.sh && ./setup.sh && exit"
@@ -254,7 +257,7 @@ exit 0
 
 ######### PART 2
 
-###PART2_TAG
+###PART2_START
 #!/bin/bash
 source variables # created by 2nd_config function in pt1
 
@@ -399,4 +402,4 @@ EOF
 }
 arch_chroot
 exit
-###PART2_TAG
+###PART2_END
