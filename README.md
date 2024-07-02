@@ -2,6 +2,7 @@
 A collection of my arch linux scripts (I am very new to arch so its nothing to impressive just a personal archive)
 
 Testbench: Dell Chromebook 3100, MFG YR: 2021 (Fleex Motherboard)
+Testbench 2: Dell Chromebook 11 3180, MFG YR: 2017 (Kefka Motherboard)
 
 Arch Version: 2024.06.01, Kernel: 6.9.3
 
