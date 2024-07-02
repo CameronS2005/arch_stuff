@@ -10,7 +10,7 @@
 
 ###VARIABLES_START
 # Define global variables
-rel_date="UPDATE TIME; Jul 02, 03:02 PM EDT (2024)"
+rel_date="UPDATE TIME; Jul 02, 04:38 PM EDT (2024)"
 SCRIPT_VERSION="0.1a"
 ARCH_VERSION="2024.06.01"
 WIFI_SSID="dacrib"
@@ -27,7 +27,7 @@ HOSTNAME="Archie"
 USERNAME="Archie"
 enable_32b_mlib=true
 GRUB_ID="GRUB"
-DESKTOP_ENVIRONMENT="xfce" # none/plasma/gnome/xfce/lxqt/cinnamon/mate
+DESKTOP_ENVIRONMENT="cinnamon" # none/plasma/gnome/xfce/lxqt/cinnamon/mate
 ## Manual drive config
 boot_size_mb="500"
 swap_size_gb="4"; swap_size_mb=$((swap_size_gb * 1024))
@@ -107,27 +107,29 @@ auto_partition() {
     read -p "PRESS ENTER TO PARTITION ($DRIVE_ID) DANGER!!!"
 
     echo "Performing Partition & MBR Wipe & Creating GPT Partition Table!"
-    sgdisk --zap-all "$DRIVE_ID"
-    parted "$DRIVE_ID" mklabel gpt
+    sgdisk --zap-all "$DRIVE_ID" >/dev/null 2>&1
+    parted "$DRIVE_ID" mklabel gpt >/dev/null 2>&1
 
     echo "Creating Partitions!"
-    parted "$DRIVE_ID" mkpart ESP fat32 1MiB "${boot_size_mb}MiB"  # ESP Partition
-    parted "$DRIVE_ID" set 1 boot on
+    parted "$DRIVE_ID" mkpart ESP fat32 1MiB "${boot_size_mb}MiB" >/dev/null 2>&1  # ESP Partition
+    parted "$DRIVE_ID" set 1 boot on >/dev/null 2>&1
 
     if [[ $use_SWAP == true ]]; then
-        parted "$DRIVE_ID" mkpart primary linux-swap "${boot_size_mb}MiB" "$((boot_size_mb + swap_size_mb))MiB"
-        parted "$DRIVE_ID" mkpart primary ext4 "$((boot_size_mb + swap_size_mb))MiB" "$((boot_size_mb + swap_size_mb + root_size_mb))MiB"
+        parted "$DRIVE_ID" mkpart primary linux-swap "${boot_size_mb}MiB" "$((boot_size_mb + swap_size_mb))MiB" >/dev/null 2>&1
+        parted "$DRIVE_ID" mkpart primary ext4 "$((boot_size_mb + swap_size_mb))MiB" "$((boot_size_mb + swap_size_mb + root_size_mb))MiB" >/dev/null 2>&1
     else
-        parted "$DRIVE_ID" mkpart primary ext4 "${boot_size_mb}MiB" "$((boot_size_mb + root_size_mb))MiB"
+        parted "$DRIVE_ID" mkpart primary ext4 "${boot_size_mb}MiB" "$((boot_size_mb + root_size_mb))MiB" >/dev/null 2>&1
     fi
 
     if [[ $use_HOME == true ]]; then
         if [[ $use_SWAP == true ]]; then
         	#home_part="p4"
-            parted "$DRIVE_ID" mkpart primary ext4 "$((boot_size_mb + root_size_mb + swap_size_mb))MiB" 100%
+        	echo "HEREEEEEE!!!!!!"
+            parted "$DRIVE_ID" mkpart primary ext4 "$((boot_size_mb + root_size_mb + swap_size_mb))MiB" 100% #>/dev/null 2>&1
+            echo "TOODALOO!!!!!"
         else
         	#home_part="p3"
-            parted "$DRIVE_ID" mkpart primary ext4 "$((boot_size_mb + root_size_mb))MiB" 100%
+            parted "$DRIVE_ID" mkpart primary ext4 "$((boot_size_mb + root_size_mb))MiB" 100% #>/dev/null 2>&1
         fi
     fi
 
@@ -184,9 +186,10 @@ auto_mount() {
 # Function to perform pacstrap installation
 pacstrap_install() {
     echo "Installing Base System Packages!"
-    if ! pacstrap -i /mnt $base_packages #$custom_packages; then
-    	echo "PACSTRAP FAILED!"
-    	pacstrap_install
+    pacstrap -i /mnt $base_packages $custom_packages
+    #if ! pacstrap -i /mnt $base_packages #$custom_packages; then
+    #	echo "PACSTRAP FAILED!"
+    #	pacstrap_install
 }
 
 # Function to generate fstab
@@ -204,8 +207,10 @@ chroot_setup() {
 	sed -n "/$seed##PART2_START/,/$seed##PART2_ENV/p" "$0" > /mnt/setup.sh
 
     # Execute part 2 script inside chroot
+    echo "WE SHALL WAIT HERE!!!!"
+    exit 0
     #arch-chroot /mnt /bin/bash -c "chmod +x setup.sh && ./setup.sh && exit"
-    chroot /mnt #/bin/bash #<< EOF ## <<< MAKE PART 2 AUTOMATIC!!!!!
+    #chroot /mnt #/bin/bash #<< EOF ## <<< MAKE PART 2 AUTOMATIC!!!!!
 #	chmod +x setup.sh; ./setup.sh; exit
 #EOF
 }
@@ -255,7 +260,7 @@ generate_fstab
 chroot_setup
 
 # Post chroot cleanup and reboot
-post_chroot
+#post_chroot
 
 # End of script
 exit 0
