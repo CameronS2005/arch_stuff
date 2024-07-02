@@ -200,7 +200,10 @@ chroot_setup() {
 	sed -n "/$seed##PART2_START/,/$seed##PART2_ENV/p" "$0" > /mnt/setup.sh
 
     # Execute part 2 script inside chroot
-    arch-chroot /mnt /bin/bash -c "chmod +x setup.sh && ./setup.sh && exit"
+    #arch-chroot /mnt /bin/bash -c "chmod +x setup.sh && ./setup.sh && exit"
+    chroot /mnt /bin/bash << EOF
+	chmod +x setup.sh; ./setup.sh; exit
+EOF
 }
 
 # Function to run post-chroot commands
