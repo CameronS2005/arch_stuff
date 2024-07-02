@@ -3,9 +3,13 @@
 #### TDL
 ## Code to fix; (auto_login, luks_header_dump, data_partition, password mismatch loops, silence commands)
 
+#### COMAND SILENCING: 
+# Redirect stdout and stderr to /dev/null
+# command >/dev/null 2>&1
+
 ###VARIABLES_START
 # Define global variables
-rel_date="UPDATE TIME; Jul 02, 10:05 PM EDT (2024)"
+rel_date="UPDATE TIME; Jul 02, 10:30 PM EDT (2024)"
 SCRIPT_VERSION="0.1a"
 ARCH_VERSION="2024.06.01"
 WIFI_SSID="dacrib"
@@ -193,7 +197,7 @@ chroot_setup() {
 	sed -n "/$seed##PART2_TAG/,/$seed##PART2_TAG/p" "$0" > /mnt/setup.sh
 
     # Execute part 2 script inside chroot
-    arch-chroot /mnt /bin/bash -c "chmod +x setup.sh && ./setup.sh"
+    arch-chroot /mnt /bin/bash -c "chmod +x setup.sh && ./setup.sh && exit"
 }
 
 # Function to run post-chroot commands
@@ -350,6 +354,43 @@ fi
 	#systemctl enable dhcpcd
 	#systemctl enable iwd 
 	#systemctl enable bluetooth
+
+	case $DESKTOP_ENVIRONMENT in
+	    plasma)
+	        desktop_packages="$xorg_base $plasmaD"
+	        ;;
+	    gnome)
+	        desktop_packages="$xorg_base $gnomeD"
+	        ;;
+	    xfce)
+	        desktop_packages="$xorg_base $xfceD"
+	        ;;
+	    lxqt)
+			desktop_packages="$xorg_base $lxqtD"
+	        ;;
+	    cinnamon)
+			desktop_packages="$xorg_base $cinnamonD"
+	        ;;
+	    mate)
+			desktop_packages="$xorg_base $mateD"
+	        ;;
+	    *)
+	        echo "Invalid Desktop Environment Option!"
+	        ;;
+	esac
+
+	cat << EOF > dm_install.sh
+#!/bin/bash
+sudo pacman -Syyyuuuu
+sudo pacman -S $desktop_packages
+sudo systemctl enable sddm.service
+sudo systemctl enable gdm.service
+sudo systemctl enable lightdm.service
+
+echo "INSTALL FINISHED!"
+read -p "PRESS ENTER TO REBOOT!"
+reboot now
+EOF
 
 	rm variables
 	rm $0 # 
