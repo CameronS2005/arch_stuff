@@ -10,7 +10,7 @@
 
 ###VARIABLES_START
 # Define global variables
-rel_date="UPDATE TIME; Jul 02, 10:41 PM EDT (2024)"
+rel_date="UPDATE TIME; Jul 02, 01:06 PM EDT (2024)"
 SCRIPT_VERSION="0.1a"
 ARCH_VERSION="2024.06.01"
 WIFI_SSID="dacrib"
@@ -134,7 +134,9 @@ auto_partition() {
     # Encrypt partitions if LUKS is enabled
     if [[ $use_LUKS == true ]]; then
         echo "Encrypting Partitions!"
+        echo "HERE I AM FIRST!!!"
         cryptsetup luksFormat "$DRIVE_ID"p3
+        echo "HERE I AM SECOND!!!!"
         cryptsetup luksOpen "$DRIVE_ID"p3 "$ROOT_ID"
         mkfs.ext4 "/dev/mapper/$ROOT_ID"
 
@@ -182,7 +184,7 @@ auto_mount() {
 # Function to perform pacstrap installation
 pacstrap_install() {
     echo "Installing Base System Packages!"
-    pacstrap -i /mnt "$base_packages $custom_packages"
+    pacstrap -i /mnt $base_packages $custom_packages
 }
 
 # Function to generate fstab
