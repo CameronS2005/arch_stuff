@@ -12,7 +12,7 @@
 
 ###VARIABLES_START
 # Define global variables
-rel_date="UPDATE TIME; Jul 02, 09:17 PM EDT (2024)"
+rel_date="UPDATE TIME; Jul 03, 09:42 AM EDT (2024)"
 SCRIPT_VERSION="0.1a"
 ARCH_VERSION="2024.06.01"
 ##
