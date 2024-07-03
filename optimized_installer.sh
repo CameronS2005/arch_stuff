@@ -12,7 +12,7 @@
 
 ###VARIABLES_START
 # Define global variables
-rel_date="UPDATE TIME; Jul 03, 09:42 AM EDT (2024)"
+rel_date="UPDATE TIME; Jul 03, 06:53 AM EDT (2024)"
 SCRIPT_VERSION="0.1a"
 ARCH_VERSION="2024.06.01"
 ##
@@ -108,6 +108,8 @@ rank_mirrors() {
     sleep 3
     echo "UPDATING PACMAN MIRRORS! THIS MAY TAKE AWHILE!!"
     rankmirrors -n 6 /etc/pacman.d/mirrorlist.bak > /etc/pacman.d/mirrorlist
+
+    clear
 }
 
 # Function to automate disk partitioning
@@ -132,9 +134,7 @@ auto_partition() {
     if [[ $use_HOME == true ]]; then
         if [[ $use_SWAP == true ]]; then
         	#home_part="p4"
-        	#echo "HEREEEEEE!!!!!!"
             parted "$DRIVE_ID" mkpart primary ext4 "$((boot_size_mb + root_size_mb + swap_size_mb))MiB" 100% #>/dev/null 2>&1
-            #echo "TOODALOO!!!!!"
         else
         	#home_part="p3"
             parted "$DRIVE_ID" mkpart primary ext4 "$((boot_size_mb + root_size_mb))MiB" 100% #>/dev/null 2>&1
@@ -144,9 +144,7 @@ auto_partition() {
     # Encrypt partitions if LUKS is enabled
     if [[ $use_LUKS == true ]]; then
         echo "Encrypting Partitions!"
-        #echo "HERE I AM FIRST!!!"
         cryptsetup luksFormat "$DRIVE_ID"p3
-        #echo "HERE I AM SECOND!!!!"
         cryptsetup luksOpen "$DRIVE_ID"p3 "$ROOT_ID"
         mkfs.ext4 "/dev/mapper/$ROOT_ID" >/dev/null 2>&1
 
@@ -165,30 +163,34 @@ auto_partition() {
     mkfs.fat -F32 "$DRIVE_ID"p1 >/dev/null 2>&1
 
     if [[ $use_SWAP == true ]]; then
-        mkswap "$DRIVE_ID"p2
-        swapon "$DRIVE_ID"p2
+        mkswap "$DRIVE_ID"p2 >/dev/null 2>&1
+        swapon "$DRIVE_ID"p2 >/dev/null 2>&1
     fi
+
+    clear
 }
 
 # Function to mount partitions
 auto_mount() {
     echo "Mounting Partitions!"
     if [[ $use_LUKS == true ]]; then
-        mount "/dev/mapper/$ROOT_ID" /mnt
+        mount "/dev/mapper/$ROOT_ID" /mnt >/dev/null 2>&1
         if [[ $use_HOME == true ]]; then
             mkdir /mnt/home
-            mount "/dev/mapper/$HOME_ID" /mnt/home
+            mount "/dev/mapper/$HOME_ID" /mnt/home >/dev/null 2>&1
         fi
     else
         mount "$DRIVE_ID"p2 /mnt
         if [[ $use_HOME == true ]]; then
             mkdir /mnt/home
-            mount "$DRIVE_ID"p3 /mnt/home
+            mount "$DRIVE_ID"p3 /mnt/home >/dev/null 2>&1
         fi
     fi
     mkdir /mnt/boot
-    mount "$DRIVE_ID"p1 /mnt/boot
+    mount "$DRIVE_ID"p1 /mnt/boot >/dev/null 2>&1
     sleep 10
+
+    clear
 }
 
 # Function to perform pacstrap installation
@@ -216,6 +218,7 @@ esac
 
     pacstrap -i /mnt $base_packages $desktop_packages $custom_packages
 
+    clear
 }
 
 # Function to generate fstab
@@ -238,6 +241,7 @@ chroot_setup() {
 #    arch-chroot /mnt /bin/bash << EOF
 #chmod +x setup.sh && ./setup.sh
 #EOF
+clear
 }
 
 # Function to run post-chroot commands
@@ -245,7 +249,7 @@ post_chroot() {
     echo "Unmounting filesystems and preparing for reboot!"
     umount -R /mnt
     if [[ $use_SWAP == true ]]; then
-        swapoff "$DRIVE_ID"p2
+        swapoff "$DRIVE_ID"p2 >/dev/null 2>&1
     fi
     echo "You can now safely reboot your system."
     read -p "PRESS ENTER TO REBOOT"
@@ -267,7 +271,7 @@ fi
 wifi_connect
 
 # Rank Pacman mirrors
-#rank_mirrors
+rank_mirrors
 
 # Perform auto partitioning
 auto_partition
@@ -285,7 +289,7 @@ generate_fstab
 chroot_setup
 
 # Post chroot cleanup and reboot
-#post_chroot
+post_chroot
 
 # End of script
 exit 0
@@ -320,10 +324,10 @@ arch_chroot() {
 	sed -i "s/^#\($lang UTF-8\)/\1/" "/etc/locale.gen"
 	locale-gen >/dev/null 2>&1
 	echo "LANG=$lang" > "/etc/locale.conf"
-	export "LANG=$lang"
+	export "LANG=$lang" >/dev/null 2>&1
 
 	echo "Setting System Time & Hostname!"
-	ln -sf "/usr/share/zoneinfo/$timezone" "/etc/localtime" >/dev/null 2>&1
+	ln -sf "/usr/share/zoneinfo/$timezone" "/etc/localtime" >/dev/null 2>&1 >/dev/null 2>&1
 	#hwclock --systohc --utc # check 2nd argument # why is this utc? # i dont even use utc...
 	sudo hwclock --systohc --localtime >/dev/null 2>&1
 	echo "$HOSTNAME" > "/etc/hostname"
@@ -344,11 +348,11 @@ arch_chroot() {
 EOF
 
 	echo "Creating & Configuring non-root User: ($USERNAME)"
-	groupadd sudo
-	useradd -mG wheel,sudo $USERNAME # modify user permissions here
+	groupadd sudo >/dev/null 2>&1
+	useradd -mG wheel,sudo $USERNAME >/dev/null 2>&1 # modify user permissions here
 
 	sudo sed -i '$ a\%sudo ALL=(ALL) ALL' /etc/sudoers
-	sudo service sudo restart
+	sudo service sudo restart >/dev/null 2>&1
 
 	if [[ $auto_login == true ]]; then
 		new_getty_args="ExecStart=-/sbin/agetty -o '-p -f -- \\u' --noclear --autologin username %I \$TERM"
@@ -401,8 +405,8 @@ fi
     	mv yay home/$USERNAME/
     	chown -R $USERNAME:$USERNAME home/$USERNAME/yay
     	cd home/$USERNAME/yay
-    	yes | sudo -u $USERNAME makepkg -si
-    	yes | sudo -u $USERNAME yay -S $aur_packages
+    	sudo -u $USERNAME makepkg -si
+    	sudo -u $USERNAME yay -S $aur_packages
     	cd ../
     	rm -rf yay
     fi
