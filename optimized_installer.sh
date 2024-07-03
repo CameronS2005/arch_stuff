@@ -12,7 +12,7 @@
 
 ###VARIABLES_START
 # Define global variables
-rel_date="UPDATE TIME; Jul 03, 07:22 AM EDT (2024)"
+rel_date="UPDATE TIME; Jul 03, 07:24 AM EDT (2024)"
 SCRIPT_VERSION="0.1a"
 ARCH_VERSION="2024.06.01"
 ##
@@ -410,7 +410,7 @@ fi
     	mv yay home/$USERNAME/
     	chown -R $USERNAME:$USERNAME home/$USERNAME/yay
     	cd home/$USERNAME/yay
-    	sudo -u $USERNAME makepkg -si >/dev/null 2>&1
+    	sudo -u $USERNAME makepkg -si
     	sudo -u $USERNAME yay -S $aur_packages
     	cd ../
     	rm -rf yay
