@@ -12,7 +12,7 @@
 
 ###VARIABLES_START
 # Define global variables
-rel_date="UPDATE TIME; Jul 03, 06:53 AM EDT (2024)"
+rel_date="UPDATE TIME; Jul 03, 07:22 AM EDT (2024)"
 SCRIPT_VERSION="0.1a"
 ARCH_VERSION="2024.06.01"
 ##
@@ -225,6 +225,8 @@ esac
 generate_fstab() {
     echo "Generating fstab!"
     genfstab -U /mnt >> /mnt/etc/fstab
+
+    clear
 }
 
 # Function to finalize installation in chroot environment
@@ -398,14 +400,17 @@ fi
 	grub-mkconfig -o "/boot/grub/grub.cfg" >/dev/null 2>&1
 	
 	systemctl enable NetworkManager >/dev/null 2>&1
+	systemctl enable sddm.service >/dev/null 2>&1
+	systemctl enable lightdm.service >/dev/null 2>&1
+	systemctl enable gdm.service >/dev/null 2>&1
 
 	if [[ $yay_aur_helper == true ]]; then ## TESTING!!
-    	git clone https://aur.archlinux.org/yay.git
+    	git clone https://aur.archlinux.org/yay.git >/dev/null 2>&1
     	#cd yay
     	mv yay home/$USERNAME/
     	chown -R $USERNAME:$USERNAME home/$USERNAME/yay
     	cd home/$USERNAME/yay
-    	sudo -u $USERNAME makepkg -si
+    	sudo -u $USERNAME makepkg -si >/dev/null 2>&1
     	sudo -u $USERNAME yay -S $aur_packages
     	cd ../
     	rm -rf yay
