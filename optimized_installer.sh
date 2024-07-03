@@ -4,13 +4,15 @@
 ## Code to fix; (auto_login, luks_header_dump, data_partition, password mismatch loops, silence commands)
 ### FIX AUTO PARTITION SIZING BY USING EITHER PERCENTAGES OR MANUAL OVERRIDES
 
+##### FIND A WAY TO AUTOMATE AS MUCH AS POSSIBLE!! << MAKE SCRIPT UNATTENDED!!!
+
 #### COMAND SILENCING: 
 # Redirect stdout and stderr to /dev/null
 # command >/dev/null 2>&1
 
 ###VARIABLES_START
 # Define global variables
-rel_date="UPDATE TIME; Jul 02, 06:30 PM EDT (2024)"
+rel_date="UPDATE TIME; Jul 02, 09:17 PM EDT (2024)"
 SCRIPT_VERSION="0.1a"
 ARCH_VERSION="2024.06.01"
 ##
@@ -30,7 +32,7 @@ USER_PASSWD_HASH="" ### FIGURE OUT HOW TO MANUALLY SET HASH's INSTEAD OF RUNNING
 ROOT_PASSWD_HASH=""
 enable_32b_mlib=true
 GRUB_ID="GRUB"
-DESKTOP_ENVIRONMENT="cinnamon" # none/plasma/gnome/xfce/lxqt/cinnamon/mate
+DESKTOP_ENVIRONMENT="xfce" # none/plasma/gnome/xfce/lxqt/cinnamon/mate
 ## Manual drive config
 auto_part_sizing=false ## <<< NOT IMPLEMENTED YET... :(
 boot_size_mb="500"
@@ -194,28 +196,25 @@ pacstrap_install() {
     echo "Installing Base System Packages!"
 
   	case $DESKTOP_ENVIRONMENT in
-	 plasma)
-	     desktop_packages="$xorg_base $plasmaD"
-	     ;;
-	 gnome)
-	     desktop_packages="$xorg_base $gnomeD"
-	     ;;
-	 xfce)
-	     desktop_packages="$xorg_base $xfceD"
-	     ;;
-	 lxqt)	desktop_packages="$xorg_base $lxqtD"
-	     ;;
-	 cinnamon)	desktop_packages="$xorg_base $cinnamonD"
-	     ;;
-	 mate)	desktop_packages="$xorg_base $mateD"
-	     ;;
-	 none)  desktop_packages=""
-	 *)
-	     echo "Invalid Desktop Environment Option!"
-	     ;;
+	 plasma)desktop_packages="$xorg_base $plasmaD"
+	    ;;
+	 gnome) desktop_packages="$xorg_base $gnomeD"
+	    ;;
+	 xfce) desktop_packages="$xorg_base $xfceD"
+	    ;;
+	 lxqt) desktop_packages="$xorg_base $lxqtD"
+	    ;;
+	 cinnamon) desktop_packages="$xorg_base $cinnamonD"
+	    ;;
+	 mate) desktop_packages="$xorg_base $mateD"
+	    ;;
+	 none) desktop_packages=""
+		;;
+	 *)    echo "Invalid Desktop Environment Option!"
+	    ;;
 esac
 
-    yes | pacstrap -i /mnt $base_packages $desktop_packages $custom_packages
+    pacstrap -i /mnt $base_packages $desktop_packages $custom_packages
 
 }
 
@@ -233,9 +232,12 @@ chroot_setup() {
 	sed -n "/$seed##VARIABLES_START/,/$seed##VARIABLES_END/p" "$0" > /mnt/variables
 	sed -n "/$seed##PART2_START/,/$seed##PART2_ENV/p" "$0" > /mnt/setup.sh
 
-    arch-chroot /mnt /bin/bash << EOF
-chmod +x setup.sh && ./setup.sh
-EOF
+	echo "RUN: chmod +x setup.sh; ./setup.sh"
+	arch-chroot /mnt
+
+#    arch-chroot /mnt /bin/bash << EOF
+#chmod +x setup.sh && ./setup.sh
+#EOF
 }
 
 # Function to run post-chroot commands
@@ -315,10 +317,10 @@ arch_chroot() {
 		passwd
 	fi
 
-	sed -i "s/^#\($lang.UTF-8 UTF-8\)/\1/" "/etc/locale.gen"
+	sed -i "s/^#\($lang UTF-8\)/\1/" "/etc/locale.gen"
 	locale-gen >/dev/null 2>&1
-	echo "LANG=$lang.UTF-8" > "/etc/locale.conf"
-	export "LANG=$lang.UTF-8"
+	echo "LANG=$lang" > "/etc/locale.conf"
+	export "LANG=$lang"
 
 	echo "Setting System Time & Hostname!"
 	ln -sf "/usr/share/zoneinfo/$timezone" "/etc/localtime" >/dev/null 2>&1
@@ -342,9 +344,11 @@ arch_chroot() {
 EOF
 
 	echo "Creating & Configuring non-root User: ($USERNAME)"
-	groupapp sudo
+	groupadd sudo
 	useradd -mG wheel,sudo $USERNAME # modify user permissions here
-	#useradd -m -y users -G wheel,storage,power -s /bin/bash $USERNAME
+
+	sudo sed -i '$ a\%sudo ALL=(ALL) ALL' /etc/sudoers
+	sudo service sudo restart
 
 	if [[ $auto_login == true ]]; then
 		new_getty_args="ExecStart=-/sbin/agetty -o '-p -f -- \\u' --noclear --autologin username %I \$TERM"
@@ -359,16 +363,16 @@ EOF
 	fi
 
 	echo "Will be prompted to enter new password for ($USERNAME)"
-	if ! passwd $USERNAME; then
-		echo "PASSWORD MUST MATCH..."
+	#if ! passwd $USERNAME; then
+	#	echo "PASSWORD MUST MATCH..."
 		passwd $USERNAME
-	fi
+	#fi
 
 	echo "Configuring Bootloader!"
 	if [[ $use_LUKS == true ]]; then
-	sed -i '/^HOOKS=/ s/)$/ encrypt)/' "/etc/mkinitcpio.conf" # adds encrypt to hooks
+		sed -i '/^HOOKS=/ s/)$/ encrypt)/' "/etc/mkinitcpio.conf" # adds encrypt to hooks
 	fi
-	mkinitcpio -p linux
+	mkinitcpio -p linux >/dev/null 2>&1
 
 	grub-install --target=x86_64-efi --efi-directory=/boot --bootloader-id="$GRUB_ID" >/dev/null 2>&1
 	grub-mkconfig -o "/boot/grub/grub.cfg" >/dev/null 2>&1
@@ -393,11 +397,17 @@ fi
 
 	if [[ $yay_aur_helper == true ]]; then ## TESTING!!
     	git clone https://aur.archlinux.org/yay.git
-    	cd yay
-    	yes | makepkg -si
-    	yes | yay -S $aur_packages
+    	#cd yay
+    	mv yay home/$USERNAME/
+    	chown -R $USERNAME:$USERNAME home/$USERNAME/yay
+    	cd home/$USERNAME/yay
+    	yes | sudo -u $USERNAME makepkg -si
+    	yes | sudo -u $USERNAME yay -S $aur_packages
+    	cd ../
+    	rm -rf yay
     fi
 
+    cd /
 	rm variables
 	rm $0 # 
 	echo "FINISHED! EXITING CHROOT!"
