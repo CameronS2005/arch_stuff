@@ -13,13 +13,13 @@
 ##### FIND A WAY TO AUTOMATE AS MUCH AS POSSIBLE!! << MAKE SCRIPT UNATTENDED!!!
 
 ##### UNATTENDED TDL;
-# - pacstrap installs
-# - yay compile (makepkg -si)
+# - pacstrap installs << DONE
+# - yay compile (makepkg -si) << put to the side temporarily...
 # - password sets (passwd $USERNAME) << DONE
 
 ###VARIABLES_START
 # Define global variables
-rel_date="UPDATE TIME; Jul 03, 08:46 PM EDT (2024)"
+rel_date="UPDATE TIME; Jul 03, 09:06 PM EDT (2024)"
 SCRIPT_VERSION="0.1a"
 ARCH_VERSION="2024.06.01"
 ##
@@ -56,7 +56,7 @@ data_size_gb="00"; data_size_mb=$((data_size_gb * 1024))
 
 # Base packages for installation
 base_packages="base base-devel linux linux-firmware nano grub efibootmgr networkmanager intel-ucode sudo"
-custom_packages="wget git curl screen nano firefox konsole thunar openssh"
+custom_packages="wget git curl screen nano firefox konsole thunar openssh net-tools wireguard-tools"
 yay_aur_helper=false # install yay? ## TEMPORARILY DISABLED WHILE TESTING UNATTENDED INSTALL!
 yay_packages="sublime-text-4" ## can install pretty much anything here...
 
@@ -256,6 +256,7 @@ chroot_setup() {
 
 #	echo "RUN: chmod +x setup.sh; ./setup.sh"
 #	arch-chroot /mnt
+	exit 0# TESTING
 
     arch-chroot /mnt /bin/bash << EOF
 chmod +x setup.sh && ./setup.sh
@@ -308,7 +309,7 @@ generate_fstab
 chroot_setup
 
 # Post chroot cleanup and reboot
-post_chroot
+#post_chroot
 
 # End of script
 exit 0
