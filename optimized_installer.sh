@@ -1,18 +1,25 @@
 #!/bin/bash
 
-#### TDL
-## Code to fix; (auto_login, luks_header_dump, data_partition, password mismatch loops, silence commands)
-### FIX AUTO PARTITION SIZING BY USING EITHER PERCENTAGES OR MANUAL OVERRIDES
+## Code to fix/add; (auto_login, luks_header_dump, data_partition, auto_part_sizing, password mismatch loops, silence commands)
 
-##### FIND A WAY TO AUTOMATE AS MUCH AS POSSIBLE!! << MAKE SCRIPT UNATTENDED!!!
+## More shit to add; (bios support (currently only supports ueif...), Account Password Hash Injection(Required for unattended))
 
-#### COMAND SILENCING: 
+## ()
+
+#### COMAND SILENCING: << MAKE AS MUCH OF THE SCRIPT SILENCE << (ADD ERROR CHECKS IN THE FUTURE SINCE WE WONT SEE THE OUTPUT...)
 # Redirect stdout and stderr to /dev/null
 # command >/dev/null 2>&1
 
+##### FIND A WAY TO AUTOMATE AS MUCH AS POSSIBLE!! << MAKE SCRIPT UNATTENDED!!!
+
+##### UNATTENDED TDL;
+# - pacstrap installs
+# - yay compile (makepkg -si)
+# - password sets (passwd $USERNAME) << DONE
+
 ###VARIABLES_START
 # Define global variables
-rel_date="UPDATE TIME; Jul 03, 07:24 AM EDT (2024)"
+rel_date="UPDATE TIME; Jul 03, 08:46 PM EDT (2024)"
 SCRIPT_VERSION="0.1a"
 ARCH_VERSION="2024.06.01"
 ##
@@ -20,29 +27,39 @@ WIFI_SSID="dacrib"
 DRIVE_ID="/dev/mmcblk0"
 lang="en_US.UTF-8"
 timezone="America/New_York"
+HOSTNAME="Archie Box"
+USERNAME="Archie"
+USER_PASSWD="password123"
+ROOT_PASSWD="password123"
+USER_PASSWD_HASH="" ## <<< NOT IMPLEMENTED YET... :(
+ROOT_PASSWD_HASH="" ## <<< NOT IMPLEMENTED YET... :(
+auto_login=false ## <<< NOT IMPLEMENTED YET... :(
+enable_32b_mlib=true
+luks_header_dump=false ## <<< NOT IMPLEMENTED YET... :(
+GRUB_ID="GRUB"
+DESKTOP_ENVIRONMENT="gnome" # none/plasma/gnome/xfce/lxqt/cinnamon/mate
+
+## Manual drive config
 use_LUKS=true
 use_SWAP=true
-use_HOME=false
-use_DATA=false
+use_HOME=true ## testing
+use_DATA=false ## <<< NOT IMPLEMENTED YET... :(
 ROOT_ID="root_crypt"
 HOME_ID="home_crypt"
-HOSTNAME="Archie"
-USERNAME="Archie"
-USER_PASSWD_HASH="" ### FIGURE OUT HOW TO MANUALLY SET HASH's INSTEAD OF RUNNING passwd COMMAND TWICE...
-ROOT_PASSWD_HASH=""
-enable_32b_mlib=true
-GRUB_ID="GRUB"
-DESKTOP_ENVIRONMENT="xfce" # none/plasma/gnome/xfce/lxqt/cinnamon/mate
-## Manual drive config
+DATA_ID="data_crypt"
 auto_part_sizing=false ## <<< NOT IMPLEMENTED YET... :(
-boot_size_mb="500"
+boot_size_mb="500" # TOTAL: 14.7gb (used 14.5gb)
 swap_size_gb="4"; swap_size_mb=$((swap_size_gb * 1024))
-root_size_gb="10"; root_size_mb=$((root_size_gb * 1024))
+root_size_gb="5"; root_size_mb=$((root_size_gb * 1024))
+home_size_gb="5"; home_size_mb=$((home_size_gb * 1024))
+data_size_gb="00"; data_size_mb=$((data_size_gb * 1024))
+
 # Base packages for installation
 base_packages="base base-devel linux linux-firmware nano grub efibootmgr networkmanager intel-ucode sudo"
-custom_packages="wget git curl screen nano firefox konsole thunar"
-yay_aur_helper=true
-aur_packages="cloudflare-warp-bin sublime-text-4"
+custom_packages="wget git curl screen nano firefox konsole thunar openssh"
+yay_aur_helper=false # install yay? ## TEMPORARILY DISABLED WHILE TESTING UNATTENDED INSTALL!
+yay_packages="sublime-text-4" ## can install pretty much anything here...
+
 # Desktop environment base packages
 xorg_base="xorg-server xorg-apps xorg-xinit xorg-twm xorg-xclock xterm"
 plasmaD="plasma-meta sddm"
@@ -103,7 +120,7 @@ wifi_connect() {
 # Function to rank pacman mirrors
 rank_mirrors() {
     echo "Installing rankedmirrors to get the best mirrors for a faster install!"
-    yes | pacman -Syyy pacman-contrib
+    pacman -Syyy pacman-contrib --noconfirm
     cp /etc/pacman.d/mirrorlist /etc/pacman.d/mirrorlist.bak
     sleep 3
     echo "UPDATING PACMAN MIRRORS! THIS MAY TAKE AWHILE!!"
@@ -216,7 +233,7 @@ pacstrap_install() {
 	    ;;
 esac
 
-    pacstrap -i /mnt $base_packages $desktop_packages $custom_packages
+    pacstrap -i /mnt $base_packages $desktop_packages $custom_packages --noconfirm
 
     clear
 }
@@ -237,13 +254,13 @@ chroot_setup() {
 	sed -n "/$seed##VARIABLES_START/,/$seed##VARIABLES_END/p" "$0" > /mnt/variables
 	sed -n "/$seed##PART2_START/,/$seed##PART2_ENV/p" "$0" > /mnt/setup.sh
 
-	echo "RUN: chmod +x setup.sh; ./setup.sh"
-	arch-chroot /mnt
+#	echo "RUN: chmod +x setup.sh; ./setup.sh"
+#	arch-chroot /mnt
 
-#    arch-chroot /mnt /bin/bash << EOF
-#chmod +x setup.sh && ./setup.sh
-#EOF
-clear
+    arch-chroot /mnt /bin/bash << EOF
+chmod +x setup.sh && ./setup.sh
+EOF
+#clear
 }
 
 # Function to run post-chroot commands
@@ -273,7 +290,7 @@ fi
 wifi_connect
 
 # Rank Pacman mirrors
-rank_mirrors
+#rank_mirrors
 
 # Perform auto partitioning
 auto_partition
@@ -317,11 +334,12 @@ else
 fi
 
 arch_chroot() {
-	echo "Will be prompted to enter new root password"
-	if ! passwd; then # TESTING THIS LOOP IN CASE A VERIFY FAILS
-		echo "PASSWORD MUST MATCH..."
-		passwd
-	fi
+	#echo "Will be prompted to enter new root password"
+	#if ! passwd; then # TESTING THIS LOOP IN CASE A VERIFY FAILS
+	#	echo "PASSWORD MUST MATCH..."
+	#	passwd
+	#fi
+	echo "root:$ROOT_PASSWD" | chpasswd # set root password
 
 	sed -i "s/^#\($lang UTF-8\)/\1/" "/etc/locale.gen"
 	locale-gen >/dev/null 2>&1
@@ -353,10 +371,10 @@ EOF
 	groupadd sudo >/dev/null 2>&1
 	useradd -mG wheel,sudo $USERNAME >/dev/null 2>&1 # modify user permissions here
 
-	sudo sed -i '$ a\%sudo ALL=(ALL) ALL' /etc/sudoers
+	sudo sed -i '$ a\%sudo ALL=(ALL) ALL' /etc/sudoers ## CHANGE SO WE TEMPORARYLY CANT EXECUTE WITHOUT ROOT PASSWORD, BUT CHANGE TO REQUIRED BEFORE FINISH!!!
 	sudo service sudo restart >/dev/null 2>&1
 
-	if [[ $auto_login == true ]]; then
+	if [[ $auto_login == true ]]; then ### NEEDS FIXED!!!
 		new_getty_args="ExecStart=-/sbin/agetty -o '-p -f -- \\u' --noclear --autologin username %I \$TERM"
 
 		echo "new_getty_args are >> $new_getty_args << END HERE !!"
@@ -368,11 +386,13 @@ EOF
 		sed -i '38c\'"$new_getty_args"'' "/etc/systemd/system/getty.target.wants/getty@tty1.service"
 	fi
 
-	echo "Will be prompted to enter new password for ($USERNAME)"
+	#echo "Will be prompted to enter new password for ($USERNAME)"
 	#if ! passwd $USERNAME; then
 	#	echo "PASSWORD MUST MATCH..."
-		passwd $USERNAME
+	#	passwd $USERNAME
 	#fi
+	echo "$USERNAME:$USER_PASSWD" | chpasswd
+
 
 	echo "Configuring Bootloader!"
 	if [[ $use_LUKS == true ]]; then
@@ -396,7 +416,7 @@ else
 	new_value="root=UUID=$ROOT_UUID" # is this the best way to do this?
 fi
 
-	sed -i '7c\GRUB_CMDLINE_LINUX="'"$new_value"'"' "/etc/default/grub" # ...
+	sed -i '7c\GRUB_CMDLINE_LINUX="'"$new_value"'"' "/etc/default/grub"
 	grub-mkconfig -o "/boot/grub/grub.cfg" >/dev/null 2>&1
 	
 	systemctl enable NetworkManager >/dev/null 2>&1
@@ -410,8 +430,9 @@ fi
     	mv yay home/$USERNAME/
     	chown -R $USERNAME:$USERNAME home/$USERNAME/yay
     	cd home/$USERNAME/yay
+    	clear
     	sudo -u $USERNAME makepkg -si
-    	sudo -u $USERNAME yay -S $aur_packages
+    	sudo -u $USERNAME yay -S $yay_packages --noconfirm
     	cd ../
     	rm -rf yay
     fi
