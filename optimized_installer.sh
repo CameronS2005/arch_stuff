@@ -19,7 +19,7 @@
 
 ###VARIABLES_START
 # Define global variables
-rel_date="UPDATE TIME; Jul 03, 09:06 PM EDT (2024)"
+rel_date="UPDATE TIME; Jul 03, 09:21 PM EDT (2024)"
 SCRIPT_VERSION="0.1a"
 ARCH_VERSION="2024.06.01"
 ##
@@ -37,12 +37,12 @@ auto_login=false ## <<< NOT IMPLEMENTED YET... :(
 enable_32b_mlib=true
 luks_header_dump=false ## <<< NOT IMPLEMENTED YET... :(
 GRUB_ID="GRUB"
-DESKTOP_ENVIRONMENT="gnome" # none/plasma/gnome/xfce/lxqt/cinnamon/mate
+DESKTOP_ENVIRONMENT="none" # none/plasma/gnome/xfce/lxqt/cinnamon/mate
 
 ## Manual drive config
 use_LUKS=true
 use_SWAP=true
-use_HOME=true ## testing
+use_HOME=false ## testing << NEEDS FIXED, CURRENTLY WHEN ENABLED INSTEAD OF BOOTING TO DECRYPT ROOTS IT SHOWS UP TO DECRYPT HOME AND AFTER FAILS TO BOOT
 use_DATA=false ## <<< NOT IMPLEMENTED YET... :(
 ROOT_ID="root_crypt"
 HOME_ID="home_crypt"
@@ -50,13 +50,13 @@ DATA_ID="data_crypt"
 auto_part_sizing=false ## <<< NOT IMPLEMENTED YET... :(
 boot_size_mb="500" # TOTAL: 14.7gb (used 14.5gb)
 swap_size_gb="4"; swap_size_mb=$((swap_size_gb * 1024))
-root_size_gb="5"; root_size_mb=$((root_size_gb * 1024))
-home_size_gb="5"; home_size_mb=$((home_size_gb * 1024))
+root_size_gb="10"; root_size_mb=$((root_size_gb * 1024))
+home_size_gb="00"; home_size_mb=$((home_size_gb * 1024))
 data_size_gb="00"; data_size_mb=$((data_size_gb * 1024))
 
 # Base packages for installation
-base_packages="base base-devel linux linux-firmware nano grub efibootmgr networkmanager intel-ucode sudo"
-custom_packages="wget git curl screen nano firefox konsole thunar openssh net-tools wireguard-tools"
+base_packages="base base-devel linux linux-firmware nano grub efibootmgr networkmanager intel-ucode sudo" # 173 packages
+#custom_packages="wget git curl screen nano firefox konsole thunar openssh net-tools wireguard-tools"
 yay_aur_helper=false # install yay? ## TEMPORARILY DISABLED WHILE TESTING UNATTENDED INSTALL!
 yay_packages="sublime-text-4" ## can install pretty much anything here...
 
@@ -256,9 +256,9 @@ chroot_setup() {
 
 #	echo "RUN: chmod +x setup.sh; ./setup.sh"
 #	arch-chroot /mnt
-	exit 0# TESTING
+	#exit 0# TESTING
 
-    arch-chroot /mnt /bin/bash << EOF
+    arch-chroot /mnt << EOF
 chmod +x setup.sh && ./setup.sh
 EOF
 #clear
@@ -309,7 +309,7 @@ generate_fstab
 chroot_setup
 
 # Post chroot cleanup and reboot
-#post_chroot
+post_chroot
 
 # End of script
 exit 0
