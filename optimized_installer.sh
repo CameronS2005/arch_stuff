@@ -1,6 +1,6 @@
 #!/bin/bash
 
-## Code to fix/add; (auto_login, luks_header_dump, data_partition, auto_part_sizing, password mismatch loops, silence commands)
+## Code to fix/add; (auto_login, luks_header_dump, home_partition, data_partition, auto_part_sizing, password mismatch loops (script breaks if passwords mismatch happens...)
 
 ## More shit to add; (bios support (currently only supports ueif...), Account Password Hash Injection(Required for unattended))
 
@@ -19,7 +19,7 @@
 
 ###VARIABLES_START
 # Define global variables
-rel_date="UPDATE TIME; Jul 03, 09:21 PM EDT (2024)"
+rel_date="UPDATE TIME; Jul 03, 09:33 PM EDT (2024)"
 SCRIPT_VERSION="0.1a"
 ARCH_VERSION="2024.06.01"
 ##
@@ -37,7 +37,7 @@ auto_login=false ## <<< NOT IMPLEMENTED YET... :(
 enable_32b_mlib=true
 luks_header_dump=false ## <<< NOT IMPLEMENTED YET... :(
 GRUB_ID="GRUB"
-DESKTOP_ENVIRONMENT="none" # none/plasma/gnome/xfce/lxqt/cinnamon/mate
+DESKTOP_ENVIRONMENT="gnome" # none/plasma/gnome/xfce/lxqt/cinnamon/mate
 
 ## Manual drive config
 use_LUKS=true
@@ -272,8 +272,8 @@ post_chroot() {
         swapoff "$DRIVE_ID"p2 >/dev/null 2>&1
     fi
     echo "You can now safely reboot your system."
-    read -p "PRESS ENTER TO REBOOT"
-    reboot
+    #read -p "PRESS ENTER TO REBOOT"
+    #reboot
 }
 
 ### Script Execution Starts Here ###
