@@ -19,7 +19,7 @@
 
 ###VARIABLES_START
 # Define global variables
-rel_date="UPDATE TIME; Jul 03, 09:33 PM EDT (2024)"
+rel_date="UPDATE TIME; Jul 03, 09:36 PM EDT (2024)"
 SCRIPT_VERSION="0.1a"
 ARCH_VERSION="2024.06.01"
 ##
@@ -56,8 +56,8 @@ data_size_gb="00"; data_size_mb=$((data_size_gb * 1024))
 
 # Base packages for installation
 base_packages="base base-devel linux linux-firmware nano grub efibootmgr networkmanager intel-ucode sudo" # 173 packages
-#custom_packages="wget git curl screen nano firefox konsole thunar openssh net-tools wireguard-tools"
-yay_aur_helper=false # install yay? ## TEMPORARILY DISABLED WHILE TESTING UNATTENDED INSTALL!
+custom_packages="wget git curl screen nano firefox konsole thunar openssh net-tools wireguard-tools"
+yay_aur_helper=true # install yay? ## TEMPORARILY DISABLED WHILE TESTING UNATTENDED INSTALL!
 yay_packages="sublime-text-4" ## can install pretty much anything here...
 
 # Desktop environment base packages
@@ -254,13 +254,13 @@ chroot_setup() {
 	sed -n "/$seed##VARIABLES_START/,/$seed##VARIABLES_END/p" "$0" > /mnt/variables
 	sed -n "/$seed##PART2_START/,/$seed##PART2_ENV/p" "$0" > /mnt/setup.sh
 
-#	echo "RUN: chmod +x setup.sh; ./setup.sh"
-#	arch-chroot /mnt
+	echo "RUN: chmod +x setup.sh; ./setup.sh"
+	arch-chroot /mnt
 	#exit 0# TESTING
 
-    arch-chroot /mnt << EOF
-chmod +x setup.sh && ./setup.sh
-EOF
+#    arch-chroot /mnt << EOF
+#chmod +x setup.sh && ./setup.sh
+#EOF
 #clear
 }
 
