@@ -14,12 +14,12 @@
 
 ##### UNATTENDED TDL;
 # - pacstrap installs << DONE
-# - yay compile (makepkg -si) << put to the side temporarily...
+# - yay compile (makepkg -si) << fixing...
 # - password sets (passwd $USERNAME) << DONE
 
 ###VARIABLES_START
 # Define global variables
-rel_date="UPDATE TIME; Jul 03, 09:59 PM EDT (2024)"
+rel_date="UPDATE TIME; Jul 05, 6:17 PM EDT (2024)"
 SCRIPT_VERSION="0.1a"
 ARCH_VERSION="2024.06.01"
 ##
@@ -36,6 +36,7 @@ ROOT_PASSWD_HASH="" ## <<< NOT IMPLEMENTED YET... :(
 auto_login=false ## <<< NOT IMPLEMENTED YET... :(
 enable_32b_mlib=true
 luks_header_dump=false ## <<< NOT IMPLEMENTED YET... :(
+BIOS="uefi" ## <<< NOT IMPLEMENTED YET... :( << ADD SUPPORT FOR bios and others
 GRUB_ID="GRUB"
 DESKTOP_ENVIRONMENT="gnome" # none/plasma/gnome/xfce/lxqt/cinnamon/mate
 
@@ -372,7 +373,7 @@ EOF
 	groupadd sudo >/dev/null 2>&1
 	useradd -mG wheel,sudo $USERNAME >/dev/null 2>&1 # modify user permissions here
 
-	sudo sed -i '$ a\%sudo ALL=(ALL) ALL' /etc/sudoers ## CHANGE SO WE TEMPORARYLY CANT EXECUTE WITHOUT ROOT PASSWORD, BUT CHANGE TO REQUIRED BEFORE FINISH!!!
+	sudo sed -i '$ a\%sudo ALL=(ALL) NOPASSWD: ALL' /etc/sudoers ## CHANGE SO WE TEMPORARYLY CANT EXECUTE WITHOUT ROOT PASSWORD, BUT CHANGE TO REQUIRED BEFORE FINISH!!!
 	sudo service sudo restart >/dev/null 2>&1
 
 	if [[ $auto_login == true ]]; then ### NEEDS FIXED!!!
@@ -437,6 +438,11 @@ fi
     	cd ../
     	rm -rf yay
     fi
+
+    ### WE NEED TO REMOVE THE OLD LINE!!!
+    sudo sed -i 's/%sudo ALL=(ALL) NOPASSWD: ALL/%sudo ALL=(ALL) ALL/g' /etc/sudoers
+    #sudo sed -i '$ a\%sudo ALL=(ALL) ALL' /etc/sudoers ## CHANGE SO WE TEMPORARYLY CANT EXECUTE WITHOUT ROOT PASSWORD, BUT CHANGE TO REQUIRED BEFORE FINISH!!!
+	sudo service sudo restart >/dev/null 2>&1
 
     cd /
 	rm variables
