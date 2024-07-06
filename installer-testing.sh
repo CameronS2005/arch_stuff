@@ -18,7 +18,7 @@
 
 ###VARIABLES_START
 # Global variables
-rel_date="UPDATE TIME; Jul 06, 5:41 PM EDT (2024)"
+rel_date="UPDATE TIME; Jul 06, 5:55 PM EDT (2024)"
 SCRIPT_VERSION="v1.6"
 ARCH_VERSION="2024.06.01"
 WIFI_SSID="dacrib"
@@ -33,7 +33,7 @@ ROOT_PASSWD="password123"
 enable_32b_mlib=true
 use_LUKS=true
 use_SWAP=true
-use_HOME=true ## TESTING!!
+use_HOME=false ## TESTING!!
 #use_DATA=false
 ROOT_ID="root_crypt"
 HOME_ID="home_crypt" ## TESTING!!
@@ -52,8 +52,8 @@ yay_packages="sublime-text-4"
 #auto_part_sizing=false
 boot_size_mb="500"
 swap_size_gb="4"; swap_size_mb=$((swap_size_gb * 1024))
-root_size_gb="5"; root_size_mb=$((root_size_gb * 1024))
-home_size_gb="5"; home_size_mb=$((home_size_gb * 1024))
+root_size_gb="8"; root_size_mb=$((root_size_gb * 1024))
+home_size_gb="2"; home_size_mb=$((home_size_gb * 1024))
 #data_size_gb="10"; data_size_mb=$((data_size_gb * 1024))
 ###VARIABLES_END
 
@@ -160,6 +160,9 @@ auto_partition() {
             mkfs.ext4 "$DRIVE_ID"p"$home_part" 
         fi
     fi
+    if [[ $use_SWAP == true ]]; then
+        mkswap "$DRIVE_ID"p2
+    fi
 
     mkfs.fat -F32 "$DRIVE_ID"p1  ## Format boot partition as FAT32
 }
@@ -181,9 +184,10 @@ auto_mount() {
         fi
     fi
     mkdir -p /mnt/boot
-    mount "$DRIVE_ID"p1 /mnt/boot 
-    echo "TESTING!!!"
-    exit
+    mount "$DRIVE_ID"p1 /mnt/boot
+    if [[ $use_SWAP == true ]]; then
+        swapon "$DRIVE_ID"p2
+    fi
 }
 
 # Function to perform pacstrap installation
