@@ -18,7 +18,7 @@
 
 ###VARIABLES_START
 # Global variables
-rel_date="UPDATE TIME; Jul 06, 5:10 PM EDT (2024)"
+rel_date="UPDATE TIME; Jul 06, 5:20 PM EDT (2024)"
 SCRIPT_VERSION="v1.6"
 ARCH_VERSION="2024.06.01"
 WIFI_SSID="dacrib"
@@ -145,18 +145,19 @@ auto_partition() {
 
     # Encrypt partitions if LUKS is enabled
     if [[ $use_LUKS == true ]]; then
-        cryptsetup luksFormat "$DRIVE_ID""$root_part"
-        cryptsetup luksOpen "$DRIVE_ID""$root_part" "$ROOT_ID"
+        cryptsetup luksFormat "$DRIVE_ID"p"$root_part"
+        cryptsetup luksOpen "$DRIVE_ID"p"$root_part" "$ROOT_ID"
         mkfs.ext4 "/dev/mapper/$ROOT_ID" 
         if [[ $use_HOME == true ]]; then
-            cryptsetup luksFormat "$DRIVE_ID""$home_part"
-            cryptsetup luksOpen "$DRIVE_ID""$home_part" "$HOME_ID"
+            cryptsetup luksFormat "$DRIVE_ID"p"$home_part"
+            cryptsetup luksOpen "$DRIVE_ID"p"$home_part" "$HOME_ID"
             mkfs.ext4 "/dev/mapper/$HOME_ID" 
         fi
     else
-        mkfs.ext4 "$DRIVE_ID""$root_part" 
+        mkfs.ext4 "$DRIVE_ID"p"$root_part" 
         if [[ $use_HOME == true ]]; then
-            mkfs.ext4 "$DRIVE_ID""$home_part" 
+            mkdir -p /mnt/home
+            mkfs.ext4 "$DRIVE_ID"p"$home_part" 
         fi
     fi
 
@@ -174,7 +175,6 @@ auto_mount() {
     else
         mount "$DRIVE_ID"p"$root_part" /mnt
         if [[ $use_HOME == true ]]; then
-            mkdir /mnt/home
             mount "$DRIVE_ID"p"$home_part" /mnt/home
         fi
     fi
@@ -281,11 +281,11 @@ source variables
 
 # Determine root and home partitions based on conditions
 if [[ $use_SWAP == true ]]; then
-    root_part="p3"
-    [[ $use_HOME == true ]] && home_part="p4"
+    root_part="3"
+    [[ $use_HOME == true ]] && home_part="4"
 else
-    root_part="p2"
-    [[ $use_HOME == true ]] && home_part="p3"
+    root_part="2"
+    [[ $use_HOME == true ]] && home_part="3"
 fi
 
 # Function for setting up the Arch Linux environment inside chroot
@@ -343,7 +343,7 @@ arch_chroot() {
     grub-mkconfig -o "/boot/grub/grub.cfg" 
 
     # Set up cryptdevice if using LUKS and home partition
-    ROOT_UUID=$(blkid -s UUID -o value "$DRIVE_ID$root_part")
+    ROOT_UUID=$(blkid -s UUID -o value "$DRIVE_ID"p"$root_part")
     #if [[ $use_LUKS == true && $use_HOME == true ]]; then
     #    HOME_UUID=$(blkid -s UUID -o value "$DRIVE_ID$home_part")
     #    new_value="cryptdevice=UUID=$ROOT_UUID:$ROOT_ID root=/dev/mapper/$ROOT_ID cryptdevice=UUID=$HOME_UUID:$HOME_ID home=/dev/mapper/$HOME_ID"
