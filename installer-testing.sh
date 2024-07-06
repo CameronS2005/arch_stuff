@@ -18,7 +18,7 @@
 
 ###VARIABLES_START
 # Global variables
-rel_date="UPDATE TIME; Jul 06, 5:25 PM EDT (2024)"
+rel_date="UPDATE TIME; Jul 06, 5:26 PM EDT (2024)"
 SCRIPT_VERSION="v1.6"
 ARCH_VERSION="2024.06.01"
 WIFI_SSID="dacrib"
@@ -45,7 +45,7 @@ GRUB_ID="GRUB"
 DESKTOP_ENVIRONMENT="none" # gnome/none
 base_packages="base base-devel linux linux-firmware nano grub efibootmgr networkmanager intel-ucode sudo"
 custom_packages="wget git curl screen nano firefox konsole thunar openssh net-tools wireguard-tools bc go"
-yay_aur_helper=true
+yay_aur_helper=false
 yay_packages="sublime-text-4"
 
 # Disk partitioning sizes in MiB
