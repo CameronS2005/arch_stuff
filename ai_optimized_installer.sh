@@ -4,7 +4,7 @@
 
 ###VARIABLES_START
 # Global variables
-rel_date="UPDATE TIME; Jul 05, 9:35 PM EDT (2024)"
+rel_date="UPDATE TIME; Jul 06, 11:58 AM EDT (2024)"
 SCRIPT_VERSION="v1.5"
 ARCH_VERSION="2024.06.01"
 WIFI_SSID="dacrib"
