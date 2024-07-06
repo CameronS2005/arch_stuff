@@ -7,14 +7,16 @@ Testbench 2: Dell Chromebook 11 3180, MFG YR: 2017 (Kefka Motherboard)
 Arch Version: 2024.06.01, Kernel: 6.9.3
 
 ## CURRENT VARIANT(s);
-- arch_install.sh
-- optimized_installer.sh
-
+- installer.sh
+- 
 ## Depreacted Scripts;
 - setup.sh
 - setup_pt2.sh
 - full_setup.sh
 - test.sh
+- arch_install.sh
+- optimized_installer.sh
+- ai_optimized_installer.sh
 # -------------------------------- #
 
 BE CAREFUL WITH THESE SCRIPTS AS THEY COULD CAUSE DAMAGE TO YOUR DATA IF NOT CONFIGURED PROPERLEY!
