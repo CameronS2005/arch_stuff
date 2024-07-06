@@ -18,7 +18,7 @@
 
 ###VARIABLES_START
 # Global variables
-rel_date="UPDATE TIME; Jul 06, 4:36 PM EDT (2024)"
+rel_date="UPDATE TIME; Jul 06, 4:57 PM EDT (2024)"
 SCRIPT_VERSION="v1.6"
 ARCH_VERSION="2024.06.01"
 WIFI_SSID="dacrib"
@@ -156,7 +156,7 @@ auto_partition() {
     else
         mkfs.ext4 "$DRIVE_ID""$root_part" >/dev/null 2>&1
         if [[ $use_HOME == true ]]; then
-            mkfs.ext4 "$DRIVE_ID""$root_part" >/dev/null 2>&1
+            mkfs.ext4 "$DRIVE_ID""$home_part" >/dev/null 2>&1
         fi
     fi
 
@@ -174,6 +174,7 @@ auto_mount() {
     else
         mount "$DRIVE_ID""$root_part" /mnt
         if [[ $use_HOME == true ]]; then
+            mkdir /mnt/home
             mount "$DRIVE_ID""$home_part" /mnt/home
         fi
     fi
