@@ -18,7 +18,7 @@
 
 ###VARIABLES_START
 # Global variables
-rel_date="UPDATE TIME; Jul 06, 5:09 PM EDT (2024)"
+rel_date="UPDATE TIME; Jul 06, 5:10 PM EDT (2024)"
 SCRIPT_VERSION="v1.6"
 ARCH_VERSION="2024.06.01"
 WIFI_SSID="dacrib"
@@ -180,6 +180,8 @@ auto_mount() {
     fi
     mkdir -p /mnt/boot
     mount "$DRIVE_ID"p1 /mnt/boot 
+    echo "TESTING!!!"
+    exit
 }
 
 # Function to perform pacstrap installation
