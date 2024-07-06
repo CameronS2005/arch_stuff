@@ -18,7 +18,7 @@
 
 ###VARIABLES_START
 # Global variables
-rel_date="UPDATE TIME; Jul 06, 4:57 PM EDT (2024)"
+rel_date="UPDATE TIME; Jul 06, 5:03 PM EDT (2024)"
 SCRIPT_VERSION="v1.6"
 ARCH_VERSION="2024.06.01"
 WIFI_SSID="dacrib"
@@ -350,18 +350,23 @@ arch_chroot() {
     #else
     #    new_value="root=UUID=$ROOT_UUID"
     #fi
+    #if [[ $use_LUKS == true ]]; then
+    #    if [[ $use_HOME == true ]]; then
+    #            new_value="new_value="cryptdevice=UUID=$ROOT_UUID:$ROOT_ID root=/dev/mapper/$ROOT_ID cryptdevice=UUID=$HOME_UUID:$HOME_ID home=/dev/mapper/$HOME_ID""
+    #        else
+    #            new_value="new_value="cryptdevice=UUID=$ROOT_UUID:$ROOT_ID root=/dev/mapper/$ROOT_ID""
+    #    fi
+    #else
+    #    if [[ $use_HOME == true ]]; then
+    #            new_value="root=UUID=$ROOT_UUID home=UUID=$HOME_UUID"
+    #        else
+    #            new_value="root=UUID=$ROOT_UUID"
+    #    fi  
+    #fi
     if [[ $use_LUKS == true ]]; then
-        if [[ $use_HOME == true ]]; then
-                new_value="new_value="cryptdevice=UUID=$ROOT_UUID:$ROOT_ID root=/dev/mapper/$ROOT_ID cryptdevice=UUID=$HOME_UUID:$HOME_ID home=/dev/mapper/$HOME_ID""
-            else
-                new_value="new_value="cryptdevice=UUID=$ROOT_UUID:$ROOT_ID root=/dev/mapper/$ROOT_ID""
-        fi
+        new_value="cryptdevice=UUID=$ROOT_UUID:$ROOT_ID root=/dev/mapper/$ROOT_ID"
     else
-        if [[ $use_HOME == true ]]; then
-                new_value="root=UUID=$ROOT_UUID home=UUID=$HOME_UUID"
-            else
-                new_value="root=UUID=$ROOT_UUID"
-        fi  
+        new_value="root=UUID=$ROOT_UUID"
     fi
 
     sed -i '7c\GRUB_CMDLINE_LINUX="'"$new_value"'"' "/etc/default/grub"
