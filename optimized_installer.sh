@@ -19,7 +19,7 @@
 
 ###VARIABLES_START
 # Define global variables
-rel_date="UPDATE TIME; Jul 06, 12:06 PM EDT (2024)"
+rel_date="UPDATE TIME; Jul 06, 12:14 PM EDT (2024)"
 SCRIPT_VERSION="v1.5" # 5th iteration of arch install script (CURRENT)
 ARCH_VERSION="2024.06.01" # Linux Kernel 6.9.7
 ##
@@ -254,7 +254,7 @@ chroot_setup() {
 
  	seed="#"
 	sed -n "/$seed##VARIABLES_START/,/$seed##VARIABLES_END/p" "$0" > /mnt/variables
-	sed -n "/$seed##PART2_START/,/$seed##PART2_ENV/p" "$0" > /mnt/setup.sh
+	sed -n "/$seed##PART2_START/,/$seed##PART2_END/p" "$0" > /mnt/setup.sh
 
 	echo "RUN: chmod +x setup.sh; ./setup.sh"
 	arch-chroot /mnt
