@@ -4,7 +4,7 @@
 
 ###VARIABLES_START
 # Global variables
-rel_date="UPDATE TIME; Jul 06, 2:53 PM EDT (2024)"
+rel_date="UPDATE TIME; Jul 06, 2:56 PM EDT (2024)"
 SCRIPT_VERSION="v1.5"
 ARCH_VERSION="2024.06.01"
 WIFI_SSID="dacrib"
@@ -22,7 +22,7 @@ ROOT_ID="root_crypt"
 GRUB_ID="GRUB"
 DESKTOP_ENVIRONMENT="gnome" # gnome/none
 base_packages="base base-devel linux linux-firmware nano grub efibootmgr networkmanager intel-ucode sudo"
-custom_packages="wget git curl screen nano brave konsole thunar openssh net-tools wireguard-tools bc go"
+custom_packages="wget git curl screen nano firefox konsole thunar openssh net-tools wireguard-tools bc go"
 yay_aur_helper=true
 yay_packages="sublime-text-4"
 
