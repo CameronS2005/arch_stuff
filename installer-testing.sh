@@ -18,7 +18,7 @@
 
 ###VARIABLES_START
 # Global variables
-rel_date="UPDATE TIME; Jul 06, 5:03 PM EDT (2024)"
+rel_date="UPDATE TIME; Jul 06, 5:04 PM EDT (2024)"
 SCRIPT_VERSION="v1.6"
 ARCH_VERSION="2024.06.01"
 WIFI_SSID="dacrib"
@@ -172,10 +172,10 @@ auto_mount() {
             mount "/dev/mapper/$HOME_ID" /mnt/home #>/dev/null 2>&1
         fi
     else
-        mount "$DRIVE_ID""$root_part" /mnt
+        mount "$DRIVE_ID"p"$root_part" /mnt
         if [[ $use_HOME == true ]]; then
             mkdir /mnt/home
-            mount "$DRIVE_ID""$home_part" /mnt/home
+            mount "$DRIVE_ID"p"$home_part" /mnt/home
         fi
     fi
     mkdir -p /mnt/boot
