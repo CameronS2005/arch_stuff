@@ -7,7 +7,7 @@
 ##### TDL;
 # FUNCTIONS TO IMPLEMENT: Auto login, luks header dump, home partition, data partition, auto_part_sizing, bios support, quiet/verbose logging
 # Password hashes instead of plain text!
-#
+# Modify luks cryptsetup to be unattended! (With hardcoded passwords/hashes)
 #
 #
 #
@@ -18,7 +18,7 @@
 
 ###VARIABLES_START
 # Global variables
-rel_date="UPDATE TIME; Jul 06, 5:27 PM EDT (2024)"
+rel_date="UPDATE TIME; Jul 06, 5:41 PM EDT (2024)"
 SCRIPT_VERSION="v1.6"
 ARCH_VERSION="2024.06.01"
 WIFI_SSID="dacrib"
@@ -156,7 +156,7 @@ auto_partition() {
     else
         mkfs.ext4 "$DRIVE_ID"p"$root_part" 
         if [[ $use_HOME == true ]]; then
-            mkdir -p /mnt/home
+            #mkdir -p /mnt/home
             mkfs.ext4 "$DRIVE_ID"p"$home_part" 
         fi
     fi
@@ -169,11 +169,13 @@ auto_mount() {
     echo "Mounting Partitions..."
     if [[ $use_LUKS == true ]]; then
         mount "/dev/mapper/$ROOT_ID" /mnt #
+        mkdir -p /mnt/home
         if [[ $use_HOME == true ]]; then
             mount "/dev/mapper/$HOME_ID" /mnt/home #
         fi
     else
         mount "$DRIVE_ID"p"$root_part" /mnt
+        mkdir -p /mnt/home
         if [[ $use_HOME == true ]]; then
             mount "$DRIVE_ID"p"$home_part" /mnt/home
         fi
