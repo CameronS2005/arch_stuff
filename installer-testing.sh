@@ -18,7 +18,7 @@
 
 ###VARIABLES_START
 # Global variables
-rel_date="UPDATE TIME; Jul 06, 5:55 PM EDT (2024)"
+rel_date="UPDATE TIME; Jul 06, 6:03 PM EDT (2024)"
 SCRIPT_VERSION="v1.6"
 ARCH_VERSION="2024.06.01"
 WIFI_SSID="dacrib"
@@ -33,7 +33,7 @@ ROOT_PASSWD="password123"
 enable_32b_mlib=true
 use_LUKS=true
 use_SWAP=true
-use_HOME=false ## TESTING!!
+use_HOME=true ## TESTING!!
 #use_DATA=false
 ROOT_ID="root_crypt"
 HOME_ID="home_crypt" ## TESTING!!
