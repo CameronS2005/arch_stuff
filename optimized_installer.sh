@@ -19,7 +19,7 @@
 
 ###VARIABLES_START
 # Define global variables
-rel_date="UPDATE TIME; Jul 05, 9:48 PM EDT (2024)"
+rel_date="UPDATE TIME; Jul 06, 12:04 PM EDT (2024)"
 SCRIPT_VERSION="v1.5" # 5th iteration of arch install script (CURRENT)
 ARCH_VERSION="2024.06.01" # Linux Kernel 6.9.7
 ##
