@@ -19,7 +19,7 @@
 
 ###VARIABLES_START
 # Define global variables
-rel_date="UPDATE TIME; Jul 05, 9:37 PM EDT (2024)"
+rel_date="UPDATE TIME; Jul 05, 9:48 PM EDT (2024)"
 SCRIPT_VERSION="v1.5" # 5th iteration of arch install script (CURRENT)
 ARCH_VERSION="2024.06.01" # Linux Kernel 6.9.7
 ##
@@ -58,7 +58,7 @@ root_size_gb="10"; root_size_mb=$((root_size_gb * 1024))
 
 # Base packages for installation
 base_packages="base base-devel linux linux-firmware nano grub efibootmgr networkmanager intel-ucode sudo" # 173 packages
-custom_packages="wget git curl screen nano firefox konsole thunar openssh net-tools wireguard-tools bc go"
+custom_packages="wget git curl screen nano brave konsole thunar openssh net-tools wireguard-tools bc go" # testing brave instead of firefox
 yay_aur_helper=true # install yay? ## TEMPORARILY DISABLED WHILE TESTING UNATTENDED INSTALL!
 yay_packages="sublime-text-4" ## can install pretty much anything here...
 
