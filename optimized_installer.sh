@@ -19,7 +19,7 @@
 
 ###VARIABLES_START
 # Define global variables
-rel_date="UPDATE TIME; Jul 06, 2:45 PM EDT (2024)"
+rel_date="UPDATE TIME; Jul 06, 2:47 PM EDT (2024)"
 SCRIPT_VERSION="v1.5" # 5th iteration of arch install script (CURRENT)
 ARCH_VERSION="2024.06.01" # Linux Kernel 6.9.7
 ##
@@ -128,7 +128,7 @@ rank_mirrors() { ## FUNCTION UNTESTED
     echo "UPDATING PACMAN MIRRORS! THIS MAY TAKE AWHILE!!"
     rankmirrors -n 6 /etc/pacman.d/mirrorlist.bak > /etc/pacman.d/mirrorlist
 
-    clear
+    #clear
 }
 
 # Function to automate disk partitioning
@@ -186,7 +186,7 @@ auto_partition() {
         swapon "$DRIVE_ID"p2 >/dev/null 2>&1
     fi
 
-    clear
+    #clear
 }
 
 # Function to mount partitions
@@ -209,7 +209,7 @@ auto_mount() {
     mount "$DRIVE_ID"p1 /mnt/boot >/dev/null 2>&1
     sleep 10
 
-    clear
+    #clear
 }
 
 # Function to perform pacstrap installation
@@ -237,7 +237,7 @@ esac
 
     pacstrap -i /mnt $base_packages $desktop_packages $custom_packages --noconfirm
 
-    clear
+    #clear
 }
 
 # Function to generate fstab
@@ -245,7 +245,7 @@ generate_fstab() {
     echo "Generating fstab!"
     genfstab -U /mnt >> /mnt/etc/fstab
 
-    clear
+    #clear
 }
 
 # Function to finalize installation in chroot environment
@@ -424,7 +424,7 @@ fi
     	mv yay home/$USERNAME/
     	chown -R $USERNAME:$USERNAME home/$USERNAME/yay
     	cd home/$USERNAME/yay
-    	clear
+    	#clear
     	yes | sudo -u $USERNAME makepkg -si
     	sudo -u $USERNAME yay -S $yay_packages --noconfirm
     	cd ../
