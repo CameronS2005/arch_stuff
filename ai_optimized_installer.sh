@@ -4,7 +4,7 @@
 
 ###VARIABLES_START
 # Global variables
-rel_date="UPDATE TIME; Jul 06, 11:58 AM EDT (2024)"
+rel_date="UPDATE TIME; Jul 06, 2:53 PM EDT (2024)"
 SCRIPT_VERSION="v1.5"
 ARCH_VERSION="2024.06.01"
 WIFI_SSID="dacrib"
@@ -138,7 +138,7 @@ pacstrap_install() {
             ;;
     esac
 
-    pacstrap /mnt $base_packages $desktop_packages $custom_packages --noconfirm >/dev/null
+    pacstrap -i /mnt $base_packages $desktop_packages $custom_packages --noconfirm
 }
 
 # Function to generate fstab
@@ -153,15 +153,15 @@ chroot_setup() {
 
  	seed="#"
 	sed -n "/$seed##VARIABLES_START/,/$seed##VARIABLES_END/p" "$0" > /mnt/variables
-	sed -n "/$seed##PART2_START/,/$seed##PART2_ENV/p" "$0" > /mnt/setup.sh
+	sed -n "/$seed##PART2_START/,/$seed##PART2_END/p" "$0" > /mnt/setup.sh
 
 	echo "RUN: chmod +x setup.sh && ./setup.sh && exit"
-	arch-chroot /mnt
+	#arch-chroot /mnt
 	#exit 0# TESTING
 
-#    arch-chroot /mnt << EOF
-#chmod +x setup.sh && ./setup.sh && exit
-#EOF
+    arch-chroot /mnt << EOF
+chmod +x setup.sh && ./setup.sh && exit
+EOF
 #clear
 }
 
@@ -264,6 +264,7 @@ arch_chroot() {
     groupadd sudo >/dev/null 2>&1
     useradd -mG wheel,sudo "$USERNAME" >/dev/null 2>&1
     echo "%sudo ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
+    service sudo restart >/dev/null 2>&1
 
     # Configure autologin if enabled
     if [[ $auto_login == true ]]; then
@@ -305,7 +306,7 @@ arch_chroot() {
         mv yay /home/$USERNAME/
         chown -R $USERNAME:$USERNAME /home/$USERNAME/yay
         cd /home/$USERNAME/yay
-        sudo -u $USERNAME makepkg -si --noconfirm
+        yes | sudo -u $USERNAME makepkg -si --noconfirm
         sudo -u $USERNAME yay -S $yay_packages --noconfirm
         cd ..
         rm -rf yay
