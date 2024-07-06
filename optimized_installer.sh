@@ -4,7 +4,7 @@
 
 ## More shit to add; (bios support (currently only supports ueif...), Account Password Hash Injection(Required for unattended))
 
-## ()
+## (Add quiet/verbose option, only input and function calls shall be shown in quiet!)
 
 #### COMAND SILENCING: << MAKE AS MUCH OF THE SCRIPT SILENCE << (ADD ERROR CHECKS IN THE FUTURE SINCE WE WONT SEE THE OUTPUT...)
 # Redirect stdout and stderr to /dev/null
@@ -19,49 +19,50 @@
 
 ###VARIABLES_START
 # Define global variables
-rel_date="UPDATE TIME; Jul 05, 6:17 PM EDT (2024)"
-SCRIPT_VERSION="0.1a"
-ARCH_VERSION="2024.06.01"
+rel_date="UPDATE TIME; Jul 05, 9:37 PM EDT (2024)"
+SCRIPT_VERSION="v1.5" # 5th iteration of arch install script (CURRENT)
+ARCH_VERSION="2024.06.01" # Linux Kernel 6.9.7
 ##
 WIFI_SSID="dacrib"
-DRIVE_ID="/dev/mmcblk0"
+DRIVE_ID="/dev/mmcblk0" # CHECK THIS!! THIS IS THE INSTALL DRIVE!! FOR ME ITS MY CHROMEBOOKS EMMC
 lang="en_US.UTF-8"
-timezone="America/New_York"
+timezone="America/New_York" # i dont think time is currently getting set correctly...
 HOSTNAME="Archie Box"
 USERNAME="Archie"
 USER_PASSWD="password123"
 ROOT_PASSWD="password123"
-USER_PASSWD_HASH="" ## <<< NOT IMPLEMENTED YET... :(
-ROOT_PASSWD_HASH="" ## <<< NOT IMPLEMENTED YET... :(
-auto_login=false ## <<< NOT IMPLEMENTED YET... :(
+#USER_PASSWD_HASH="" ## <<< NOT IMPLEMENTED YET... :(
+#ROOT_PASSWD_HASH="" ## <<< NOT IMPLEMENTED YET... :(
+#auto_login=false ## <<< NOT IMPLEMENTED YET... :(
 enable_32b_mlib=true
-luks_header_dump=false ## <<< NOT IMPLEMENTED YET... :(
-BIOS="uefi" ## <<< NOT IMPLEMENTED YET... :( << ADD SUPPORT FOR bios and others
+#luks_header_dump=false ## <<< NOT IMPLEMENTED YET... :(
+#BIOS="uefi" ## <<< NOT IMPLEMENTED YET... :( << ADD SUPPORT FOR bios and others
 GRUB_ID="GRUB"
 DESKTOP_ENVIRONMENT="gnome" # none/plasma/gnome/xfce/lxqt/cinnamon/mate
+#logging="verbose" # quiet/verbose
 
 ## Manual drive config
 use_LUKS=true
 use_SWAP=true
-use_HOME=false ## testing << NEEDS FIXED, CURRENTLY WHEN ENABLED INSTEAD OF BOOTING TO DECRYPT ROOTS IT SHOWS UP TO DECRYPT HOME AND AFTER FAILS TO BOOT
-use_DATA=false ## <<< NOT IMPLEMENTED YET... :(
+#use_HOME=false ## testing << NEEDS FIXED, CURRENTLY WHEN ENABLED INSTEAD OF BOOTING TO DECRYPT ROOTS IT SHOWS UP TO DECRYPT HOME AND AFTER FAILS TO BOOT
+#use_DATA=false ## <<< NOT IMPLEMENTED YET... :(
 ROOT_ID="root_crypt"
-HOME_ID="home_crypt"
-DATA_ID="data_crypt"
-auto_part_sizing=false ## <<< NOT IMPLEMENTED YET... :(
+#HOME_ID="home_crypt"
+#DATA_ID="data_crypt"
+#auto_part_sizing=false ## <<< NOT IMPLEMENTED YET... :(
 boot_size_mb="500" # TOTAL: 14.7gb (used 14.5gb)
-swap_size_gb="4"; swap_size_mb=$((swap_size_gb * 1024))
+swap_size_gb="4"; swap_size_mb=$((swap_size_gb * 1024)) # this math can be done elsewhere...
 root_size_gb="10"; root_size_mb=$((root_size_gb * 1024))
-home_size_gb="00"; home_size_mb=$((home_size_gb * 1024))
-data_size_gb="00"; data_size_mb=$((data_size_gb * 1024))
+#home_size_gb="00"; home_size_mb=$((home_size_gb * 1024))
+#data_size_gb="00"; data_size_mb=$((data_size_gb * 1024))
 
 # Base packages for installation
 base_packages="base base-devel linux linux-firmware nano grub efibootmgr networkmanager intel-ucode sudo" # 173 packages
-custom_packages="wget git curl screen nano firefox konsole thunar openssh net-tools wireguard-tools go"
+custom_packages="wget git curl screen nano firefox konsole thunar openssh net-tools wireguard-tools bc go"
 yay_aur_helper=true # install yay? ## TEMPORARILY DISABLED WHILE TESTING UNATTENDED INSTALL!
 yay_packages="sublime-text-4" ## can install pretty much anything here...
 
-# Desktop environment base packages
+# Desktop environment base packages ## Broke desktops... (mate)
 xorg_base="xorg-server xorg-apps xorg-xinit xorg-twm xorg-xclock xterm"
 plasmaD="plasma-meta sddm"
 gnomeD="gnome gdm"
@@ -119,7 +120,7 @@ wifi_connect() {
 }
 
 # Function to rank pacman mirrors
-rank_mirrors() {
+rank_mirrors() { ## FUNCTION UNTESTED
     echo "Installing rankedmirrors to get the best mirrors for a faster install!"
     pacman -Syyy pacman-contrib --noconfirm
     cp /etc/pacman.d/mirrorlist /etc/pacman.d/mirrorlist.bak
@@ -260,7 +261,7 @@ chroot_setup() {
 	#exit 0# TESTING
 
 #    arch-chroot /mnt << EOF
-#chmod +x setup.sh && ./setup.sh
+#chmod +x setup.sh && ./setup.sh && exit
 #EOF
 #clear
 }
@@ -292,7 +293,7 @@ fi
 wifi_connect
 
 # Rank Pacman mirrors
-#rank_mirrors
+#rank_mirrors ## FUNCTION UNTESTED!!
 
 # Perform auto partitioning
 auto_partition
@@ -321,10 +322,10 @@ exit 0
 
 ###PART2_START
 #!/bin/bash
-source variables # created by 2nd_config function in pt1
+source variables
 
-if [[ $use_SWAP == true ]]; then # current hotfix for not using swap.. (this is quite lazy..)
-	root_part="p3" # the p is because i use a chromebook with emmc storage with is detected as /dev/mmcblk0 and parts a mmcblk0p1 and so on
+if [[ $use_SWAP == true ]]; then
+	root_part="p3"
 	if [[ $use_HOME == true ]]; then
 		home_part=p4
 	fi
@@ -336,12 +337,7 @@ else
 fi
 
 arch_chroot() {
-	#echo "Will be prompted to enter new root password"
-	#if ! passwd; then # TESTING THIS LOOP IN CASE A VERIFY FAILS
-	#	echo "PASSWORD MUST MATCH..."
-	#	passwd
-	#fi
-	echo "root:$ROOT_PASSWD" | chpasswd # set root password
+	echo "root:$ROOT_PASSWD" | chpasswd
 
 	sed -i "s/^#\($lang UTF-8\)/\1/" "/etc/locale.gen"
 	locale-gen >/dev/null 2>&1
@@ -349,9 +345,8 @@ arch_chroot() {
 	export "LANG=$lang" >/dev/null 2>&1
 
 	echo "Setting System Time & Hostname!"
-	ln -sf "/usr/share/zoneinfo/$timezone" "/etc/localtime" >/dev/null 2>&1 >/dev/null 2>&1
-	#hwclock --systohc --utc # check 2nd argument # why is this utc? # i dont even use utc...
-	sudo hwclock --systohc --localtime >/dev/null 2>&1
+	ln -sf "/usr/share/zoneinfo/$timezone" "/etc/localtime" >/dev/null 2>&1
+	hwclock --systohc --localtime >/dev/null 2>&1
 	echo "$HOSTNAME" > "/etc/hostname"
 
 	systemctl enable fstrim.timer >/dev/null 2>&1 # ssd trimming? # add check to see if even using ssd
@@ -371,10 +366,10 @@ EOF
 
 	echo "Creating & Configuring non-root User: ($USERNAME)"
 	groupadd sudo >/dev/null 2>&1
-	useradd -mG wheel,sudo $USERNAME >/dev/null 2>&1 # modify user permissions here
+	useradd -mG wheel,sudo $USERNAME >/dev/null 2>&1
 
-	sudo sed -i '$ a\%sudo ALL=(ALL) NOPASSWD: ALL' /etc/sudoers ## CHANGE SO WE TEMPORARYLY CANT EXECUTE WITHOUT ROOT PASSWORD, BUT CHANGE TO REQUIRED BEFORE FINISH!!!
-	sudo service sudo restart >/dev/null 2>&1
+	sed -i '$ a\%sudo ALL=(ALL) NOPASSWD: ALL' /etc/sudoers
+	service sudo restart >/dev/null 2>&1
 
 	if [[ $auto_login == true ]]; then ### NEEDS FIXED!!!
 		new_getty_args="ExecStart=-/sbin/agetty -o '-p -f -- \\u' --noclear --autologin username %I \$TERM"
@@ -388,13 +383,7 @@ EOF
 		sed -i '38c\'"$new_getty_args"'' "/etc/systemd/system/getty.target.wants/getty@tty1.service"
 	fi
 
-	#echo "Will be prompted to enter new password for ($USERNAME)"
-	#if ! passwd $USERNAME; then
-	#	echo "PASSWORD MUST MATCH..."
-	#	passwd $USERNAME
-	#fi
 	echo "$USERNAME:$USER_PASSWD" | chpasswd
-
 
 	echo "Configuring Bootloader!"
 	if [[ $use_LUKS == true ]]; then
@@ -408,14 +397,15 @@ EOF
 	ROOT_UUID=$(blkid -s UUID -o value "$DRIVE_ID$root_part")
 	HOME_UUID=$(blkid -s UUID -o value "$DRIVE_ID$home_part")
 
-	if [[ $use_LUKS == true ]]; then # can test adding multiple encrypted drives here
+	if [[ $use_LUKS == true ]]; then
 	if [[ $use_HOME == true ]]; then
 	new_value="cryptdevice=UUID=$ROOT_UUID:$ROOT_ID root=/dev/mapper/$ROOT_ID cryptdevice=UUID=$HOME_UUID:$HOME_ID home=/dev/mapper/$HOME_ID" # TESTING THIS LINE!
+	### ^^ THIS LINE DOESNT WORK, IF LUKS & HOME ARE ENABLED BOOT WILL FAIL! AS WE DONT GET TO DECRYPT ROOT ON HOME
 else
 	new_value="cryptdevice=UUID=$ROOT_UUID:$ROOT_ID root=/dev/mapper/$ROOT_ID"
 fi
 else
-	new_value="root=UUID=$ROOT_UUID" # is this the best way to do this?
+	new_value="root=UUID=$ROOT_UUID"
 fi
 
 	sed -i '7c\GRUB_CMDLINE_LINUX="'"$new_value"'"' "/etc/default/grub"
@@ -433,22 +423,18 @@ fi
     	chown -R $USERNAME:$USERNAME home/$USERNAME/yay
     	cd home/$USERNAME/yay
     	clear
-    	sudo -u $USERNAME makepkg -si
+    	sudo -u $USERNAME makepkg -si --noconfirm
     	sudo -u $USERNAME yay -S $yay_packages --noconfirm
     	cd ../
     	rm -rf yay
     fi
 
-    ### WE NEED TO REMOVE THE OLD LINE!!!
-    sudo sed -i 's/%sudo ALL=(ALL) NOPASSWD: ALL/%sudo ALL=(ALL) ALL/g' /etc/sudoers
-    #sudo sed -i '$ a\%sudo ALL=(ALL) ALL' /etc/sudoers ## CHANGE SO WE TEMPORARYLY CANT EXECUTE WITHOUT ROOT PASSWORD, BUT CHANGE TO REQUIRED BEFORE FINISH!!!
-	sudo service sudo restart >/dev/null 2>&1
+    sed -i 's/%sudo ALL=(ALL) NOPASSWD: ALL/%sudo ALL=(ALL) ALL/g' /etc/sudoers ## TESTING THIS LINE!
+	service sudo restart >/dev/null 2>&1
 
     cd /
 	rm variables
-	rm $0 # 
-	echo "FINISHED! EXITING CHROOT!"
-	exit # we need to exit chroot here not just the script... << NOT WORKING
+	rm $0
 }
 arch_chroot
 exit
