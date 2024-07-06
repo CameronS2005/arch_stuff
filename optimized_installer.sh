@@ -19,7 +19,7 @@
 
 ###VARIABLES_START
 # Define global variables
-rel_date="UPDATE TIME; Jul 06, 12:14 PM EDT (2024)"
+rel_date="UPDATE TIME; Jul 06, 2:45 PM EDT (2024)"
 SCRIPT_VERSION="v1.5" # 5th iteration of arch install script (CURRENT)
 ARCH_VERSION="2024.06.01" # Linux Kernel 6.9.7
 ##
@@ -257,7 +257,9 @@ chroot_setup() {
 	sed -n "/$seed##PART2_START/,/$seed##PART2_END/p" "$0" > /mnt/setup.sh
 
 	echo "RUN: chmod +x setup.sh; ./setup.sh"
-	arch-chroot /mnt
+	echo "TESTING EDIT: RUN: arch-chroot /mnt"
+	exit 
+	arch-chroot /mnt # needs fixed...
 	#exit 0# TESTING
 
 #    arch-chroot /mnt << EOF
@@ -354,7 +356,7 @@ arch_chroot() {
 	if [[ $enable_32b_mlib == true ]]; then
 	sed -i '90 s/^#//' "/etc/pacman.conf"
 	sed -i '91 s/^#//' "/etc/pacman.conf"
-	yes | pacman -Sy >/dev/null 2>&1
+	pacman -Sy --noconfirm >/dev/null 2>&1
 	fi
 
 	echo "Configuring Hosts File With Hostname: ($HOSTNAME)"
