@@ -8,8 +8,8 @@
 # FUNCTIONS TO IMPLEMENT: Auto login, luks header dump, home partition, data partition, auto_part_sizing, bios support, quiet/verbose logging
 # Password hashes instead of plain text!
 #
-#
-#
+# ADD AUTO GOG INSTALLS!
+# FIX GDM NOT BEING ENABLED ON FIRST BOOT...
 #
 #
 #
@@ -18,7 +18,7 @@
 
 ###VARIABLES_START
 # Global variables
-rel_date="UPDATE TIME; Jul 07, 2:04 PM EDT (2024)"
+rel_date="UPDATE TIME; Jul 07, 4:51 PM EDT (2024)"
 SCRIPT_VERSION="v1.6"
 ARCH_VERSION="2024.06.01"
 WIFI_SSID="dacrib"
@@ -33,10 +33,10 @@ ROOT_PASSWD="password123"
 enable_32b_mlib=true
 use_LUKS=true
 use_SWAP=true
-use_HOME=false ## TESTING!!
+#use_HOME=false ## TESTING!!
 #use_DATA=false
 ROOT_ID="root_crypt"
-HOME_ID="home_crypt" ## TESTING!!
+#HOME_ID="home_crypt" ## TESTING!!
 #DATA_ID="data_crypt"
 #BIOS=UEFI # UEFI/BIOS
 #logging=verbose # verbose/silenced
@@ -47,12 +47,15 @@ base_packages="base base-devel linux linux-firmware nano grub efibootmgr network
 custom_packages="wget git curl screen nano firefox konsole thunar openssh net-tools wireguard-tools bc go"
 yay_aur_helper=true
 yay_packages="sublime-text-4"
+#gog_helper=false
+#gog_games="Terraria"
 
 # Disk partitioning sizes in MiB
 #auto_part_sizing=false
 boot_size_mb="500"
 swap_size_gb="4"; swap_size_mb=$((swap_size_gb * 1024))
 root_size_gb="10"; root_size_mb=$((root_size_gb * 1024))
+home_size_gb="10"; home_size_mb=$((home_size_gb * 1024))
 ###VARIABLES_END
 
 # Function to print release date and current configuration
@@ -268,6 +271,7 @@ arch_chroot() {
 
     # Set system time and hostname
     ln -sf "/usr/share/zoneinfo/$timezone" "/etc/localtime" >/dev/null 2>&1
+    sudo timedatectl set-timezone $timezone
     hwclock --systohc --localtime >/dev/null 2>&1
     echo "$HOSTNAME" > "/etc/hostname"
 
@@ -323,7 +327,10 @@ arch_chroot() {
     grub-mkconfig -o "/boot/grub/grub.cfg" >/dev/null 2>&1
 
     # Enable necessary services
-    systemctl enable NetworkManager sddm.service lightdm.service gdm.service >/dev/null 2>&1
+    systemctl enable NetworkManager >/dev/null 2>&1
+    systemctl enable sddm.service >/dev/null 2>&1
+    systemctl enable lightdm.service >/dev/null 2>&1
+    systemctl enable gdm.service >/dev/null 2>&1
 
     # Install Yay AUR helper if needed
     if [[ $yay_aur_helper == true ]]; then
