@@ -2,10 +2,24 @@
 
 ## Script to automate Arch Linux installation based on specified criteria
 
+### PART TWO IS FINALLY UNATTENDED!!!
+
+##### TDL;
+# FUNCTIONS TO IMPLEMENT: Auto login, luks header dump, home partition, data partition, auto_part_sizing, bios support, quiet/verbose logging
+# Password hashes instead of plain text!
+#
+#
+#
+#
+#
+#
+#
+# Removes Notes, Cleanup & Optimize Code!!
+
 ###VARIABLES_START
 # Global variables
-rel_date="UPDATE TIME; Jul 06, 3:07 PM EDT (2024)"
-SCRIPT_VERSION="v1.5"
+rel_date="UPDATE TIME; Jul 07, 2:04 PM EDT (2024)"
+SCRIPT_VERSION="v1.6"
 ARCH_VERSION="2024.06.01"
 WIFI_SSID="dacrib"
 DRIVE_ID="/dev/mmcblk0"  # Update this to match your installation drive
@@ -15,10 +29,18 @@ HOSTNAME="Archie Box"
 USERNAME="Archie"
 USER_PASSWD="password123"
 ROOT_PASSWD="password123"
+#auto_login=false
 enable_32b_mlib=true
 use_LUKS=true
 use_SWAP=true
+use_HOME=false ## TESTING!!
+#use_DATA=false
 ROOT_ID="root_crypt"
+HOME_ID="home_crypt" ## TESTING!!
+#DATA_ID="data_crypt"
+#BIOS=UEFI # UEFI/BIOS
+#logging=verbose # verbose/silenced
+#luks_header_dump=false
 GRUB_ID="GRUB"
 DESKTOP_ENVIRONMENT="gnome" # gnome/none
 base_packages="base base-devel linux linux-firmware nano grub efibootmgr networkmanager intel-ucode sudo"
@@ -27,6 +49,7 @@ yay_aur_helper=true
 yay_packages="sublime-text-4"
 
 # Disk partitioning sizes in MiB
+#auto_part_sizing=false
 boot_size_mb="500"
 swap_size_gb="4"; swap_size_mb=$((swap_size_gb * 1024))
 root_size_gb="10"; root_size_mb=$((root_size_gb * 1024))
@@ -45,6 +68,8 @@ timezone="$timezone"
 
 use_LUKS="$use_LUKS"
 use_SWAP="$use_SWAP"
+use_HOME="$use_HOME"
+use_DATA="$use_DATA"
 
 HOSTNAME="$HOSTNAME"
 USERNAME="$USERNAME"
