@@ -8,9 +8,8 @@
 # FUNCTIONS TO IMPLEMENT: Auto login, luks header dump, home partition, data partition, auto_part_sizing, bios support, quiet/verbose logging
 # Password hashes instead of plain text!
 #
-# ADD AUTO GOG INSTALLS!
 # FIX GDM NOT BEING ENABLED ON FIRST BOOT...
-#
+# CREATE CUSTOM GOG HELPER FOR ARCH
 #
 #
 #
@@ -18,7 +17,7 @@
 
 ###VARIABLES_START
 # Global variables
-rel_date="UPDATE TIME; Jul 07, 4:51 PM EDT (2024)"
+rel_date="UPDATE TIME; Jul 07, 7:43 PM EDT (2024)"
 SCRIPT_VERSION="v1.6"
 ARCH_VERSION="2024.06.01"
 WIFI_SSID="dacrib"
