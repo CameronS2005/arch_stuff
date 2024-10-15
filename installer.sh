@@ -5,52 +5,35 @@
 ### PART TWO IS FINALLY UNATTENDED!!!
 
 ##### TDL;
-# FUNCTIONS TO IMPLEMENT: Auto login, luks header dump, home partition, data partition, auto_part_sizing, bios support, quiet/verbose logging
-# Password hashes instead of plain text!
-#
-# FIX GDM NOT BEING ENABLED ON FIRST BOOT...
-# CREATE CUSTOM GOG HELPER FOR ARCH
-#
-#
-#
-# Removes Notes, Cleanup & Optimize Code!!
+# FUNCTIONS TO IMPLEMENT: Auto login, luks header dump, home partition, data partition, auto_part_sizing, different bios support, quiet/verbose logging
+# 
+
 
 ###VARIABLES_START
 # Global variables
-rel_date="UPDATE TIME; Jul 09, 11:02 PM EDT (2024)"
-SCRIPT_VERSION="v1.6"
-ARCH_VERSION="2024.06.01"
-WIFI_SSID="dacrib"
-DRIVE_ID="/dev/mmcblk0"  # Update this to match your installation drive
+rel_date="UPDATE TIME; Oct 15, 7:00 PM EDT (2024)"
+SCRIPT_VERSION="v1.7"
+ARCH_VERSION="2024.10.01"
+WIFI_SSID="redacted"
+DRIVE_ID="/dev/mmcblk0"
 lang="en_US.UTF-8"
 timezone="America/New_York"
 HOSTNAME="Archie Box"
 USERNAME="Archie"
 USER_PASSWD="password123"
 ROOT_PASSWD="password123"
-#auto_login=false
 enable_32b_mlib=true
 use_LUKS=true
 use_SWAP=true
-#use_HOME=false ## TESTING!!
-#use_DATA=false
 ROOT_ID="root_crypt"
-#HOME_ID="home_crypt" ## TESTING!!
-#DATA_ID="data_crypt"
-#BIOS=UEFI # UEFI/BIOS
-#logging=verbose # verbose/silenced
-#luks_header_dump=false
 GRUB_ID="GRUB"
-DESKTOP_ENVIRONMENT="plasma" # gnome/none
+DESKTOP_ENVIRONMENT="plasma" # cinnamon/plasma/gnome/xfce/lxqt/none #### cinnamon & lxqt not configured yet!
 base_packages="base base-devel linux linux-firmware nano grub efibootmgr networkmanager intel-ucode sudo"
-custom_packages="wget git curl screen nano firefox konsole thunar openssh net-tools wireguard-tools bc go"
+custom_packages="wget git curl screen nano firefox konsole thunar" # openssh net-tools wireguard-tools bc go
 yay_aur_helper=true
 yay_packages="sublime-text-4"
-#gog_helper=false
-#gog_games="Terraria"
 
-# Disk partitioning sizes in MiB
-#auto_part_sizing=false
+# Drive Patition Sizes
 boot_size_mb="500"
 swap_size_gb="4"; swap_size_mb=$((swap_size_gb * 1024))
 root_size_gb="10"; root_size_mb=$((root_size_gb * 1024))
@@ -157,11 +140,20 @@ auto_mount() {
 pacstrap_install() {
     echo "Installing Base System Packages..."
     case $DESKTOP_ENVIRONMENT in
+        cinnamon)
+            desktop_packages=""
+            ;;
+        plasma)
+            desktop_packages="xorg plasma plasma-wayland-session kde-applications sddm"
+            ;;
         gnome)
             desktop_packages="xorg-server xorg-apps xorg-xinit xorg-twm xorg-xclock gnome gdm"
             ;;
-        plasma)
-            desktop_packages="xorg plasma plasma-wayland-session kde-applications"
+        xfce)
+            desktop_packages="xfce4 xfce4-goodies lightdm"
+            ;;
+        lxqt)
+            desktop_packages=""
             ;;
         *)
             desktop_packages=""
@@ -181,13 +173,13 @@ generate_fstab() {
 chroot_setup() {
     echo "Finalizing Installation in chroot environment!"
 
- 	seed="#"
-	sed -n "/$seed##VARIABLES_START/,/$seed##VARIABLES_END/p" "$0" > /mnt/variables
-	sed -n "/$seed##PART2_START/,/$seed##PART2_END/p" "$0" > /mnt/setup.sh
+    seed="#"
+    sed -n "/$seed##VARIABLES_START/,/$seed##VARIABLES_END/p" "$0" > /mnt/variables
+    sed -n "/$seed##PART2_START/,/$seed##PART2_END/p" "$0" > /mnt/setup.sh
 
-	echo "RUN: chmod +x setup.sh && ./setup.sh && exit"
-	#arch-chroot /mnt
-	#exit 0# TESTING
+    echo "RUN: chmod +x setup.sh && ./setup.sh && exit"
+    #arch-chroot /mnt
+    #exit 0# TESTING
 
     arch-chroot /mnt << EOF
 chmod +x setup.sh && ./setup.sh && exit
