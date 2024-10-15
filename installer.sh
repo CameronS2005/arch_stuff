@@ -11,7 +11,7 @@
 
 ###VARIABLES_START
 # Global variables
-rel_date="UPDATE TIME; Oct 15, 7:00 PM EDT (2024)"
+rel_date="UPDATE TIME; Oct 15, 7:01 PM EDT (2024)"
 SCRIPT_VERSION="v1.7"
 ARCH_VERSION="2024.10.01"
 WIFI_SSID="redacted"
@@ -265,12 +265,12 @@ arch_chroot() {
 
     # Set system time and hostname
     ln -sf "/usr/share/zoneinfo/$timezone" "/etc/localtime" >/dev/null 2>&1
-    sudo timedatectl set-timezone $timezone
+    #sudo timedatectl set-timezone $timezone
     hwclock --systohc --localtime >/dev/null 2>&1
     echo "$HOSTNAME" > "/etc/hostname"
 
     # Enable SSD trimming if necessary
-    systemctl enable fstrim.timer >/dev/null 2>&1
+    #systemctl enable fstrim.timer >/dev/null 2>&1
 
     # Enable 32-bit multilib if necessary
     if [[ $enable_32b_mlib == true ]]; then
