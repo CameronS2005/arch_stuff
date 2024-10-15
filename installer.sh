@@ -2,8 +2,6 @@
 
 ## Script to automate Arch Linux installation based on specified criteria
 
-### PART TWO IS FINALLY UNATTENDED!!!
-
 ##### TDL;
 # FUNCTIONS TO IMPLEMENT: Auto login, luks header dump, home partition, data partition, auto_part_sizing, different bios support, quiet/verbose logging
 # 
@@ -11,7 +9,7 @@
 
 ###VARIABLES_START
 # Global variables
-rel_date="UPDATE TIME; Oct 15, 7:01 PM EDT (2024)"
+rel_date="UPDATE TIME; Oct 15, 7:38 PM EDT (2024)"
 SCRIPT_VERSION="v1.7"
 ARCH_VERSION="2024.10.01"
 WIFI_SSID="redacted"
@@ -29,7 +27,7 @@ ROOT_ID="root_crypt"
 GRUB_ID="GRUB"
 DESKTOP_ENVIRONMENT="plasma" # cinnamon/plasma/gnome/xfce/lxqt/none #### cinnamon & lxqt not configured yet!
 base_packages="base base-devel linux linux-firmware nano grub efibootmgr networkmanager intel-ucode sudo"
-custom_packages="wget git curl screen nano firefox konsole thunar" # openssh net-tools wireguard-tools bc go
+custom_packages="wget git curl screen nano konsole thunar" # firefox openssh net-tools wireguard-tools bc go
 yay_aur_helper=true
 yay_packages="sublime-text-4"
 
@@ -37,7 +35,6 @@ yay_packages="sublime-text-4"
 boot_size_mb="500"
 swap_size_gb="4"; swap_size_mb=$((swap_size_gb * 1024))
 root_size_gb="10"; root_size_mb=$((root_size_gb * 1024))
-home_size_gb="10"; home_size_mb=$((home_size_gb * 1024))
 ###VARIABLES_END
 
 # Function to print release date and current configuration
@@ -53,7 +50,6 @@ timezone="$timezone"
 
 use_LUKS="$use_LUKS"
 use_SWAP="$use_SWAP"
-use_HOME="$use_HOME"
 use_DATA="$use_DATA"
 
 HOSTNAME="$HOSTNAME"
@@ -114,11 +110,11 @@ auto_partition() {
 
     # Encrypt partitions if LUKS is enabled
     if [[ $use_LUKS == true ]]; then
-        cryptsetup luksFormat "$DRIVE_ID"p3
-        cryptsetup luksOpen "$DRIVE_ID"p3 "$ROOT_ID"
+        cryptsetup luksFormat "$DRIVE_ID""$root_part"
+        cryptsetup luksOpen "$DRIVE_ID""$root_part" "$ROOT_ID"
         mkfs.ext4 "/dev/mapper/$ROOT_ID" >/dev/null 2>&1
     else
-        mkfs.ext4 "$DRIVE_ID"p2 >/dev/null 2>&1
+        mkfs.ext4 "$DRIVE_ID""$root_part" >/dev/null 2>&1
     fi
 
     mkfs.fat -F32 "$DRIVE_ID"p1 >/dev/null 2>&1
@@ -130,7 +126,7 @@ auto_mount() {
     if [[ $use_LUKS == true ]]; then
         mount "/dev/mapper/$ROOT_ID" /mnt >/dev/null 2>&1
     else
-        mount "$DRIVE_ID"p2 /mnt
+        mount "$DRIVE_ID""$root_part" /mnt
     fi
     mkdir -p /mnt/boot
     mount "$DRIVE_ID"p1 /mnt/boot >/dev/null 2>&1
@@ -144,7 +140,7 @@ pacstrap_install() {
             desktop_packages=""
             ;;
         plasma)
-            desktop_packages="xorg plasma plasma-wayland-session kde-applications sddm"
+            desktop_packages="xorg plasma plasma-workspace kde-applications sddm"
             ;;
         gnome)
             desktop_packages="xorg-server xorg-apps xorg-xinit xorg-twm xorg-xclock gnome gdm"
@@ -165,6 +161,10 @@ pacstrap_install() {
 
 # Function to generate fstab
 generate_fstab() {
+    if [[ $use_SWAP ]]; then
+        swapon "$DRIVE_ID"p2
+    fi
+
     echo "Generating fstab..."
     genfstab -U /mnt >> /mnt/etc/fstab
 }
@@ -182,7 +182,8 @@ chroot_setup() {
     #exit 0# TESTING
 
     arch-chroot /mnt << EOF
-chmod +x setup.sh && ./setup.sh && exit
+chmod +x setup.sh && ./setup.sh
+echo "INSPECT & TEST SWAP PARTITION BEFORE EXITING!"
 EOF
 #clear
 }
@@ -246,10 +247,8 @@ source variables
 # Determine root and home partitions based on conditions
 if [[ $use_SWAP == true ]]; then
     root_part="p3"
-    [[ $use_HOME == true ]] && home_part="p4"
 else
     root_part="p2"
-    [[ $use_HOME == true ]] && home_part="p3"
 fi
 
 # Function for setting up the Arch Linux environment inside chroot
