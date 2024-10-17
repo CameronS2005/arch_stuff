@@ -9,7 +9,7 @@
 
 ###VARIABLES_START
 # Global variables
-rel_date="UPDATE TIME; Oct 15, 7:38 PM EDT (2024)"
+rel_date="UPDATE TIME; Oct 17, 1:34 PM EDT (2024)"
 SCRIPT_VERSION="v1.7"
 ARCH_VERSION="2024.10.01"
 WIFI_SSID="redacted"
@@ -33,8 +33,8 @@ yay_packages="sublime-text-4"
 
 # Drive Patition Sizes
 boot_size_mb="500"
-swap_size_gb="4"; swap_size_mb=$((swap_size_gb * 1024))
-root_size_gb="10"; root_size_mb=$((root_size_gb * 1024))
+swap_size_gb="8"; swap_size_mb=$((swap_size_gb * 1024))
+root_size_gb="12"; root_size_mb=$((root_size_gb * 1024))
 ###VARIABLES_END
 
 # Function to print release date and current configuration
@@ -140,7 +140,7 @@ pacstrap_install() {
             desktop_packages=""
             ;;
         plasma)
-            desktop_packages="xorg plasma plasma-workspace kde-applications sddm"
+            desktop_packages="xorg plasma sddm" # plasma-workspace kde-applications
             ;;
         gnome)
             desktop_packages="xorg-server xorg-apps xorg-xinit xorg-twm xorg-xclock gnome gdm"
