@@ -9,7 +9,7 @@
 
 ###VARIABLES_START
 # Global variables
-rel_date="UPDATE TIME; Oct 17, 1:34 PM EDT (2024)"
+rel_date="UPDATE TIME; Oct 18, 3:36 PM EDT (2024)"
 SCRIPT_VERSION="v1.7"
 ARCH_VERSION="2024.10.01"
 WIFI_SSID="redacted"
@@ -182,7 +182,7 @@ chroot_setup() {
     #exit 0# TESTING
 
     arch-chroot /mnt << EOF
-chmod +x setup.sh && ./setup.sh
+chmod +x setup.sh && ./setup.sh && exit
 echo "INSPECT & TEST SWAP PARTITION BEFORE EXITING!"
 EOF
 #clear
