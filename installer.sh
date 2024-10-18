@@ -1,5 +1,8 @@
 #!/bin/bash
 
+### MAJOR ISSUE;
+## ROOT_PART VARIABLE ISNT BEING PROPERLEY SET AND KERNEL IS NEVER LOADED... # https://github.com/CameronS2005/arch_stuff/commit/a912fa15bc0c4b946f63737058a5b784b6a4b9d4#diff-a66c904fc30426ab62d77441e63aaadecc1b1beaea08f08321681d8f03301187R51
+
 ## Script to automate Arch Linux installation based on specified criteria
 
 ##### TDL;
@@ -9,7 +12,7 @@
 
 ###VARIABLES_START
 # Global variables
-rel_date="UPDATE TIME; Oct 18, 3:36 PM EDT (2024)"
+rel_date="UPDATE TIME; Oct 18, 6:34 PM EDT (2024)"
 SCRIPT_VERSION="v1.7"
 ARCH_VERSION="2024.10.01"
 WIFI_SSID="redacted"
@@ -182,7 +185,6 @@ chroot_setup() {
     #exit 0# TESTING
 
     arch-chroot /mnt << EOF
-chmod +x setup.sh && ./setup.sh && exit
 echo "INSPECT & TEST SWAP PARTITION BEFORE EXITING!"
 EOF
 #clear
