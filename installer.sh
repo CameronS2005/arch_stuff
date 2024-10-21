@@ -1,15 +1,17 @@
 #!/bin/bash
 
+#### WORKING
+
 ##### TDL;
 # STUFF TO IMPLEMENT: Auto login, luks header dump, home partition, data partition, auto_part_sizing, different bios support, advanced error handling!
 # MORE STUFF TO IMPLEMENT: disable_ipv6, kernel selector
 
-
 ###VARIABLES_START
 # Global variables
-rel_date="UPDATE TIME; Oct 21, 5:23 PM EDT (2024)"
+rel_date="UPDATE TIME; Oct 21, 6:40 PM EDT (2024)"
 SCRIPT_VERSION="v1.7"
 ARCH_VERSION="2024.10.01"
+KERNEL="hardend" # lts/zen/base/hardend
 WIFI_SSID="redacted"
 DRIVE_ID="/dev/mmcblk0"
 lang="en_US.UTF-8"
@@ -21,15 +23,23 @@ ROOT_PASSWD="password123"
 enable_32b_mlib=true
 use_LUKS=true
 use_SWAP=true
+#use_HOME=false # WIP
+#use_DATE=false # WIP
 ROOT_ID="root_crypt"
 GRUB_ID="GRUB"
 DESKTOP_ENVIRONMENT="xfce" # cinnamon/plasma/gnome/xfce/lxqt/none #### cinnamon & lxqt not configured yet!
-base_packages="base base-devel linux linux-firmware nano grub efibootmgr networkmanager intel-ucode sudo"
-custom_packages="wget git curl screen nano konsole thunar" # firefox openssh net-tools wireguard-tools bc go
+base_packages="base base-devel linux-firmware nano grub efibootmgr networkmanager intel-ucode sudo"
+custom_packages="wget git curl screen nano konsole thunar net-tools openssh bc go"
 yay_aur_helper=true
 yay_packages="sublime-text-4"
+NULL_VAR=">/dev/null 2>&1" # set to null redirect or nothing! ## >/dev/null 2>&1
+
+#auto_login=false # WIP
+#luks_header_dump=false # WIP
+
 
 # Drive Patition Sizes
+#auto_part_sizing=false # based on hardcoded percentages # WIP
 boot_size_mb="500"
 swap_size_gb="2"; swap_size_mb=$((swap_size_gb * 1024))
 root_size_gb="12"; root_size_mb=$((root_size_gb * 1024))
@@ -166,6 +176,16 @@ pacstrap_install() {
         desktop_packages="xorg-server xorg-apps xorg-xinit xorg-twm xorg-xclock xterm $desktop_packages"
     fi
 
+    if [[ $KERNEL == "zen" ]]; then
+        base_packages="linux-zen $base_packages"
+    elif [[ $KERNEL == "lts" ]]; then
+        base_packages="linux-lts $base_packages"
+    elif [[ $KERNEL == "base" ]]; then
+        base_packages="linux $base_packages"
+    elif [[ $KERNEL == "hardend" ]]; then
+        base_packages="linux-hardend $base_packages"
+    fi
+
     pacstrap -i /mnt $base_packages $desktop_packages $custom_packages --noconfirm
 }
 
@@ -265,7 +285,6 @@ arch_chroot() {
 
     # Set system time and hostname
     ln -sf "/usr/share/zoneinfo/$timezone" "/etc/localtime" >/dev/null 2>&1
-    #sudo timedatectl set-timezone $timezone
     hwclock --systohc #--localtime >/dev/null 2>&1
     echo "$HOSTNAME" > "/etc/hostname"
 
@@ -306,13 +325,9 @@ arch_chroot() {
     mkinitcpio -p linux >/dev/null 2>&1
 
     grub-install --target=x86_64-efi --efi-directory=/boot --bootloader-id="$GRUB_ID" >/dev/null 2>&1
-    #grub-mkconfig -o "/boot/grub/grub.cfg" >/dev/null 2>&1
 
     # Set up cryptdevice if using LUKS and home partition
     ROOT_UUID=$(blkid -s UUID -o value "$DRIVE_ID$root_part")
-    #if [[ $use_LUKS == true && $use_HOME == true ]]; then
-    #    HOME_UUID=$(blkid -s UUID -o value "$DRIVE_ID$home_part")
-    #    new_value="cryptdevice=UUID=$ROOT_UUID:$ROOT_ID root=/dev/mapper/$ROOT_ID cryptdevice=UUID=$HOME_UUID:$HOME_ID home=/dev/mapper/$HOME_ID"
     if [[ $use_LUKS == true ]]; then
         new_value="cryptdevice=UUID=$ROOT_UUID:$ROOT_ID root=/dev/mapper/$ROOT_ID"
     else
