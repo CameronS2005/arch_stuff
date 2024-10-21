@@ -12,7 +12,7 @@
 
 ###VARIABLES_START
 # Global variables
-rel_date="UPDATE TIME; Oct 18, 6:34 PM EDT (2024)"
+rel_date="UPDATE TIME; Oct 20, 10:01 PM EDT (2024)"
 SCRIPT_VERSION="v1.7"
 ARCH_VERSION="2024.10.01"
 WIFI_SSID="redacted"
@@ -184,9 +184,10 @@ chroot_setup() {
     #arch-chroot /mnt
     #exit 0# TESTING
 
-    arch-chroot /mnt << EOF
-echo "INSPECT & TEST SWAP PARTITION BEFORE EXITING!"
-EOF
+    arch-chroot /mnt #<< EOF
+#echo "INSPECT & TEST SWAP PARTITION BEFORE EXITING!"
+#chmod +x setup.sh && ./setup.sh && exit
+#EOF
 #clear
 }
 
@@ -340,13 +341,13 @@ arch_chroot() {
     fi
 
     # Restore sudoers configuration
-    sed -i 's/%sudo ALL=(ALL) NOPASSWD: ALL/%sudo ALL=(ALL) ALL/g' /etc/sudoers
-    service sudo restart >/dev/null 2>&1
+    #sed -i 's/%sudo ALL=(ALL) NOPASSWD: ALL/%sudo ALL=(ALL) ALL/g' /etc/sudoers
+    #service sudo restart >/dev/null 2>&1
 
     # Clean up
-    cd /
-    rm variables
-    rm $0
+    #cd /
+    #rm variables
+    #rm $0
 }
 
 arch_chroot
