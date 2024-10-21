@@ -14,7 +14,7 @@
 
 ###VARIABLES_START
 # Global variables
-rel_date="UPDATE TIME; Oct 21, 1:10 PM EDT (2024)"
+rel_date="UPDATE TIME; Oct 21, 1:36 PM EDT (2024)"
 SCRIPT_VERSION="v1.7"
 ARCH_VERSION="2024.10.01"
 WIFI_SSID="redacted"
@@ -186,12 +186,7 @@ chroot_setup() {
     sed -n "/$seed##VARIABLES_START/,/$seed##VARIABLES_END/p" "$0" > /mnt/variables
     sed -n "/$seed##PART2_START/,/$seed##PART2_END/p" "$0" > /mnt/setup.sh
 
-    echo "RUN: chmod +x setup.sh && ./setup.sh && exit"
-    #arch-chroot /mnt
-    #exit 0# TESTING
-
     arch-chroot /mnt << EOF
-#echo "INSPECT & TEST SWAP PARTITION BEFORE EXITING!"
 chmod +x setup.sh && ./setup.sh && exit
 EOF
 #clear
@@ -293,9 +288,9 @@ arch_chroot() {
 
     # Create and configure non-root user
     groupadd wheel >/dev/null 2>&1
-    useradd -mG wheel "$USERNAME" >/dev/null 2>&1
+    useradd -mG wheel,sudo "$USERNAME" >/dev/null 2>&1
     echo "%sudo ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
-    #service sudo restart >/dev/null 2>&1
+    service sudo restart >/dev/null 2>&1
 
     # Configure autologin if enabled
     if [[ $auto_login == true ]]; then
