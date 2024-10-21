@@ -4,14 +4,14 @@
 
 ##### TDL;
 # STUFF TO IMPLEMENT: Auto login, luks header dump, home partition, data partition, auto_part_sizing, different bios support, advanced error handling!
-# MORE STUFF TO IMPLEMENT: disable_ipv6, kernel selector
+# MORE STUFF TO IMPLEMENT: disable_ipv6
 
 ###VARIABLES_START
 # Global variables
-rel_date="UPDATE TIME; Oct 21, 6:48 PM EDT (2024)"
+rel_date="UPDATE TIME; Oct 21, 7:22 PM EDT (2024)"
 SCRIPT_VERSION="v1.7"
 ARCH_VERSION="2024.10.01"
-KERNEL="hardened" # lts/zen/base/hardened
+KERNEL="base" # lts/zen/base/hardened ## only base working
 WIFI_SSID="redacted"
 DRIVE_ID="/dev/mmcblk0"
 lang="en_US.UTF-8"
@@ -29,14 +29,10 @@ ROOT_ID="root_crypt"
 GRUB_ID="GRUB"
 DESKTOP_ENVIRONMENT="xfce" # cinnamon/plasma/gnome/xfce/lxqt/none #### cinnamon & lxqt not configured yet!
 base_packages="base base-devel linux-firmware nano grub efibootmgr networkmanager intel-ucode sudo"
-custom_packages="wget git curl screen nano konsole thunar net-tools openssh bc go"
+custom_packages="wget git curl screen nano konsole thunar net-tools openssh bc go sof-firmware"
 yay_aur_helper=true
 yay_packages="sublime-text-4"
-NULL_VAR=">/dev/null 2>&1" # set to null redirect or nothing! ## >/dev/null 2>&1
-
-#auto_login=false # WIP
-#luks_header_dump=false # WIP
-
+NULL_VAR=">/dev/null 2>&1" # change to verbosity switch
 
 # Drive Patition Sizes
 #auto_part_sizing=false # based on hardcoded percentages # WIP
@@ -72,7 +68,11 @@ EOF
 }
 
 # Function to handle WiFi connection
-wifi_connect() {
+sanity_check() {
+    if [[ $NULL_VAR != ">/dev/null 2>&1" ]]; then
+        NULL_VAR=""
+    fi
+
     if ! ping 1.1.1.1 -c 1 &> /dev/null; then
         echo "1.1.1.1 PING FAILED! Attempting wireless config!"
         
@@ -233,7 +233,7 @@ if [ ! -d /sys/firmware/efi/efivars ]; then
 fi
 
 # Handle WiFi connection
-wifi_connect
+sanity_check
 
 # Rank Pacman mirrors
 #rank_mirrors
