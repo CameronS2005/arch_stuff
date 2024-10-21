@@ -1,7 +1,5 @@
 #!/bin/bash
 
-### REMAKE ENTIRE SCRIPT... (ITS CURRENTLY BROKEN!)
-
 ### MAJOR ISSUE;
 ## ROOT_PART VARIABLE ISNT BEING PROPERLEY SET AND KERNEL IS NEVER LOADED... # https://github.com/CameronS2005/arch_stuff/commit/a912fa15bc0c4b946f63737058a5b784b6a4b9d4#diff-a66c904fc30426ab62d77441e63aaadecc1b1beaea08f08321681d8f03301187R51
 
@@ -14,7 +12,7 @@
 
 ###VARIABLES_START
 # Global variables
-rel_date="UPDATE TIME; Oct 21, 1:54 PM EDT (2024)"
+rel_date="UPDATE TIME; Oct 21, 4:46 PM EDT (2024)"
 SCRIPT_VERSION="v1.7"
 ARCH_VERSION="2024.10.01"
 WIFI_SSID="redacted"
@@ -30,7 +28,7 @@ use_LUKS=true
 use_SWAP=true
 ROOT_ID="root_crypt"
 GRUB_ID="GRUB"
-DESKTOP_ENVIRONMENT="plasma" # cinnamon/plasma/gnome/xfce/lxqt/none #### cinnamon & lxqt not configured yet!
+DESKTOP_ENVIRONMENT="xfce" # cinnamon/plasma/gnome/xfce/lxqt/none #### cinnamon & lxqt not configured yet!
 base_packages="base base-devel linux linux-firmware nano grub efibootmgr networkmanager intel-ucode sudo"
 custom_packages="wget git curl screen nano konsole thunar" # firefox openssh net-tools wireguard-tools bc go
 yay_aur_helper=true
@@ -100,31 +98,31 @@ auto_partition() {
     echo "Automating disk partitioning for $DRIVE_ID..."
     read -p "PRESS ENTER TO PARTITION ($DRIVE_ID) DANGER!!!"
 
-    sgdisk --zap-all "$DRIVE_ID"
-    parted "$DRIVE_ID" mklabel gpt
+    sgdisk --zap-all "$DRIVE_ID" >/dev/null 2>&1
+    parted "$DRIVE_ID" mklabel gpt >/dev/null 2>&1
 
-    parted "$DRIVE_ID" mkpart ESP fat32 1MiB "${boot_size_mb}MiB"
-    parted "$DRIVE_ID" set 1 boot on
+    parted "$DRIVE_ID" mkpart ESP fat32 1MiB "${boot_size_mb}MiB" >/dev/null 2>&1
+    parted "$DRIVE_ID" set 1 boot on >/dev/null 2>&1
 
     if [[ $use_SWAP == true ]]; then
         root_part="p3"
-        parted "$DRIVE_ID" mkpart primary linux-swap "${boot_size_mb}MiB" "$((boot_size_mb + swap_size_mb))MiB"
-        parted "$DRIVE_ID" mkpart primary ext4 "$((boot_size_mb + swap_size_mb))MiB" "$((boot_size_mb + swap_size_mb + root_size_mb))MiB"
+        parted "$DRIVE_ID" mkpart primary linux-swap "${boot_size_mb}MiB" "$((boot_size_mb + swap_size_mb))MiB" >/dev/null 2>&1
+        parted "$DRIVE_ID" mkpart primary ext4 "$((boot_size_mb + swap_size_mb))MiB" "$((boot_size_mb + swap_size_mb + root_size_mb))MiB" >/dev/null 2>&1
     else
         root_part="p2"
-        parted "$DRIVE_ID" mkpart primary ext4 "${boot_size_mb}MiB" "$((boot_size_mb + root_size_mb))MiB"
+        parted "$DRIVE_ID" mkpart primary ext4 "${boot_size_mb}MiB" "$((boot_size_mb + root_size_mb))MiB" >/dev/null 2>&1
     fi
 
     # Encrypt partitions if LUKS is enabled
     if [[ $use_LUKS == true ]]; then
         cryptsetup luksFormat "$DRIVE_ID""$root_part"
         cryptsetup luksOpen "$DRIVE_ID""$root_part" "$ROOT_ID"
-        mkfs.ext4 "/dev/mapper/$ROOT_ID"
+        mkfs.ext4 "/dev/mapper/$ROOT_ID" >/dev/null 2>&1
     else
-        mkfs.ext4 "$DRIVE_ID""$root_part"
+        mkfs.ext4 "$DRIVE_ID""$root_part" >/dev/null 2>&1
     fi
 
-    mkfs.fat -F32 "$DRIVE_ID"p1
+    mkfs.fat -F32 "$DRIVE_ID"p1 >/dev/null 2>&1
 
     if [[ $use_SWAP == true ]]; then
         mkswap "$DRIVE_ID"p2
@@ -136,12 +134,12 @@ auto_partition() {
 auto_mount() {
     echo "Mounting Partitions..."
     if [[ $use_LUKS == true ]]; then
-        mount "/dev/mapper/$ROOT_ID" /mnt
+        mount "/dev/mapper/$ROOT_ID" /mnt >/dev/null 2>&1
     else
         mount "$DRIVE_ID""$root_part" /mnt
     fi
     mkdir -p /mnt/boot
-    mount "$DRIVE_ID"p1 /mnt/boot
+    mount "$DRIVE_ID"p1 /mnt/boot >/dev/null 2>&1
     sleep 10
 }
 
@@ -168,6 +166,10 @@ pacstrap_install() {
             desktop_packages=""
             ;;
     esac
+
+    if [[ ! -z $desktop_packages ]]; then
+        desktop_packages="xorg-server xorg-apps xorg-xinit xorg-twm xorg-xclock xterm $desktop_packages"
+    fi
 
     pacstrap -i /mnt $base_packages $desktop_packages $custom_packages --noconfirm
 }
@@ -198,7 +200,7 @@ post_chroot() {
 
     umount -R /mnt
     if [[ $use_SWAP == true ]]; then
-        swapoff "$DRIVE_ID"p2
+        swapoff "$DRIVE_ID"p2 >/dev/null 2>&1
     fi
 
     echo "Installation completed successfully. You can now reboot your system."
@@ -262,23 +264,23 @@ arch_chroot() {
 
     # Configure locale
     sed -i "s/^#\($lang UTF-8\)/\1/" "/etc/locale.gen"
-    locale-gen
+    locale-gen >/dev/null 2>&1
     echo "LANG=$lang" > "/etc/locale.conf"
-    export LANG=$lang
+    export LANG=$lang >/dev/null 2>&1
 
     # Set system time and hostname
-    ln -sf "/usr/share/zoneinfo/$timezone" "/etc/localtime"
+    ln -sf "/usr/share/zoneinfo/$timezone" "/etc/localtime" >/dev/null 2>&1
     #sudo timedatectl set-timezone $timezone
-    hwclock --systohc #--localtime
+    hwclock --systohc #--localtime >/dev/null 2>&1
     echo "$HOSTNAME" > "/etc/hostname"
 
     # Enable SSD trimming if necessary
-    #systemctl enable fstrim.timer
+    #systemctl enable fstrim.timer >/dev/null 2>&1
 
     # Enable 32-bit multilib if necessary
     if [[ $enable_32b_mlib == true ]]; then
         sed -i '90,91 s/^#//' "/etc/pacman.conf"
-        yes | pacman -Sy
+        yes | pacman -Sy >/dev/null 2>&1
     fi
 
     # Configure hosts file
@@ -287,11 +289,10 @@ arch_chroot() {
 127.0.1.1 $HOSTNAME.localdomain $HOSTNAME" >> "/etc/hosts"
 
     # Create and configure non-root user
-    groupadd wheel
-    useradd "$USERNAME"
-    useradd -mG wheel,sudo "$USERNAME"
+    groupadd wheel >/dev/null 2>&1
+    useradd -mG wheel,sudo "$USERNAME" >/dev/null 2>&1
     echo "%sudo ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
-    service sudo restart
+    service sudo restart >/dev/null 2>&1
 
     # Configure autologin if enabled
     if [[ $auto_login == true ]]; then
@@ -306,10 +307,10 @@ arch_chroot() {
     if [[ $use_LUKS == true ]]; then
         sed -i '/^HOOKS=/ s/)$/ encrypt)/' "/etc/mkinitcpio.conf"
     fi
-    mkinitcpio -p linux
+    mkinitcpio -p linux >/dev/null 2>&1
 
-    grub-install --target=x86_64-efi --efi-directory=/boot --bootloader-id="$GRUB_ID"
-    #grub-mkconfig -o "/boot/grub/grub.cfg"
+    grub-install --target=x86_64-efi --efi-directory=/boot --bootloader-id="$GRUB_ID" >/dev/null 2>&1
+    #grub-mkconfig -o "/boot/grub/grub.cfg" >/dev/null 2>&1
 
     # Set up cryptdevice if using LUKS and home partition
     ROOT_UUID=$(blkid -s UUID -o value "$DRIVE_ID$root_part")
@@ -322,17 +323,17 @@ arch_chroot() {
         new_value="root=UUID=$ROOT_UUID"
     fi
     sed -i '7c\GRUB_CMDLINE_LINUX="'"$new_value"'"' "/etc/default/grub"
-    grub-mkconfig -o "/boot/grub/grub.cfg"
+    grub-mkconfig -o "/boot/grub/grub.cfg" >/dev/null 2>&1
 
     # Enable necessary services
-    systemctl enable NetworkManager
-    systemctl enable sddm.service
-    systemctl enable lightdm.service
-    systemctl enable gdm.service
+    systemctl enable NetworkManager >/dev/null 2>&1
+    systemctl enable sddm.service >/dev/null 2>&1
+    systemctl enable lightdm.service >/dev/null 2>&1
+    systemctl enable gdm.service >/dev/null 2>&1
 
     # Install Yay AUR helper if needed
     if [[ $yay_aur_helper == true ]]; then
-        git clone https://aur.archlinux.org/yay.git
+        git clone https://aur.archlinux.org/yay.git >/dev/null 2>&1
         mv yay /home/$USERNAME/
         chown -R $USERNAME:$USERNAME /home/$USERNAME/yay
         cd /home/$USERNAME/yay
@@ -344,7 +345,7 @@ arch_chroot() {
 
     # Restore sudoers configuration
     sed -i 's/%sudo ALL=(ALL) NOPASSWD: ALL/%sudo ALL=(ALL) ALL/g' /etc/sudoers
-    service sudo restart
+    service sudo restart >/dev/null 2>&1
 
     # Clean up
     cd /
