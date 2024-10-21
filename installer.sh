@@ -1,18 +1,13 @@
 #!/bin/bash
 
-### MAJOR ISSUE;
-## ROOT_PART VARIABLE ISNT BEING PROPERLEY SET AND KERNEL IS NEVER LOADED... # https://github.com/CameronS2005/arch_stuff/commit/a912fa15bc0c4b946f63737058a5b784b6a4b9d4#diff-a66c904fc30426ab62d77441e63aaadecc1b1beaea08f08321681d8f03301187R51
-
-## Script to automate Arch Linux installation based on specified criteria
-
 ##### TDL;
-# FUNCTIONS TO IMPLEMENT: Auto login, luks header dump, home partition, data partition, auto_part_sizing, different bios support, quiet/verbose logging
-# 
+# STUFF TO IMPLEMENT: Auto login, luks header dump, home partition, data partition, auto_part_sizing, different bios support, advanced error handling!
+# MORE STUFF TO IMPLEMENT: disable_ipv6, kernel selector
 
 
 ###VARIABLES_START
 # Global variables
-rel_date="UPDATE TIME; Oct 21, 4:46 PM EDT (2024)"
+rel_date="UPDATE TIME; Oct 21, 5:23 PM EDT (2024)"
 SCRIPT_VERSION="v1.7"
 ARCH_VERSION="2024.10.01"
 WIFI_SSID="redacted"
@@ -157,7 +152,7 @@ pacstrap_install() {
             desktop_packages="xorg-server xorg-apps xorg-xinit xorg-twm xorg-xclock gnome gdm"
             ;;
         xfce)
-            desktop_packages="xfce4 xfce4-goodies lightdm"
+            desktop_packages="xfce4 xfce4-goodies sddm"
             ;;
         lxqt)
             desktop_packages=""
@@ -290,6 +285,7 @@ arch_chroot() {
 
     # Create and configure non-root user
     groupadd wheel >/dev/null 2>&1
+    groupadd sudo
     useradd -mG wheel,sudo "$USERNAME" >/dev/null 2>&1
     echo "%sudo ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
     service sudo restart >/dev/null 2>&1
