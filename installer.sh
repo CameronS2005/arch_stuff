@@ -14,7 +14,7 @@
 
 ###VARIABLES_START
 # Global variables
-rel_date="UPDATE TIME; Oct 21, 1:36 PM EDT (2024)"
+rel_date="UPDATE TIME; Oct 21, 1:54 PM EDT (2024)"
 SCRIPT_VERSION="v1.7"
 ARCH_VERSION="2024.10.01"
 WIFI_SSID="redacted"
@@ -100,31 +100,31 @@ auto_partition() {
     echo "Automating disk partitioning for $DRIVE_ID..."
     read -p "PRESS ENTER TO PARTITION ($DRIVE_ID) DANGER!!!"
 
-    sgdisk --zap-all "$DRIVE_ID" >/dev/null 2>&1
-    parted "$DRIVE_ID" mklabel gpt >/dev/null 2>&1
+    sgdisk --zap-all "$DRIVE_ID"
+    parted "$DRIVE_ID" mklabel gpt
 
-    parted "$DRIVE_ID" mkpart ESP fat32 1MiB "${boot_size_mb}MiB" >/dev/null 2>&1
-    parted "$DRIVE_ID" set 1 boot on >/dev/null 2>&1
+    parted "$DRIVE_ID" mkpart ESP fat32 1MiB "${boot_size_mb}MiB"
+    parted "$DRIVE_ID" set 1 boot on
 
     if [[ $use_SWAP == true ]]; then
         root_part="p3"
-        parted "$DRIVE_ID" mkpart primary linux-swap "${boot_size_mb}MiB" "$((boot_size_mb + swap_size_mb))MiB" >/dev/null 2>&1
-        parted "$DRIVE_ID" mkpart primary ext4 "$((boot_size_mb + swap_size_mb))MiB" "$((boot_size_mb + swap_size_mb + root_size_mb))MiB" >/dev/null 2>&1
+        parted "$DRIVE_ID" mkpart primary linux-swap "${boot_size_mb}MiB" "$((boot_size_mb + swap_size_mb))MiB"
+        parted "$DRIVE_ID" mkpart primary ext4 "$((boot_size_mb + swap_size_mb))MiB" "$((boot_size_mb + swap_size_mb + root_size_mb))MiB"
     else
         root_part="p2"
-        parted "$DRIVE_ID" mkpart primary ext4 "${boot_size_mb}MiB" "$((boot_size_mb + root_size_mb))MiB" >/dev/null 2>&1
+        parted "$DRIVE_ID" mkpart primary ext4 "${boot_size_mb}MiB" "$((boot_size_mb + root_size_mb))MiB"
     fi
 
     # Encrypt partitions if LUKS is enabled
     if [[ $use_LUKS == true ]]; then
         cryptsetup luksFormat "$DRIVE_ID""$root_part"
         cryptsetup luksOpen "$DRIVE_ID""$root_part" "$ROOT_ID"
-        mkfs.ext4 "/dev/mapper/$ROOT_ID" >/dev/null 2>&1
+        mkfs.ext4 "/dev/mapper/$ROOT_ID"
     else
-        mkfs.ext4 "$DRIVE_ID""$root_part" >/dev/null 2>&1
+        mkfs.ext4 "$DRIVE_ID""$root_part"
     fi
 
-    mkfs.fat -F32 "$DRIVE_ID"p1 >/dev/null 2>&1
+    mkfs.fat -F32 "$DRIVE_ID"p1
 
     if [[ $use_SWAP == true ]]; then
         mkswap "$DRIVE_ID"p2
@@ -136,12 +136,12 @@ auto_partition() {
 auto_mount() {
     echo "Mounting Partitions..."
     if [[ $use_LUKS == true ]]; then
-        mount "/dev/mapper/$ROOT_ID" /mnt >/dev/null 2>&1
+        mount "/dev/mapper/$ROOT_ID" /mnt
     else
         mount "$DRIVE_ID""$root_part" /mnt
     fi
     mkdir -p /mnt/boot
-    mount "$DRIVE_ID"p1 /mnt/boot >/dev/null 2>&1
+    mount "$DRIVE_ID"p1 /mnt/boot
     sleep 10
 }
 
@@ -198,7 +198,7 @@ post_chroot() {
 
     umount -R /mnt
     if [[ $use_SWAP == true ]]; then
-        swapoff "$DRIVE_ID"p2 >/dev/null 2>&1
+        swapoff "$DRIVE_ID"p2
     fi
 
     echo "Installation completed successfully. You can now reboot your system."
@@ -262,23 +262,23 @@ arch_chroot() {
 
     # Configure locale
     sed -i "s/^#\($lang UTF-8\)/\1/" "/etc/locale.gen"
-    locale-gen >/dev/null 2>&1
+    locale-gen
     echo "LANG=$lang" > "/etc/locale.conf"
-    export LANG=$lang >/dev/null 2>&1
+    export LANG=$lang
 
     # Set system time and hostname
-    ln -sf "/usr/share/zoneinfo/$timezone" "/etc/localtime" >/dev/null 2>&1
+    ln -sf "/usr/share/zoneinfo/$timezone" "/etc/localtime"
     #sudo timedatectl set-timezone $timezone
-    hwclock --systohc #--localtime >/dev/null 2>&1
+    hwclock --systohc #--localtime
     echo "$HOSTNAME" > "/etc/hostname"
 
     # Enable SSD trimming if necessary
-    #systemctl enable fstrim.timer >/dev/null 2>&1
+    #systemctl enable fstrim.timer
 
     # Enable 32-bit multilib if necessary
     if [[ $enable_32b_mlib == true ]]; then
         sed -i '90,91 s/^#//' "/etc/pacman.conf"
-        yes | pacman -Sy >/dev/null 2>&1
+        yes | pacman -Sy
     fi
 
     # Configure hosts file
@@ -287,10 +287,11 @@ arch_chroot() {
 127.0.1.1 $HOSTNAME.localdomain $HOSTNAME" >> "/etc/hosts"
 
     # Create and configure non-root user
-    groupadd wheel >/dev/null 2>&1
-    useradd -mG wheel,sudo "$USERNAME" >/dev/null 2>&1
+    groupadd wheel
+    useradd "$USERNAME"
+    useradd -mG wheel,sudo "$USERNAME"
     echo "%sudo ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
-    service sudo restart >/dev/null 2>&1
+    service sudo restart
 
     # Configure autologin if enabled
     if [[ $auto_login == true ]]; then
@@ -305,10 +306,10 @@ arch_chroot() {
     if [[ $use_LUKS == true ]]; then
         sed -i '/^HOOKS=/ s/)$/ encrypt)/' "/etc/mkinitcpio.conf"
     fi
-    mkinitcpio -p linux >/dev/null 2>&1
+    mkinitcpio -p linux
 
-    grub-install --target=x86_64-efi --efi-directory=/boot --bootloader-id="$GRUB_ID" >/dev/null 2>&1
-    #grub-mkconfig -o "/boot/grub/grub.cfg" >/dev/null 2>&1
+    grub-install --target=x86_64-efi --efi-directory=/boot --bootloader-id="$GRUB_ID"
+    #grub-mkconfig -o "/boot/grub/grub.cfg"
 
     # Set up cryptdevice if using LUKS and home partition
     ROOT_UUID=$(blkid -s UUID -o value "$DRIVE_ID$root_part")
@@ -321,17 +322,17 @@ arch_chroot() {
         new_value="root=UUID=$ROOT_UUID"
     fi
     sed -i '7c\GRUB_CMDLINE_LINUX="'"$new_value"'"' "/etc/default/grub"
-    grub-mkconfig -o "/boot/grub/grub.cfg" >/dev/null 2>&1
+    grub-mkconfig -o "/boot/grub/grub.cfg"
 
     # Enable necessary services
-    systemctl enable NetworkManager >/dev/null 2>&1
-    systemctl enable sddm.service >/dev/null 2>&1
-    systemctl enable lightdm.service >/dev/null 2>&1
-    systemctl enable gdm.service >/dev/null 2>&1
+    systemctl enable NetworkManager
+    systemctl enable sddm.service
+    systemctl enable lightdm.service
+    systemctl enable gdm.service
 
     # Install Yay AUR helper if needed
     if [[ $yay_aur_helper == true ]]; then
-        git clone https://aur.archlinux.org/yay.git >/dev/null 2>&1
+        git clone https://aur.archlinux.org/yay.git
         mv yay /home/$USERNAME/
         chown -R $USERNAME:$USERNAME /home/$USERNAME/yay
         cd /home/$USERNAME/yay
@@ -343,7 +344,7 @@ arch_chroot() {
 
     # Restore sudoers configuration
     sed -i 's/%sudo ALL=(ALL) NOPASSWD: ALL/%sudo ALL=(ALL) ALL/g' /etc/sudoers
-    service sudo restart >/dev/null 2>&1
+    service sudo restart
 
     # Clean up
     cd /
