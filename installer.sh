@@ -8,10 +8,10 @@
 
 ###VARIABLES_START
 # Global variables
-rel_date="UPDATE TIME; Oct 21, 6:40 PM EDT (2024)"
+rel_date="UPDATE TIME; Oct 21, 6:48 PM EDT (2024)"
 SCRIPT_VERSION="v1.7"
 ARCH_VERSION="2024.10.01"
-KERNEL="hardend" # lts/zen/base/hardend
+KERNEL="hardened" # lts/zen/base/hardened
 WIFI_SSID="redacted"
 DRIVE_ID="/dev/mmcblk0"
 lang="en_US.UTF-8"
@@ -177,13 +177,13 @@ pacstrap_install() {
     fi
 
     if [[ $KERNEL == "zen" ]]; then
-        base_packages="linux-zen $base_packages"
+        base_packages="linux-zen linux-zen-headers $base_packages"
     elif [[ $KERNEL == "lts" ]]; then
-        base_packages="linux-lts $base_packages"
+        base_packages="linux-lts linux-lts-headers $base_packages"
     elif [[ $KERNEL == "base" ]]; then
         base_packages="linux $base_packages"
     elif [[ $KERNEL == "hardend" ]]; then
-        base_packages="linux-hardend $base_packages"
+        base_packages="linux-hardened linux-hardened-headers $base_packages"
     fi
 
     pacstrap -i /mnt $base_packages $desktop_packages $custom_packages --noconfirm
