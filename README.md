@@ -4,7 +4,7 @@ A collection of my arch linux install scripts
 Testbench: Dell Chromebook 3100, MFG YR: 2021 (Fleex Motherboard)
 Testbench 2: Dell Chromebook 11 3180, MFG YR: 2017 (Kefka Motherboard)
 
-Arch Version: 2024.10.01, Kernel: 6.9.3
+Arch Version: 2024.10.01, Kernel: 6.10.10
 
 ## CURRENT VARIANT(s);
 - installer.sh
