@@ -1,17 +1,27 @@
 #!/bin/bash
 
-#### WORKING
+#### TDL;
 
-##### TDL;
-# STUFF TO IMPLEMENT: Auto login, luks header dump, home partition, data partition, auto_part_sizing, different bios support, advanced error handling!
-# MORE STUFF TO IMPLEMENT: disable_ipv6
+## MORE IMPORTANT!!
+# Optionally fully disable ipv6 (easy)
+# Auto login support (easy-mid)
+# Optional detached luks header (mid)
+# Automatic partition sizing based on hardcoded values (percentages?) (mid) << will required some math will hardcoded limits, to prevent issues like not enough space on boot or root, etc...
+# Create detailed & externally sourced variable configuration file to avoid hardcoded variables! (easy)
+
+## LESS IMPORTANT!
+# Other encrypted partitions (home, data, etc...) (easy-mid)
+# Add support for unofficially supported desktops & kernels??? << (Add option for supplying kernel source to be compiled???) (mid)
+# Configure bios support (mid-hard)
+# Foreign bootloader support (mid-hard)
+# Improved error handling (unknown...)
 
 ###VARIABLES_START
 # Global variables
-rel_date="UPDATE TIME; Oct 21, 8:35 PM EDT (2024)"
+rel_date="UPDATE TIME; Oct 25, 1:31 PM EDT (2024)"
 SCRIPT_VERSION="v1.7"
 ARCH_VERSION="2024.10.01"
-KERNEL="linux-hardened" # linux/linux-lts/linux-zen/linux-hardened
+KERNEL="linux-hardened" # linux/linux-lts/linux-zen/linux-hardened # linux-rt/linux-rt-lts
 WIFI_SSID="redacted"
 DRIVE_ID="/dev/mmcblk0"
 lang="en_US.UTF-8"
@@ -21,55 +31,29 @@ USERNAME="Archie"
 USER_PASSWD="redacted"
 ROOT_PASSWD="redacted"
 enable_32b_mlib=true
-use_LUKS=true
+use_LUKS=true # will be prompted for crypt password
 use_SWAP=true
-#use_HOME=false # WIP
-#use_DATE=false # WIP
 ROOT_ID="root_crypt"
 GRUB_ID="GRUB"
-DESKTOP_ENVIRONMENT="xfce" # cinnamon/plasma/gnome/xfce/lxqt/none
+DESKTOP_ENVIRONMENT="none" # budgie cinnamon cosmic cutefish deepin enlightenment gnome gnome-flashback lxde lxde-gtk3 lxqt mate pantheon phosh sugar ukui xfce (need tested)
 base_packages="base base-devel linux-firmware nano grub efibootmgr networkmanager intel-ucode sudo"
-custom_packages="wget git curl screen nano konsole thunar net-tools openssh bc go sof-firmware"
+custom_packages="wget git curl screen nano konsole thunar net-tools openssh bc go" # AUDIO PACKAGES (sof-firmware pulseaudio pavucontrol)
 yay_aur_helper=true
-yay_packages="sublime-text-4"
-NULL_VAR=">/dev/null 2>&1" # change to verbosity switch
+yay_packages="" # sublime-text-4
+#SILENCE=false # appends '>/dev/null 2>&1' to the end of noisy commands ## UNTESTED!
 
 # Drive Patition Sizes
-#auto_part_sizing=false # based on hardcoded percentages # WIP
 boot_size_mb="500"
-swap_size_gb="2"; swap_size_mb=$((swap_size_gb * 1024))
-root_size_gb="12"; root_size_mb=$((root_size_gb * 1024))
+swap_size_gb="2" 
+root_size_gb="12"
+#auto_part_sizing=false # use configured percentages instead of configured gb ### WILL NEED HARDCODED MINIMUMS AND MAXIUMS FOR CERTAINS PARTS...
 ###VARIABLES_END
-
-# Function to print release date and current configuration
-print_info() {
-    cat << EOF
-RELEASE DATE: $rel_date
-
-CURRENT CONFIGURATION:
--------------------------------------------------
-DRIVE_ID="$DRIVE_ID"
-lang="$lang"
-timezone="$timezone"
-
-use_LUKS="$use_LUKS"
-use_SWAP="$use_SWAP"
-use_DATA="$use_DATA"
-
-HOSTNAME="$HOSTNAME"
-USERNAME="$USERNAME"
-
-GRUB_ID="$GRUB_ID"
-enable_32b_mlib=$enable_32b_mlib
-
-Battery is at $(cat /sys/class/power_supply/BAT0/capacity)%
--------------------------------------------------
-EOF
-}
 
 # Function to handle WiFi connection
 sanity_check() {
-    if [[ $NULL_VAR != "$NULL_VAR" ]]; then
+    if [[ $SILENCE == true ]]; then
+        NULL_VAR=">/dev/null 2>&1"
+    else
         NULL_VAR=""
     fi
 
@@ -79,7 +63,7 @@ sanity_check() {
         wifi_adapter=$(iwconfig 2>/dev/null | grep -o '^[a-zA-Z0-9]*')
         echo "Wireless Adapter Name: $wifi_adapter"
     
-        echo "Connecting to WiFi SSID: $WIFI_SSID"
+        echo "Connecting to WiFi SSID: $WIFI_SSID" # have user select instead of variable?
         if ! iwctl station $wifi_adapter connect $WIFI_SSID; then
             echo "ERROR: Failed to connect to WiFi!"
             exit 1
@@ -102,6 +86,9 @@ rank_mirrors() {
 auto_partition() {
     echo "Automating disk partitioning for $DRIVE_ID..."
     read -p "PRESS ENTER TO PARTITION ($DRIVE_ID) DANGER!!!"
+
+    swap_size_mb=$((swap_size_gb * 1024))
+    root_size_mb=$((root_size_gb * 1024))
 
     sgdisk --zap-all "$DRIVE_ID" $NULL_VAR
     parted "$DRIVE_ID" mklabel gpt $NULL_VAR
@@ -130,8 +117,8 @@ auto_partition() {
     mkfs.fat -F32 "$DRIVE_ID"p1 $NULL_VAR
 
     if [[ $use_SWAP == true ]]; then
-        mkswap "$DRIVE_ID"p2
-        swapon "$DRIVE_ID"p2
+        mkswap "$DRIVE_ID"p2 $NULL_VAR
+        swapon "$DRIVE_ID"p2 $NULL_VAR
     fi
 }
 
@@ -141,7 +128,7 @@ auto_mount() {
     if [[ $use_LUKS == true ]]; then
         mount "/dev/mapper/$ROOT_ID" /mnt $NULL_VAR
     else
-        mount "$DRIVE_ID""$root_part" /mnt
+        mount "$DRIVE_ID""$root_part" /mnt $NULL_VAR
     fi
     mkdir -p /mnt/boot
     mount "$DRIVE_ID"p1 /mnt/boot $NULL_VAR
@@ -151,23 +138,63 @@ auto_mount() {
 # Function to perform pacstrap installation
 pacstrap_install() {
     echo "Installing Base System Packages..."
-    case $DESKTOP_ENVIRONMENT in
-        cinnamon)
-            desktop_packages="cinnamon sddm"
+    case $DESKTOP_ENVIRONMENT in # surely theres a more efficient way to do this...
+        budgie)
+            desktop_packages="budgie sddm" # untested
             ;;
-        plasma)
-            desktop_packages="xorg plasma sddm" # not working on fleex...
+        cinnamon)
+            desktop_packages="cinnamon sddm" # untested
+            ;;
+        cosmic)
+            desktop_packages="cosmic sddm" # untested
+            ;;
+        cutefish)
+            desktop_packages="cutefish sddm" # untested
+            ;;
+        deepin)
+            desktop_packages="deepin sddm" # untested
+            ;;
+        enlightenment)
+            desktop_packages="enlightenment sddm" # untested
             ;;
         gnome)
-            desktop_packages="gnome gdm"
+            desktop_packages="gnome sddm" # untested
+            ;;
+        gnome-flashback)
+            desktop_packages="gnome-flashback sddm" # untested
+            ;;
+        kde-plasma)
+            desktop_packages="xorg plasma sddm" # not working on fleex...
+            ;;
+        lxde)
+            desktop_packages="lxde sddm" # untested
+            ;;
+        lxde-gtk3)
+            desktop_packages="lxde-gtk3 sddm" # untested
+            ;;
+        lxqt)
+            desktop_packages="lxqt sddm" # untested
+            ;;
+        mate)
+            desktop_packages="mate sddm" # untested
+            ;;
+        pantheon)
+            desktop_packages="pantheon sddm" # untested
+            ;;
+        phosh)
+            desktop_packages="phosh sddm" # untested
+            ;;
+        sugar)
+            desktop_packages="sugar sugar-fructose sddm" # untested
+            ;;
+        ukui)
+            desktop_packages="ukui sddm" # untested
             ;;
         xfce)
             desktop_packages="xfce4 xfce4-goodies sddm" # works perfect on fleex!
             ;;
-        lxqt)
-            desktop_packages="lxqt sddm"
-            ;;
         *)
+            echo "Invalid or no desktop environment set ($DESKTOP_ENVIRONMENT) going with none..."
             desktop_packages=""
             ;;
     esac
@@ -253,7 +280,7 @@ chroot_setup
 post_chroot
 
 # End of script
-exit 0
+exit
 
 ######### PART 2
 
@@ -281,7 +308,7 @@ arch_chroot() {
 
     # Set system time and hostname
     ln -sf "/usr/share/zoneinfo/$timezone" "/etc/localtime" $NULL_VAR
-    hwclock --systohc #--localtime $NULL_VAR
+    hwclock --systohc $NULL_VAR
     echo "$HOSTNAME" > "/etc/hostname"
 
     # Enable SSD trimming if necessary
@@ -299,11 +326,9 @@ arch_chroot() {
 127.0.1.1 $HOSTNAME.localdomain $HOSTNAME" >> "/etc/hosts"
 
     # Create and configure non-root user
-    groupadd wheel $NULL_VAR
-    groupadd sudo
-    useradd -mG wheel,sudo "$USERNAME" $NULL_VAR
+    #groupadd sudo $NULL_VAR
+    useradd -mG sudo "$USERNAME" $NULL_VAR # testing removal of wheel group...
     echo "%sudo ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
-    service sudo restart $NULL_VAR
 
     # Configure autologin if enabled
     if [[ $auto_login == true ]]; then
@@ -335,8 +360,6 @@ arch_chroot() {
     # Enable necessary services
     systemctl enable NetworkManager $NULL_VAR
     systemctl enable sddm.service $NULL_VAR
-    systemctl enable lightdm.service $NULL_VAR
-    systemctl enable gdm.service $NULL_VAR
 
     # Install Yay AUR helper if needed
     if [[ $yay_aur_helper == true ]]; then
@@ -345,14 +368,15 @@ arch_chroot() {
         chown -R $USERNAME:$USERNAME /home/$USERNAME/yay
         cd /home/$USERNAME/yay
         yes | sudo -u $USERNAME makepkg -si --noconfirm
-        sudo -u $USERNAME yay -S $yay_packages --noconfirm
+        if [[ ! -z $yay_packages ]]; then
+            sudo -u $USERNAME yay -S $yay_packages --noconfirm
+        fi
         cd ..
-        rm -rf yay
+        rm -rf /home/$USERNAME/yay
     fi
 
     # Restore sudoers configuration
     sed -i 's/%sudo ALL=(ALL) NOPASSWD: ALL/%sudo ALL=(ALL) ALL/g' /etc/sudoers
-    service sudo restart $NULL_VAR
 
     # Clean up
     cd /
