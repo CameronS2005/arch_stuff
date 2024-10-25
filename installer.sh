@@ -18,7 +18,7 @@
 
 ###VARIABLES_START
 # Global variables
-rel_date="UPDATE TIME; Oct 25, 1:31 PM EDT (2024)"
+rel_date="UPDATE TIME; Oct 25, 1:51 PM EDT (2024)"
 SCRIPT_VERSION="v1.7"
 ARCH_VERSION="2024.10.01"
 KERNEL="linux-hardened" # linux/linux-lts/linux-zen/linux-hardened # linux-rt/linux-rt-lts
@@ -246,9 +246,6 @@ post_chroot() {
 
 # Main script execution starts here
 
-# Print initial information
-print_info
-
 # Check for UEFI firmware presence
 if [ ! -d /sys/firmware/efi/efivars ]; then
     echo "ERROR: This script currently only support UEFI"
@@ -326,7 +323,7 @@ arch_chroot() {
 127.0.1.1 $HOSTNAME.localdomain $HOSTNAME" >> "/etc/hosts"
 
     # Create and configure non-root user
-    #groupadd sudo $NULL_VAR
+    groupadd sudo $NULL_VAR
     useradd -mG sudo "$USERNAME" $NULL_VAR # testing removal of wheel group...
     echo "%sudo ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
 
