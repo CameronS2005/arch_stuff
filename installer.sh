@@ -18,10 +18,10 @@
 
 ###VARIABLES_START
 # Global variables
-rel_date="UPDATE TIME; Oct 25, 1:51 PM EDT (2024)"
+rel_date="UPDATE TIME; Oct 25, 2:15 PM EDT (2024)"
 SCRIPT_VERSION="v1.7"
 ARCH_VERSION="2024.10.01"
-KERNEL="linux-hardened" # linux/linux-lts/linux-zen/linux-hardened # linux-rt/linux-rt-lts
+KERNEL="linux" # linux/linux-lts/linux-zen/linux-hardened # linux-rt/linux-rt-lts
 WIFI_SSID="redacted"
 DRIVE_ID="/dev/mmcblk0"
 lang="en_US.UTF-8"
@@ -356,7 +356,10 @@ arch_chroot() {
 
     # Enable necessary services
     systemctl enable NetworkManager $NULL_VAR
-    systemctl enable sddm.service $NULL_VAR
+
+    if [[ ! -z $DESKTOP_ENVIRONMENT ]]; then
+        systemctl enable sddm.service $NULL_VAR
+    fi
 
     # Install Yay AUR helper if needed
     if [[ $yay_aur_helper == true ]]; then
