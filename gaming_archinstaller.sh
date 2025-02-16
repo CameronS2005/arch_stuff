@@ -17,41 +17,45 @@
 # Improved error handling (unknown...)
 
 ###VARIABLES_START
+# Configuration Variables
+WIFI_SSID="redacted" # not required when ethernet is connected
+KERNEL="linux-zen" # linux/linux-lts/linux-zen/linux-hardened # linux-rt/linux-rt-lts
+DRIVE_ID="/dev/sda"; part_prefix=""
+gamermode="true"
+HOSTNAME="Archie Gaming"
+USERNAME="oakley"
+USER_PASSWD="Cd83649dC!*"
+ROOT_PASSWD="Cd83649dC!*"
+CPU_TYPE="amd" # intel/amd
+DESKTOP_ENVIRONMENT="kde-plasma"
+additonal_pacman_packages=""
+yay_packages="sublime-text-4 curseforge"
+
+# Drive Patition Sizes
+boot_size_mb="1024"
+swap_size_gb="15" 
+root_size_gb="220"
+#auto_part_sizing=false # use configured percentages instead of configured gb ### WILL NEED HARDCODED MINIMUMS AND MAXIUMS FOR CERTAINS PARTS...
+
 # Global variables
-rel_date="UPDATE TIME; Oct 25, 2:15 PM EDT (2024)"
-SCRIPT_VERSION="v1.7"
-ARCH_VERSION="2024.10.01"
-KERNEL="linux" # linux/linux-lts/linux-zen/linux-hardened # linux-rt/linux-rt-lts
-WIFI_SSID="redacted"
-DRIVE_ID="/dev/mmcblk0"; part_prefix="p" MODIFT ### adjust drive id and prefix according for example, /dev/mmcblk0p1 for part 1 of mmcblk0, part_prefix should be empty for drives like /dev/sdX
-gamermode="false" # quick fix for arch vm with nvidia gpu passthrough
+rel_date="UPDATE TIME; Feb 16, 12:44 PM EDT (2025)"
+SCRIPT_VERSION="v1.8"
+ARCH_VERSION="2025.02.01"
 lang="en_US.UTF-8"
 timezone="America/New_York"
-HOSTNAME="Archie Box" MODIFY
-USERNAME="Archie"
-USER_PASSWD="redacted" MODIFY
-ROOT_PASSWD="redacted"
 enable_32b_mlib=true
 use_LUKS=true # will be prompted for crypt password
 use_SWAP=true
 ROOT_ID="root_crypt"
 GRUB_ID="GRUB"
-DESKTOP_ENVIRONMENT="none" # budgie cinnamon cosmic cutefish deepin enlightenment gnome gnome-flashback lxde lxde-gtk3 lxqt mate pantheon phosh sugar ukui xfce (need tested)
-base_packages="base base-devel linux-firmware nano grub efibootmgr networkmanager intel-ucode sudo"
-custom_packages="wget git curl screen nano konsole thunar net-tools openssh bc go" # AUDIO PACKAGES (sof-firmware pulseaudio pavucontrol)
+base_packages="base base-devel linux-firmware nano grub efibootmgr networkmanager "$cpu_type"-ucode sudo"
+custom_packages="wget git curl screen nano konsole thunar net-tools openssh bc go "$additonal_pacman_packages"" # AUDIO PACKAGES (sof-firmware pulseaudio pavucontrol)
 yay_aur_helper=true
-yay_packages="" # sublime-text-4
 #SILENCE=false # appends '>/dev/null 2>&1' to the end of noisy commands ## UNTESTED!
-
-# Drive Patition Sizes
-boot_size_mb="500"
-swap_size_gb="2" 
-root_size_gb="12"
-#auto_part_sizing=false # use configured percentages instead of configured gb ### WILL NEED HARDCODED MINIMUMS AND MAXIUMS FOR CERTAINS PARTS...
 ###VARIABLES_END
 
 # Function to handle WiFi connection
-sanity_check() {
+sanity_check() { #### THIS SHOULD ALSO VERIFY VARIABLES!!
     if [[ $SILENCE == true ]]; then
         NULL_VAR=">/dev/null 2>&1"
     else
@@ -211,11 +215,10 @@ pacstrap_install() {
     fi
 
     if [[ $gamermode == "true" ]]; then ## add proper driver to package list for nvidia rtx 4060
-        nvidia_driver="nvidia libglvnd nvidia-utils opencl-utils lib32-libglvnd lib32-nvidia-utils lib32-opencl-nvidia nvidia-settings"
-        base_packages="$base_packages"
+        nvidia_driver="nvidia-dkms libglvnd nvidia-utils opencl-utils lib32-libglvnd lib32-nvidia-utils lib32-opencl-nvidia nvidia-settings"
     fi
 
-    pacstrap -i /mnt $base_packages $desktop_packages $custom_packages --noconfirm
+    pacstrap -i /mnt $base_packages $desktop_packages $custom_packages $nvidia_driver --noconfirm
 }
 
 # Function to generate fstab
@@ -319,7 +322,7 @@ arch_chroot() {
 
     # Enable 32-bit multilib if necessary
     if [[ $enable_32b_mlib == true ]]; then
-        sed -i '90,91 s/^#//' "/etc/pacman.conf"
+        sed -i '92,93 s/^#//' "/etc/pacman.conf"
         yes | pacman -Sy $NULL_VAR
     fi
 
