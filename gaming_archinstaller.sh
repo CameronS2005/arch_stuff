@@ -38,7 +38,7 @@ root_size_gb="220"
 #auto_part_sizing=false # use configured percentages instead of configured gb ### WILL NEED HARDCODED MINIMUMS AND MAXIUMS FOR CERTAINS PARTS...
 
 # Global variables
-rel_date="UPDATE TIME; Feb 16, 02:53 PM EDT (2025)"
+rel_date="UPDATE TIME; Feb 16, 03:26 PM EDT (2025)"
 SCRIPT_VERSION="v1.8"
 ARCH_VERSION="2025.02.01"
 lang="en_US.UTF-8"
@@ -354,7 +354,7 @@ arch_chroot() {
         sed -i '/^MODULES=/ s/)$/nvidia nvidia_modeset nvidia_uvm nvidia_drm)/' "/etc/mkinitcpio.conf"
     fi
 
-    mkinitcpio -p $KERNEL $NULL_VAR
+    mkinitcpio -P $KERNEL
 
     grub-install --target=x86_64-efi --efi-directory=/boot --bootloader-id="$GRUB_ID" $NULL_VAR
 
