@@ -38,7 +38,7 @@ root_size_gb="220"
 #auto_part_sizing=false # use configured percentages instead of configured gb ### WILL NEED HARDCODED MINIMUMS AND MAXIUMS FOR CERTAINS PARTS...
 
 # Global variables
-rel_date="UPDATE TIME; Feb 16, 12:44 PM EDT (2025)"
+rel_date="UPDATE TIME; Feb 16, 12:58 PM EDT (2025)"
 SCRIPT_VERSION="v1.8"
 ARCH_VERSION="2025.02.01"
 lang="en_US.UTF-8"
@@ -48,7 +48,7 @@ use_LUKS=false # will be prompted for crypt password
 use_SWAP=true
 ROOT_ID="root_crypt"
 GRUB_ID="GRUB"
-base_packages="base base-devel linux-firmware nano grub efibootmgr networkmanager "$cpu_type"-ucode sudo"
+base_packages="base base-devel linux-firmware nano grub efibootmgr networkmanager "$CPU_TYPE"-ucode sudo"
 custom_packages="wget git curl screen nano konsole thunar net-tools openssh bc go "$additonal_pacman_packages"" # AUDIO PACKAGES (sof-firmware pulseaudio pavucontrol)
 yay_aur_helper=true
 #SILENCE=false # appends '>/dev/null 2>&1' to the end of noisy commands ## UNTESTED!
