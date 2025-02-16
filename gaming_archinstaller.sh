@@ -29,7 +29,7 @@ ROOT_PASSWD="redacted"
 CPU_TYPE="amd" # intel/amd
 DESKTOP_ENVIRONMENT="kde-plasma"
 additonal_pacman_packages="firefox"
-yay_packages="sublime-text-4 curseforge"
+yay_packages="sublime-text-4"
 
 # Drive Patition Sizes
 boot_size_mb="1024"
@@ -38,7 +38,7 @@ root_size_gb="220"
 #auto_part_sizing=false # use configured percentages instead of configured gb ### WILL NEED HARDCODED MINIMUMS AND MAXIUMS FOR CERTAINS PARTS...
 
 # Global variables
-rel_date="UPDATE TIME; Feb 16, 12:58 PM EDT (2025)"
+rel_date="UPDATE TIME; Feb 16, 01:44 PM EDT (2025)"
 SCRIPT_VERSION="v1.8"
 ARCH_VERSION="2025.02.01"
 lang="en_US.UTF-8"
