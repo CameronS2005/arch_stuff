@@ -38,7 +38,7 @@ root_size_gb="220"
 #auto_part_sizing=false # use configured percentages instead of configured gb ### WILL NEED HARDCODED MINIMUMS AND MAXIUMS FOR CERTAINS PARTS...
 
 # Global variables
-rel_date="UPDATE TIME; Feb 16, 03:26 PM EDT (2025)"
+rel_date="UPDATE TIME; Feb 16, 04:51 PM EDT (2025)"
 SCRIPT_VERSION="v1.8"
 ARCH_VERSION="2025.02.01"
 lang="en_US.UTF-8"
@@ -215,7 +215,7 @@ pacstrap_install() {
     fi
 
     if [[ $gamermode == "true" ]]; then ## add proper driver to package list for nvidia rtx 4060
-        nvidia_driver="nvidia-dkms libglvnd nvidia-utils nvidia-settings" # NOTFOUND: (opencl-utils lib32-libglvnd lib32-nvidia-utils lib32-opencl-nvidia) modify pacstrap config to allow multilib???
+        nvidia_driver="nvidia-dkms libglvnd nvidia-utils nvidia-settings lib32-libglvnd lib32-nvidia-utils lib32-opencl-nvidia" # NOTFOUND: (opencl-utils lib32-opencl-nvidia) modify pacstrap config to allow multilib???
     fi
 
     pacstrap -i /mnt $base_packages $desktop_packages $custom_packages $nvidia_driver --noconfirm
