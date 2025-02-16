@@ -215,7 +215,7 @@ pacstrap_install() {
     fi
 
     if [[ $gamermode == "true" ]]; then ## add proper driver to package list for nvidia rtx 4060
-        nvidia_driver="nvidia-dkms libglvnd nvidia-utils opencl-utils lib32-libglvnd lib32-nvidia-utils lib32-opencl-nvidia nvidia-settings"
+        nvidia_driver="nvidia-dkms libglvnd nvidia-utils nvidia-settings" # NOTFOUND: (opencl-utils lib32-libglvnd lib32-nvidia-utils lib32-opencl-nvidia) modify pacstrap config to allow multilib???
     fi
 
     pacstrap -i /mnt $base_packages $desktop_packages $custom_packages $nvidia_driver --noconfirm
