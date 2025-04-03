@@ -2,6 +2,13 @@
 
 #### TDL;
 
+####### Gamemode notes;
+### GPU FIX!!!! nvidia-xconfig (creates x11 config file for gpu!!)
+### setup x11vnc server!!! << to run at boot (setup password...)
+
+
+
+
 ## MORE IMPORTANT!!
 # Optionally fully disable ipv6 (easy)
 # Auto login support (easy-mid)
@@ -38,9 +45,9 @@ root_size_gb="220"
 #auto_part_sizing=false # use configured percentages instead of configured gb ### WILL NEED HARDCODED MINIMUMS AND MAXIUMS FOR CERTAINS PARTS...
 
 # Global variables
-rel_date="UPDATE TIME; Feb 16, 04:51 PM EDT (2025)"
+rel_date="UPDATE TIME; Apr 03, 06:43 PM EDT (2025)"
 SCRIPT_VERSION="v1.8"
-ARCH_VERSION="2025.02.01"
+ARCH_VERSION="2025.04.01"
 lang="en_US.UTF-8"
 timezone="America/New_York"
 enable_32b_mlib=true
