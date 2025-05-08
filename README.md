@@ -1,13 +1,12 @@
 # arch_stuff
 A collection of my arch linux install scripts
 
-Testbench: Dell Chromebook 3100, MFG YR: 2021 (Fleex Motherboard)
-Testbench 2: Dell Chromebook 11 3180, MFG YR: 2017 (Kefka Motherboard)
+Mainly tested on dell based intel hardware. Should be working on AMD cpus, nvidia gpu's are currently being worked on!
 
 Arch Version: 2024.10.01, Kernel: 6.10.10
 
 ## CURRENT VARIANT(s);
-- installer.sh
+- gaming_archinstaller.sh
  
 ## Depreacted Scripts;
 - setup.sh
@@ -17,11 +16,13 @@ Arch Version: 2024.10.01, Kernel: 6.10.10
 - arch_install.sh
 - optimized_installer.sh
 - ai_optimized_installer.sh
+- installer.sh
+
 # -------------------------------- #
 
 BE CAREFUL WITH THESE SCRIPTS AS THEY COULD CAUSE DAMAGE TO YOUR DATA IF NOT CONFIGURED PROPERLEY!
 
-to use on a fresh copy of the archiso, simply modify the variables in the config of the script, and run "curl -o arch_install.sh -fsSL https://raw.githubusercontent.com/CameronS2005/arch_stuff/main/installer.sh; chmod +x installer.sh; ./installer.sh"
+to use on a fresh copy of the archiso, simply modify the variables in the config of the script, and run "curl -o installer.sh -fsSL https://raw.githubusercontent.com/CameronS2005/arch_stuff/main/gaming_archinstaller.sh; chmod +x installer.sh; ./installer.sh"
 
 # -------------------------------- #
 
