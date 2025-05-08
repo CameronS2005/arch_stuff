@@ -5,36 +5,26 @@
 ####### Gamemode notes;
 ### GPU FIX!!!! nvidia-xconfig (creates x11 config file for gpu!!)
 ### setup x11vnc server!!! << to run at boot (setup password...)
+### Add case statements for tested gpu configs, (NVIDIA RTX, NVIDIA MX250, HP AMD GPU, Intel)
 
 
-
-
-## MORE IMPORTANT!!
 # Optionally fully disable ipv6 (easy)
 # Auto login support (easy-mid)
 # Optional detached luks header (mid)
-# Automatic partition sizing based on hardcoded values (percentages?) (mid) << will required some math will hardcoded limits, to prevent issues like not enough space on boot or root, etc...
-# Create detailed & externally sourced variable configuration file to avoid hardcoded variables! (easy)
-
-## LESS IMPORTANT!
-# Other encrypted partitions (home, data, etc...) (easy-mid)
-# Add support for unofficially supported desktops & kernels??? << (Add option for supplying kernel source to be compiled???) (mid)
-# Configure bios support (mid-hard)
-# Foreign bootloader support (mid-hard)
-# Improved error handling (unknown...)
 
 ###VARIABLES_START
 # Configuration Variables
-WIFI_SSID="redacted" # not required when ethernet is connected
-KERNEL="linux-zen" # linux/linux-lts/linux-zen/linux-hardened # linux-rt/linux-rt-lts
-DRIVE_ID="/dev/sda"; part_prefix=""
-gamermode="true"
-HOSTNAME="Archie Gaming"
-USERNAME="oakley"
+WIFI_SSID="Columbus Zoo" # not required when ethernet is connected
+KERNEL="linux-hardened" # linux/linux-lts/linux-zen/linux-hardened # linux-rt/linux-rt-lts
+DRIVE_ID="/dev/sda"; part_prefix="" # sda=noprefix, nvme/mmcblk=p
+gamermode="true"; GPU_TYPE="intel" # (nvidia-rtx, nvidia-mx250, intel, amd)
+auto_login="false" # dont think this works...
+HOSTNAME="Archie-Kefka"
+USERNAME="archie"
 USER_PASSWD="redacted"
 ROOT_PASSWD="redacted"
-CPU_TYPE="amd" # intel/amd
-DESKTOP_ENVIRONMENT="kde-plasma"
+CPU_TYPE="intel" # intel/amd
+DESKTOP_ENVIRONMENT="xfce" # (plasma,xfce, others...)
 additonal_pacman_packages="firefox"
 yay_packages="sublime-text-4"
 
@@ -42,23 +32,23 @@ yay_packages="sublime-text-4"
 boot_size_mb="1024"
 swap_size_gb="15" 
 root_size_gb="220"
-#auto_part_sizing=false # use configured percentages instead of configured gb ### WILL NEED HARDCODED MINIMUMS AND MAXIUMS FOR CERTAINS PARTS...
+#auto_part_sizing=false # NOT IMPLEMENTED!
 
 # Global variables
-rel_date="UPDATE TIME; Apr 03, 06:43 PM EDT (2025)"
-SCRIPT_VERSION="v1.8"
-ARCH_VERSION="2025.04.01"
+rel_date="UPDATE TIME; May 08, 06:33 PM EDT (2025)"
+SCRIPT_VERSION="v1.9a"
+ARCH_VERSION="2025.05.01"
 lang="en_US.UTF-8"
 timezone="America/New_York"
 enable_32b_mlib=true
-use_LUKS=false # will be prompted for crypt password
+use_LUKS=true # luks encryption for root partition
 use_SWAP=true
 ROOT_ID="root_crypt"
 GRUB_ID="GRUB"
 base_packages="base base-devel linux-firmware nano grub efibootmgr networkmanager "$CPU_TYPE"-ucode sudo"
 custom_packages="wget git curl screen nano konsole thunar net-tools openssh bc go "$additonal_pacman_packages"" # AUDIO PACKAGES (sof-firmware pulseaudio pavucontrol)
 yay_aur_helper=true
-#SILENCE=false # appends '>/dev/null 2>&1' to the end of noisy commands ## UNTESTED!
+SILENCE=false # appends '>/dev/null 2>&1' to the end of noisy commands ## UNTESTED!
 ###VARIABLES_END
 
 # Function to handle WiFi connection
@@ -76,7 +66,7 @@ sanity_check() { #### THIS SHOULD ALSO VERIFY VARIABLES!!
         echo "Wireless Adapter Name: $wifi_adapter"
     
         echo "Connecting to WiFi SSID: $WIFI_SSID" # have user select instead of variable?
-        if ! iwctl station $wifi_adapter connect $WIFI_SSID; then
+        if ! iwctl station $wifi_adapter connect "$WIFI_SSID"; then
             echo "ERROR: Failed to connect to WiFi!"
             exit 1
         fi
@@ -175,7 +165,7 @@ pacstrap_install() {
         gnome-flashback)
             desktop_packages="gnome-flashback sddm" # untested
             ;;
-        kde-plasma)
+        plasma)
             desktop_packages="xorg plasma sddm" # not working on fleex...
             ;;
         lxde)
@@ -222,10 +212,13 @@ pacstrap_install() {
     fi
 
     if [[ $gamermode == "true" ]]; then ## add proper driver to package list for nvidia rtx 4060
-        nvidia_driver="nvidia-dkms libglvnd nvidia-utils nvidia-settings lib32-libglvnd lib32-nvidia-utils lib32-opencl-nvidia" # NOTFOUND: (opencl-utils lib32-opencl-nvidia) modify pacstrap config to allow multilib???
-    fi
+        if [[ $GPU_TYPE == "nvidia-rtx" ]]; then
+            gpu_drivers="nvidia-dkms libglvnd nvidia-utils nvidia-settings lib32-libglvnd lib32-nvidia-utils lib32-opencl-nvidia"
+        if [[ $GPU_TYPE == "intel" ]]; then
+            gpu_drivers="mesa vulkan-intel lib32-vulkan-intel lib32-mesa"
+    fi; fi; fi
 
-    pacstrap -i /mnt $base_packages $desktop_packages $custom_packages $nvidia_driver --noconfirm
+    pacstrap -i /mnt $base_packages $desktop_packages $custom_packages $gpu_drivers --noconfirm
 }
 
 # Function to generate fstab
@@ -301,6 +294,12 @@ exit
 #!/bin/bash
 source variables
 
+if [[ $SILENCE == true ]]; then
+    NULL_VAR=">/dev/null 2>&1"
+else
+    NULL_VAR=""
+fi
+
 # Determine root and home partitions based on conditions
 if [[ $use_SWAP == true ]]; then
     root_part=""$part_prefix"3"
@@ -358,8 +357,9 @@ arch_chroot() {
     fi
 
     if [[ $gamermode == "true" ]]; then
-        sed -i '/^MODULES=/ s/)$/nvidia nvidia_modeset nvidia_uvm nvidia_drm)/' "/etc/mkinitcpio.conf"
-    fi
+        if [[ $GPU_TYPE == "nvidia-rtx" ]]; then
+            sed -i '/^MODULES=/ s/)$/nvidia nvidia_modeset nvidia_uvm nvidia_drm)/' "/etc/mkinitcpio.conf"
+    fi; fi
 
     mkinitcpio -P $KERNEL
 
@@ -374,10 +374,11 @@ arch_chroot() {
     fi
 
     if [[ $gamermode == "true" ]]; then
-        new_value="$new_value nvidia-drm.modeset=1"
+        if [[ $GPU_TYPE == "nvidia-rtx" ]]; then
+            new_value="$new_value nvidia-drm.modeset=1"
 
-        mkdir -p /etc/pacman.d/hooks
-        cat << EOF >> /etc/pacman.d/hooks/nvidia.hook
+            mkdir -p /etc/pacman.d/hooks
+            cat << EOF >> /etc/pacman.d/hooks/nvidia.hook
 # /etc/pacman.d/hooks/nvidia.hook
 [Trigger]
 Operation = Install
@@ -391,7 +392,7 @@ Depends=mkinitcpio
 When = PostTransaction
 Exec = /usr/bin/mkinitcpio -P
 EOF
-    fi
+    fi; fi
 
     sed -i '7c\GRUB_CMDLINE_LINUX="'"$new_value"'"' "/etc/default/grub"
     grub-mkconfig -o "/boot/grub/grub.cfg" $NULL_VAR
