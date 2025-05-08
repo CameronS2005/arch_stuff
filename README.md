@@ -3,7 +3,7 @@ A collection of my arch linux install scripts
 
 Mainly tested on dell based intel hardware. Should be working on AMD cpus, nvidia gpu's are currently being worked on!
 
-Arch Version: 2024.10.01, Kernel: 6.10.10
+Arch Version: 2025.05.01, Kernel: 6.14.4
 
 ## CURRENT VARIANT(s);
 - gaming_archinstaller.sh
