@@ -2,28 +2,26 @@
 
 #### TDL;
 
-####### Gamemode notes;
-### GPU FIX!!!! nvidia-xconfig (creates x11 config file for gpu!!)
-### setup x11vnc server!!! << to run at boot (setup password...)
-### Add case statements for tested gpu configs, (NVIDIA RTX, NVIDIA MX250, HP AMD GPU, Intel)
+### FIX/TEST GPU Support (NVIDIA (RTX4060/MX250 dGPUS), AMD(LAPTOP dGPU), INTEL(LAPTOP iGPU))
 
+# Setup auto partition sizing: Boot Patition (512-1024MB), Swap (15-20%), Root (Rest)
 
-# Optionally fully disable ipv6 (easy)
-# Auto login support (easy-mid)
-# Optional detached luks header (mid)
+# Optionally fully disable ipv6 (easy) (disable in both sysctl and kernel args)
+# Optional detached luks header (mid) << THIS NEEDS TO BE DONE ASAP!!! (IN THE EVENT OF HEADER CORRUPTION DATA RECOVERY WOULD BE IMPOSSIBLE WITHOUT BACKUP!)
+
 
 ###VARIABLES_START
 # Configuration Variables
-WIFI_SSID="Columbus Zoo" # not required when ethernet is connected
-KERNEL="linux-hardened" # linux/linux-lts/linux-zen/linux-hardened # linux-rt/linux-rt-lts
+WIFI_SSID="redacted" # not required when ethernet is connected
+KERNEL="linux-zen" # linux/linux-lts/linux-zen/linux-hardened # linux-rt/linux-rt-lts
 DRIVE_ID="/dev/sda"; part_prefix="" # sda=noprefix, nvme/mmcblk=p
-gamermode="true"; GPU_TYPE="intel" # (nvidia-rtx, nvidia-mx250, intel, amd)
-auto_login="false" # dont think this works...
+gamermode="true"; GPU_TYPE="nvidia" # (nvidia, intel, amd)
+CPU_TYPE="intel" # (intel, amd)
+auto_login="false" # untested
 HOSTNAME="Archie-Kefka"
 USERNAME="archie"
 USER_PASSWD="redacted"
 ROOT_PASSWD="redacted"
-CPU_TYPE="intel" # intel/amd
 DESKTOP_ENVIRONMENT="xfce" # (plasma,xfce, others...)
 additonal_pacman_packages="firefox"
 yay_packages="sublime-text-4"
@@ -35,7 +33,7 @@ root_size_gb="220"
 #auto_part_sizing=false # NOT IMPLEMENTED!
 
 # Global variables
-rel_date="UPDATE TIME; May 08, 06:33 PM EDT (2025)"
+rel_date="UPDATE TIME; May 08, 11:14 PM EDT (2025)"
 SCRIPT_VERSION="v1.9a"
 ARCH_VERSION="2025.05.01"
 lang="en_US.UTF-8"
@@ -212,7 +210,7 @@ pacstrap_install() {
     fi
 
     if [[ $gamermode == "true" ]]; then ## add proper driver to package list for nvidia rtx 4060
-        if [[ $GPU_TYPE == "nvidia-rtx" ]]; then
+        if [[ $GPU_TYPE == "nvidia" ]]; then
             gpu_drivers="nvidia-dkms libglvnd nvidia-utils nvidia-settings lib32-libglvnd lib32-nvidia-utils lib32-opencl-nvidia"
         if [[ $GPU_TYPE == "intel" ]]; then
             gpu_drivers="mesa vulkan-intel lib32-vulkan-intel lib32-mesa"
@@ -231,7 +229,7 @@ generate_fstab() {
 chroot_setup() {
     echo "Finalizing Installation in chroot environment!"
 
-    seed="#"
+    seed="#" # we must use a seed or these lines are caught by sed
     sed -n "/$seed##VARIABLES_START/,/$seed##VARIABLES_END/p" "$0" > /mnt/variables
     sed -n "/$seed##PART2_START/,/$seed##PART2_END/p" "$0" > /mnt/setup.sh
 
@@ -339,7 +337,7 @@ arch_chroot() {
 
     # Create and configure non-root user
     groupadd sudo $NULL_VAR
-    useradd -mG sudo "$USERNAME" $NULL_VAR # testing removal of wheel group...
+    useradd -mG sudo "$USERNAME" $NULL_VAR
     echo "%sudo ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
 
     # Configure autologin if enabled
@@ -357,7 +355,7 @@ arch_chroot() {
     fi
 
     if [[ $gamermode == "true" ]]; then
-        if [[ $GPU_TYPE == "nvidia-rtx" ]]; then
+        if [[ $GPU_TYPE == "nvidia" ]]; then
             sed -i '/^MODULES=/ s/)$/nvidia nvidia_modeset nvidia_uvm nvidia_drm)/' "/etc/mkinitcpio.conf"
     fi; fi
 
@@ -374,7 +372,7 @@ arch_chroot() {
     fi
 
     if [[ $gamermode == "true" ]]; then
-        if [[ $GPU_TYPE == "nvidia-rtx" ]]; then
+        if [[ $GPU_TYPE == "nvidia" ]]; then
             new_value="$new_value nvidia-drm.modeset=1"
 
             mkdir -p /etc/pacman.d/hooks
@@ -418,8 +416,11 @@ EOF
         rm -rf /home/$USERNAME/yay
     fi
 
+    #### Testing (auto generate xorg nvidia config) << THIS MAY NEED TO BE RAN AFTER A REAL BOOT
+    nvidia-xconfig
+
     # Restore sudoers configuration
-    sed -i 's/%sudo ALL=(ALL) NOPASSWD: ALL/%sudo ALL=(ALL) ALL/g' /etc/sudoers
+    #sed -i 's/%sudo ALL=(ALL) NOPASSWD: ALL/%sudo ALL=(ALL) ALL/g' /etc/sudoers
 
     # Clean up
     cd /
