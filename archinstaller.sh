@@ -2,27 +2,21 @@
 
 #### TDL;
 
-# partitioning change! (currently we insist on zapping the drive and creating a new parition table which destroys all data!)
-## ^ need to add option to instead of using automatic patitioning we use an already formatted boot partition and simply format a given root partition as ext4 (to support dual booting!)
-
-# Implement tiling managers (aswell as the option to preinstall rice dotfiles!)
-
 # fully disable ipv6 (easy) (disable in both sysctl and kernel args)
-# Optional detached luks header (mid) << THIS NEEDS TO BE DONE ASAP!!! (IN THE EVENT OF HEADER CORRUPTION DATA RECOVERY WOULD BE IMPOSSIBLE WITHOUT BACKUP!) (BACKUP TO USB DURING FIRST INSTALL!)
-
+# Optional detached luks header
 
 ###VARIABLES_START
 # Version info
-rel_date="UPDATE TIME; May 15, 01:03 PM EDT (2025)"
+rel_date="UPDATE TIME; May 15, 06:24 PM EDT (2025)"
 SCRIPT_VERSION="v1.9b"
 ARCH_VERSION="2025.05.01"
 
 # Configuration Variables
 WIFI_SSID="redacted"
 KERNEL="linux-zen" # linux/linux-lts/linux-zen/linux-hardened
-DRIVE_ID="/dev/nvme0n1"; part_prefix="p" # sda=noprefix, nvme/mmcblk=p
+DRIVE_ID="/dev/mmcblk0"; part_prefix="p" # sda=noprefix, nvme/mmcblk=p
 is_ssd="true" # enable ssd trim
-is_t2mac="true" # use for intel based macs with the t2 security implementation
+is_t2mac="false" # use for intel based macs with the t2 security implementation
 gamermode="true"; GPU_TYPE="intel" # (nvidia, intel, amd)
 CPU_TYPE="intel" # (intel, amd)
 #auto_login="false" # untested
@@ -37,19 +31,18 @@ USER_PASSWD="redacted"
 ROOT_PASSWD="redacted"
 
 # Drive Patition Sizes
-boot_size_mb="1024"
-swap_size_gb="20" 
-root_size_gb="230"
+boot_size_mb="512"
+swap_size_gb="4" 
+root_size_gb="10"
 #auto_part_sizing=false # NOT IMPLEMENTED!
 
 # Packages
 yay_packages="sublime-text-4"
 base_packages="base base-devel linux-firmware grub efibootmgr networkmanager "$CPU_TYPE"-ucode sudo"
 t2_base_packages="base linux-t2 linux-t2-headers apple-t2-audio-config apple-bcm-firmware linux-firmware iwd grub efibootmgr t2fanrd networkmanager intel-ucode sudo"
-custom_packages="wget git curl screen nano konsole thunar net-tools openssh bc jq go htop neofetch"
-#env_type="" # desktop/tiling # not used yet...
-DESKTOP_ENVIRONMENT="plasma" # (cinnamon, gnome, plasma, lxde, mate, xfce) ****ALSO**** (budgie, cosmic, cutefish, deepin, enlightment, gnome-flashback, pantheon, phosh, sugar, ukui)
-#TILING_ENVIRONMENT="" # (dwm, i3) ****ALSO**** (awesome, bspwm, frankenwm, herbsluftwm, leftwm, notion, qtile, ratpoison, snapwm, spectrwm, stumpwm, xmonad)
+custom_packages="wget git curl screen nano konsole thunar net-tools openssh bc jq go htop neofetch firefox"
+DESKTOP_ENVIRONMENT="i3" # (cinnamon, gnome, plasma, lxde, mate, xfce) ****ALSO**** (budgie, cosmic, cutefish, deepin, enlightment, gnome-flashback, pantheon, phosh, sugar, ukui)
+# SOON TO BE SUPPORT TILING MANAGERS # (dwm, i3) ****ALSO**** (awesome, bspwm, frankenwm, herbsluftwm, leftwm, notion, qtile, ratpoison, snapwm, spectrwm, stumpwm, xmonad)
 
 # Boring shit (should't usually need changed.)
 lang="en_US.UTF-8"
@@ -251,6 +244,9 @@ pacstrap_install() {
         xfce)
             desktop_packages="xfce4 xfce4-goodies sddm" # works perfect on fleex!
             ;;
+        i3)
+            desktop_packages="i3-wm sddm" # first tiling manager test!
+            ;;
         *)
             echo "Invalid or no desktop environment set ($DESKTOP_ENVIRONMENT) going with none..."
             desktop_packages=""
@@ -284,6 +280,12 @@ pacstrap_install() {
 
     if [[ $is_t2mac == "true" ]]; then
         base_packages="$t2_base_packages"
+
+        cat <<EOF >> "/etc/pacman.conf"
+[arch-mact2]
+Server = https://mirror.funami.tech/arch-mact2/os/x86_64
+SigLevel = Never
+EOF
 
         cat <<EOF >> "/mnt/etc/pacman.conf"
 [arch-mact2]
@@ -525,6 +527,10 @@ EOF
 
     # Restore sudoers configuration
     #sed -i 's/%sudo ALL=(ALL) NOPASSWD: ALL/%sudo ALL=(ALL) ALL/g' /etc/sudoers
+
+    if [[ $DESKTOP_ENVIRONMENT == "i3" ]]; then
+        echo "exec i3" >> /home/$USERNAME/.xinitrc
+    fi
 
     if [[ $gamermode == "true" && $GPU_TYPE == "nvidia" ]]; then ## TESTING
         echo "RUNNING nvidia-xconfig!"
