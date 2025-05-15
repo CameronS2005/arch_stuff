@@ -13,7 +13,7 @@
 
 ###VARIABLES_START
 # Version info
-rel_date="UPDATE TIME; May 14, 09:02 PM EDT (2025)"
+rel_date="UPDATE TIME; May 14, 09:06 PM EDT (2025)"
 SCRIPT_VERSION="v1.9b"
 ARCH_VERSION="2025.05.01"
 
@@ -442,6 +442,11 @@ EOF
 
     # Restore sudoers configuration
     #sed -i 's/%sudo ALL=(ALL) NOPASSWD: ALL/%sudo ALL=(ALL) ALL/g' /etc/sudoers
+
+    if [[ $gamermode == "true" ]]; then
+        echo "RUNNING nvidia-xconfig!"
+        nvidia-xconfig
+    fi
 
     # Clean up
     cd /
