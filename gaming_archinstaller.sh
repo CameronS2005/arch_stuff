@@ -13,20 +13,20 @@
 
 ###VARIABLES_START
 # Version info
-rel_date="UPDATE TIME; May 14, 09:06 PM EDT (2025)"
+rel_date="UPDATE TIME; May 15, 03:33 AM EDT (2025)"
 SCRIPT_VERSION="v1.9b"
 ARCH_VERSION="2025.05.01"
 
 # Configuration Variables
 WIFI_SSID="redacted"
 KERNEL="linux-zen" # linux/linux-lts/linux-zen/linux-hardened
-DRIVE_ID="/dev/mmcblk0"; part_prefix="p" # sda=noprefix, nvme/mmcblk=p
+DRIVE_ID="/dev/vda"; part_prefix="" # sda=noprefix, nvme/mmcblk=p
 is_ssd="true" # enable ssd trim
 gamermode="true"; GPU_TYPE="nvidia" # (nvidia, intel, amd)
 CPU_TYPE="amd" # (intel, amd)
 #auto_login="false" # untested
 enable_32b_mlib=true # required for some software like steam aswell as 32bit nvidia drivers
-use_LUKS=true # use luks encryption for root partition
+use_LUKS=false # use luks encryption for root partition
 use_SWAP=true
 
 # Login
@@ -36,15 +36,15 @@ USER_PASSWD="redacted"
 ROOT_PASSWD="redacted"
 
 # Drive Patition Sizes
-boot_size_mb="512"
+boot_size_mb="1024"
 swap_size_gb="20" 
-root_size_gb="220"
+root_size_gb="230"
 #auto_part_sizing=false # NOT IMPLEMENTED!
 
 # Packages
-yay_packages="sublime-text-4 librewolf"
+yay_packages="sublime-text-4"
 base_packages="base base-devel linux-firmware nano grub efibootmgr networkmanager "$CPU_TYPE"-ucode sudo"
-custom_packages="wget git curl screen nano konsole thunar net-tools bc jq go htop neofetch"
+custom_packages="wget git curl screen nano konsole thunar net-tools openssh bc jq go htop neofetch"
 #env_type="" # desktop/tiling # not used yet...
 DESKTOP_ENVIRONMENT="plasma" # (cinnamon, gnome, plasma, lxde, mate, xfce) ****ALSO**** (budgie, cosmic, cutefish, deepin, enlightment, gnome-flashback, pantheon, phosh, sugar, ukui)
 #TILING_ENVIRONMENT="" # (dwm, i3) ****ALSO**** (awesome, bspwm, frankenwm, herbsluftwm, leftwm, notion, qtile, ratpoison, snapwm, spectrwm, stumpwm, xmonad)
@@ -224,6 +224,12 @@ pacstrap_install() {
         base_packages="linux $base_packages"
     else
         base_packages="$KERNEL $KERNEL-headers $base_packages"
+    fi
+
+    # Enable 32-bit multilib if necessary
+    if [[ $enable_32b_mlib == true ]]; then
+        sed -i '92,93 s/^#//' "/etc/pacman.conf"
+        yes | pacman -Sy $NULL_VAR
     fi
 
     if [[ $gamermode == "true" ]]; then ## add proper driver to package list for nvidia rtx 4060
@@ -443,7 +449,7 @@ EOF
     # Restore sudoers configuration
     #sed -i 's/%sudo ALL=(ALL) NOPASSWD: ALL/%sudo ALL=(ALL) ALL/g' /etc/sudoers
 
-    if [[ $gamermode == "true" ]]; then
+    if [[ $gamermode == "true" && $GPU_TYPE == "nvidia" ]]; then ## TESTING
         echo "RUNNING nvidia-xconfig!"
         nvidia-xconfig
     fi
