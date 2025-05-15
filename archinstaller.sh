@@ -8,7 +8,7 @@
 
 ###VARIABLES_START
 # Version info
-rel_date="UPDATE TIME; May 15, 06:59 PM EDT (2025)"
+rel_date="UPDATE TIME; May 15, 07:07 PM EDT (2025)"
 SCRIPT_VERSION="v1.9b"
 ARCH_VERSION="2025.05.01"
 
@@ -22,7 +22,7 @@ gamermode="true"; GPU_TYPE="intel" # (nvidia, intel, amd)
 DESKTOP_ENVIRONMENT="i3-wm" # (gnome, plasma, xfce, i3-wm, etc...)
 CPU_TYPE="intel" # (intel, amd)
 #auto_login="false" # untested
-enable_32b_mlib=true # required for some software like steam aswell as 32bit nvidia drivers
+enable_32b_mlib=true # required for some software like steam aswell as 32bit drivers
 use_LUKS=false # use luks encryption for root partition
 use_SWAP=true
 use_RICER=true
@@ -43,7 +43,7 @@ root_size_gb="10"
 yay_packages="sublime-text-4"
 base_packages="base linux-firmware iwd networkmanager grub efibootmgr "$CPU_TYPE"-ucode sudo konsole"
 t2_base_packages="base linux-firmware iwd networkmanager grub efibootmgr intel-ucode sudo konsole linux-t2 linux-t2-headers apple-t2-audio-config apple-bcm-firmware t2fanrd" # we could just add these onto base_packages if is t2-mac
-custom_packages="base-devel wget git curl screen nano thunar net-tools openssh bc jq go htop neofetch firefox feh python-pywal"
+custom_packages="base-devel wget git curl screen nano zip unzip thunar net-tools openssh bc jq go htop neofetch firefox feh python-pywal"
 
 # Boring shit (should't usually need changed.)
 lang="en_US.UTF-8"
@@ -391,12 +391,12 @@ if [[ $use_SWAP == true ]]; then
         root_part=""$part_prefix"4" # t2 with swap
     else
         root_part=""$part_prefix"3" # non t2 with swap
+    fi
 else
     if [[ $is_t2mac == "true" ]]; then
         root_part=""$part_prefix"3" # t2 no swap
     else
         root_part=""$part_prefix"2" # non t2 no swap
-
     fi
 fi
 
