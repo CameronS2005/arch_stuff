@@ -8,7 +8,7 @@
 
 ###VARIABLES_START
 # Version info
-rel_date="UPDATE TIME; May 15, 07:07 PM EDT (2025)"
+rel_date="UPDATE TIME; May 15, 07:41 PM EDT (2025)"
 SCRIPT_VERSION="v1.9b"
 ARCH_VERSION="2025.05.01"
 
@@ -247,7 +247,7 @@ pacstrap_install() {
             desktop_packages="xfce4 xfce4-goodies sddm" # works perfect on fleex!
             ;;
         i3-wm)
-            desktop_packages="i3-wm sddm" # first tiling manager test!
+            desktop_packages="i3-wm i3status dmenu sddm" # first tiling manager test!
             ;;
         *)
             echo "Invalid or no desktop environment set ($DESKTOP_ENVIRONMENT) going with none..."
@@ -435,6 +435,7 @@ arch_chroot() {
     # Create and configure non-root user
     groupadd sudo $NULL_VAR
     useradd -mG sudo "$USERNAME" $NULL_VAR
+    useradd -mG power "$USERNAME" $NULL_VAR
     echo "%sudo ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
 
     # Configure autologin if enabled
@@ -539,13 +540,14 @@ EOF
         sudo -u $USERNAME unzip wallpapers.zip && rm wallpapers.zip
 
         if command -v "feh" &> /dev/null; then
-            sudo -u $USERNAME feh "/home/$USERNAME/wallpapers/3840x2160/lone-samurai.jpg"
+            sudo -u $USERNAME feh --bg-scale "/home/$USERNAME/wallpapers/3840x2160/lone-samurai.jpg"
         else
             echo "ERRRO! feh not found.."
         fi
 
         if command -v "wal" &> /dev/null; then
             sudo -u $USERNAME wal -i "/home/$USERNAME/wallpapers/3840x2160/lone-samurai.jpg"
+            sudo -u $USERNAME echo "exec_always --no-startup-id wal -R" >> "/home/$USERNAME/.config/i3/config"
         else
             echo "ERRRO! wal not found.."
         fi
