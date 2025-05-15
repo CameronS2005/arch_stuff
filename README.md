@@ -6,7 +6,7 @@ Mainly tested on dell based intel hardware. Should be working on AMD cpus, nvidi
 Arch Version: 2025.05.01, Kernel: 6.14.4
 
 ## CURRENT VARIANT(s);
-- gaming_archinstaller.sh
+- archinstaller.sh
  
 ## Depreacted Scripts;
 - setup.sh
@@ -22,7 +22,7 @@ Arch Version: 2025.05.01, Kernel: 6.14.4
 
 BE CAREFUL WITH THESE SCRIPTS AS THEY COULD CAUSE DAMAGE TO YOUR DATA IF NOT CONFIGURED PROPERLEY!
 
-to use on a fresh copy of the archiso, simply modify the variables in the config of the script, and run "curl -o installer.sh -fsSL https://raw.githubusercontent.com/CameronS2005/arch_stuff/main/gaming_archinstaller.sh; chmod +x installer.sh; ./installer.sh"
+to use on a fresh copy of the archiso, simply modify the variables in the config of the script, and run "curl -o archinstaller.sh -fsSL https://raw.githubusercontent.com/CameronS2005/arch_stuff/main/archinstaller.sh; chmod +x archinstaller.sh; ./archinstaller.sh"
 
 # -------------------------------- #
 
