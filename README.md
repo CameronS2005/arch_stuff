@@ -1,7 +1,26 @@
 # arch_stuff
+Arch Version: 2025.05.01, Kernel: 6.14.4
+----------------------------------------
 Work in progress arch linux automated installer script.
 
-Arch Version: 2025.05.01, Kernel: 6.14.4
+Features;
+---------
+- FULLY CONFIGURABLE VARIABLES (most are easy to decipher)
+- AMD/INTEL CPU SUPPORT
+- AMD/INTEL/NVIDIA GPU SUPPORT
+- EXTENSIVE LIST OF SUPPORTED DESKTOP ENVIRONMENT AND TILING MANAGERS!
+- LUKS ENCRYPTION FOR ROOT PARTITION
+- T2-MAC SUPPORT
+
+WIP Features;
+-------------
+- LUKS HEADER BACKUP DURING INSTALL
+- AUTO PARTITION SIZING BASED ON DISK SIZE
+- AUTO DETECT CPU AND GPU
+- AUTO DETECT SSD (FOR TRIM)
+- AUTO DETECT T2-MAC
+- AUTO DETECT DRIVE ID, AND PARTITION PREFIX
+
 
 ## CURRENT VARIANT(s);
 - archinstaller.sh
@@ -27,6 +46,8 @@ to use on a fresh copy of the archiso, simply modify the variables in the config
 References;
 
 https://wiki.archlinux.org/title/installation_guide
+
+https://wiki.t2linux.org/distributions/arch/installation/
 
 https://www.youtube.com/watch?v=_JYIAaLrwcY&t=2412s 
 (SomeOrdinaryGamers : "Muta" : I Installed The Hardest System Known To Man...)
