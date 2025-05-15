@@ -13,7 +13,7 @@
 
 ###VARIABLES_START
 # Version info
-rel_date="UPDATE TIME; May 15, 12:51 AM EDT (2025)"
+rel_date="UPDATE TIME; May 15, 01:03 PM EDT (2025)"
 SCRIPT_VERSION="v1.9b"
 ARCH_VERSION="2025.05.01"
 
