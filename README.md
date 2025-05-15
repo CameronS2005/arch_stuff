@@ -1,7 +1,5 @@
 # arch_stuff
-A collection of my arch linux install scripts
-
-Mainly tested on dell based intel hardware. Should be working on AMD cpus, nvidia gpu's are currently being worked on!
+Work in progress arch linux automated installer script.
 
 Arch Version: 2025.05.01, Kernel: 6.14.4
 
@@ -20,7 +18,7 @@ Arch Version: 2025.05.01, Kernel: 6.14.4
 
 # -------------------------------- #
 
-BE CAREFUL WITH THESE SCRIPTS AS THEY COULD CAUSE DAMAGE TO YOUR DATA IF NOT CONFIGURED PROPERLEY!
+BE CAREFUL WITH THESE SCRIPTS AS THEY COULD CAUSE DAMAGE TO YOUR DATA IF NOT CONFIGURED PROPERLEY! (I am not responsible for any damage caused to you're systems or you're data, you've been warned that this code is not production ready and may have bugs or compatibility issues!)
 
 to use on a fresh copy of the archiso, simply modify the variables in the config of the script, and run "curl -o archinstaller.sh -fsSL https://raw.githubusercontent.com/CameronS2005/arch_stuff/main/archinstaller.sh; chmod +x archinstaller.sh; ./archinstaller.sh"
 
