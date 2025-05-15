@@ -8,7 +8,7 @@
 
 ###VARIABLES_START
 # Version info
-rel_date="UPDATE TIME; May 15, 06:42 PM EDT (2025)"
+rel_date="UPDATE TIME; May 15, 06:55 PM EDT (2025)"
 SCRIPT_VERSION="v1.9b"
 ARCH_VERSION="2025.05.01"
 
@@ -42,7 +42,7 @@ root_size_gb="10"
 yay_packages="sublime-text-4"
 base_packages="base linux-firmware iwd networkmanager grub efibootmgr "$CPU_TYPE"-ucode sudo konsole"
 t2_base_packages="base linux-firmware iwd networkmanager grub efibootmgr intel-ucode sudo konsole linux-t2 linux-t2-headers apple-t2-audio-config apple-bcm-firmware t2fanrd" # we could just add these onto base_packages if is t2-mac
-custom_packages="base-devel wget git curl screen nano thunar net-tools openssh bc jq go htop neofetch firefox feh python-pywall"
+custom_packages="base-devel wget git curl screen nano thunar net-tools openssh bc jq go htop neofetch firefox feh python-pywal"
 DESKTOP_ENVIRONMENT="i3" # (cinnamon, gnome, plasma, lxde, mate, xfce) ****ALSO**** (budgie, cosmic, cutefish, deepin, enlightment, gnome-flashback, pantheon, phosh, sugar, ukui)
 # SOON TO BE SUPPORT TILING MANAGERS # (dwm, i3) ****ALSO**** (awesome, bspwm, frankenwm, herbsluftwm, leftwm, notion, qtile, ratpoison, snapwm, spectrwm, stumpwm, xmonad)
 
@@ -151,6 +151,7 @@ mac_partition() {
             root_part=""$part_prefix"4" # t2 with swap
         else
             root_part=""$part_prefix"3" # non t2 with swap
+        fi
     else
         if [[ $is_t2mac == "true" ]]; then
             root_part=""$part_prefix"3" # t2 no swap
@@ -324,8 +325,11 @@ post_chroot() {
     echo "Performing post-chroot cleanup..."
 
     umount -R /mnt
-    if [[ $use_SWAP == true ]]; then
-        swapoff "$DRIVE_ID""$part_prefix"2 $NULL_VAR
+    if [[ $use_SWAP == "true" ]]; then
+        if [[ $is_t2mac == "true" ]]; then
+            swapoff "$DRIVE_ID""$part_prefix"3 $NULL_VAR
+        else
+            swapoff "$DRIVE_ID""$part_prefix"2 $NULL_VAR
     fi
 
     echo "Installation completed successfully. You can now reboot your system."
@@ -345,7 +349,7 @@ sanity_check
 # Rank Pacman mirrors
 #rank_mirrors
 
-if [[ $is_t2mac != "true" ]]; then
+if [[ $is_t2mac == "false" ]]; then
     # Perform auto partitioning
     auto_partition
 else
@@ -460,7 +464,7 @@ arch_chroot() {
 
     mkinitcpio -P $KERNEL
 
-    if [[ $is_t2mac != "true" ]]; then
+    if [[ $is_t2mac == "false" ]]; then
         grub-install --target=x86_64-efi --efi-directory=/boot --bootloader-id="$GRUB_ID" $NULL_VAR
     else
         grub-install --target=x86_64-efi --efi-directory=/boot --bootloader-id="$GRUB_ID" --removable $NULL_VAR # i dunno shown in the t2 wiki
