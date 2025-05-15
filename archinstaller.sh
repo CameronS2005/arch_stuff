@@ -13,17 +13,18 @@
 
 ###VARIABLES_START
 # Version info
-rel_date="UPDATE TIME; May 15, 03:33 AM EDT (2025)"
+rel_date="UPDATE TIME; May 15, 12:51 AM EDT (2025)"
 SCRIPT_VERSION="v1.9b"
 ARCH_VERSION="2025.05.01"
 
 # Configuration Variables
 WIFI_SSID="redacted"
 KERNEL="linux-zen" # linux/linux-lts/linux-zen/linux-hardened
-DRIVE_ID="/dev/vda"; part_prefix="" # sda=noprefix, nvme/mmcblk=p
+DRIVE_ID="/dev/nvme0n1"; part_prefix="p" # sda=noprefix, nvme/mmcblk=p
 is_ssd="true" # enable ssd trim
-gamermode="true"; GPU_TYPE="nvidia" # (nvidia, intel, amd)
-CPU_TYPE="amd" # (intel, amd)
+is_t2mac="true" # use for intel based macs with the t2 security implementation
+gamermode="true"; GPU_TYPE="intel" # (nvidia, intel, amd)
+CPU_TYPE="intel" # (intel, amd)
 #auto_login="false" # untested
 enable_32b_mlib=true # required for some software like steam aswell as 32bit nvidia drivers
 use_LUKS=false # use luks encryption for root partition
@@ -43,7 +44,8 @@ root_size_gb="230"
 
 # Packages
 yay_packages="sublime-text-4"
-base_packages="base base-devel linux-firmware nano grub efibootmgr networkmanager "$CPU_TYPE"-ucode sudo"
+base_packages="base base-devel linux-firmware grub efibootmgr networkmanager "$CPU_TYPE"-ucode sudo"
+t2_base_packages="base linux-t2 linux-t2-headers apple-t2-audio-config apple-bcm-firmware linux-firmware iwd grub efibootmgr t2fanrd networkmanager intel-ucode sudo"
 custom_packages="wget git curl screen nano konsole thunar net-tools openssh bc jq go htop neofetch"
 #env_type="" # desktop/tiling # not used yet...
 DESKTOP_ENVIRONMENT="plasma" # (cinnamon, gnome, plasma, lxde, mate, xfce) ****ALSO**** (budgie, cosmic, cutefish, deepin, enlightment, gnome-flashback, pantheon, phosh, sugar, ukui)
@@ -99,7 +101,7 @@ rank_mirrors() {
 # Function to automate disk partitioning
 auto_partition() {
     echo "Automating disk partitioning for $DRIVE_ID..."
-    read -p "PRESS ENTER TO PARTITION ($DRIVE_ID) DANGER!!! (ELSE PRESS CTRL+C TO EXIT)"
+    read -p "PRESS ANY KEY TO PARTITION ($DRIVE_ID) DANGER!!! (ELSE PRESS CTRL+C TO EXIT)"
 
     # Convert gb to mb
     swap_size_mb=$((swap_size_gb * 1024))
@@ -136,6 +138,45 @@ auto_partition() {
     if [[ $use_SWAP == true ]]; then
         mkswap "$DRIVE_ID""$part_prefix"2 $NULL_VAR
         swapon "$DRIVE_ID""$part_prefix"2 $NULL_VAR
+    fi
+}
+
+mac_partition() {
+    echo "Setting up linux dual boot environment for t2-mac..."
+    echo "ENSURE YOU HAVE ALREADY MANUALLY PARTITIONED THE DRIVE AS THE SCRIPT EXPECTS (p1=boot,p2=macos,p3=swap,p4=root"
+    read -p "PRESS ANY KEY TO PARTITION ($DRIVE_ID) DANGER!!! (ELSE PRESS CTRL+C TO EXIT)"
+
+    # Convert gb to mb
+    swap_size_mb=$((swap_size_gb * 1024))
+    root_size_mb=$((root_size_gb * 1024))
+
+    # Determine root and home partitions based on conditions
+    if [[ $use_SWAP == true ]]; then
+        if [[ $is_t2mac == true ]]; then
+            root_part=""$part_prefix"4" # t2 with swap
+        else
+            root_part=""$part_prefix"3" # non t2 with swap
+    else
+        if [[ $is_t2mac == "true" ]]; then
+            root_part=""$part_prefix"3" # t2 no swap
+        else
+            root_part=""$part_prefix"2" # non t2 no swap
+        fi
+    fi
+
+    # Encrypt partitions if LUKS is enabled
+    if [[ $use_LUKS == true ]]; then
+        cryptsetup luksFormat "$DRIVE_ID""$root_part"
+        cryptsetup luksOpen "$DRIVE_ID""$root_part" "$ROOT_ID"
+        mkfs.ext4 "/dev/mapper/$ROOT_ID" $NULL_VAR
+    else
+        mkfs.ext4 "$DRIVE_ID""$root_part" $NULL_VAR
+    fi
+
+    # Handle swap
+    if [[ $use_SWAP == true ]]; then
+        mkswap "$DRIVE_ID""$part_prefix"3 $NULL_VAR
+        swapon "$DRIVE_ID""$part_prefix"3 $NULL_VAR
     fi
 }
 
@@ -241,6 +282,16 @@ pacstrap_install() {
             gpu_drivers="mesa vulkan-radeon lib32-vulkan-radeon lib32-mesa" # may needs to use (amdvlk and lib32-amdvlk)
     fi; fi; fi; fi
 
+    if [[ $is_t2mac == "true" ]]; then
+        base_packages="$t2_base_packages"
+
+        cat <<EOF >> "/mnt/etc/pacman.conf"
+[arch-mact2]
+Server = https://mirror.funami.tech/arch-mact2/os/x86_64
+SigLevel = Never
+EOF
+    fi
+
     pacstrap -i /mnt $base_packages $desktop_packages $custom_packages $gpu_drivers --noconfirm
 }
 
@@ -290,8 +341,12 @@ sanity_check
 # Rank Pacman mirrors
 #rank_mirrors
 
-# Perform auto partitioning
-auto_partition
+if [[ $is_t2mac != "true" ]]; then
+    # Perform auto partitioning
+    auto_partition
+else
+    mac_partition # unlike auto partition we expect there to already be a boot loader in the first partition and the root partition for both mac and linux to already exist. (boot=p1, macroot=p2, linuxswap=p3, linuxroot=p4)
+fi
 
 # Mount partitions
 auto_mount
@@ -325,9 +380,17 @@ fi
 
 # Determine root and home partitions based on conditions
 if [[ $use_SWAP == true ]]; then
-    root_part=""$part_prefix"3"
+    if [[ $is_t2mac == true ]]; then
+        root_part=""$part_prefix"4" # t2 with swap
+    else
+        root_part=""$part_prefix"3" # non t2 with swap
 else
-    root_part=""$part_prefix"2"
+    if [[ $is_t2mac == "true" ]]; then
+        root_part=""$part_prefix"3" # t2 no swap
+    else
+        root_part=""$part_prefix"2" # non t2 no swap
+
+    fi
 fi
 
 # Function for setting up the Arch Linux environment inside chroot
@@ -386,9 +449,18 @@ arch_chroot() {
             sed -i '/^MODULES=/ s/)$/nvidia nvidia_modeset nvidia_uvm nvidia_drm)/' "/etc/mkinitcpio.conf"
     fi; fi
 
+    if [[ $is_t2mac == "true" ]]; then
+        sed -i '/^MODULES=/ s/)$/apple-bce)/' "/etc/mkinitcpio.conf"
+        systemctl enable t2fanrd
+    fi
+
     mkinitcpio -P $KERNEL
 
-    grub-install --target=x86_64-efi --efi-directory=/boot --bootloader-id="$GRUB_ID" $NULL_VAR
+    if [[ $is_t2mac != "true" ]]; then
+        grub-install --target=x86_64-efi --efi-directory=/boot --bootloader-id="$GRUB_ID" $NULL_VAR
+    else
+        grub-install --target=x86_64-efi --efi-directory=/boot --bootloader-id="$GRUB_ID" --removable $NULL_VAR # i dunno shown in the t2 wiki
+    fi
 
     # Set up cryptdevice if using LUKS and home partition
     ROOT_UUID=$(blkid -s UUID -o value "$DRIVE_ID$root_part")
@@ -419,6 +491,14 @@ Exec = /usr/bin/mkinitcpio -P
 EOF
     fi; fi
 
+    if [[ $is_t2mac == "true" ]]; then
+        if [[ -z "$new_value" ]]; then
+            new_value="intel_iommu=on iommu=pt pcie_ports=compat"
+        else
+            new_value="$new_value intel_iommu=on iommu=pt pcie_ports=compat"
+        fi
+    fi
+
     sed -i '7c\GRUB_CMDLINE_LINUX="'"$new_value"'"' "/etc/default/grub"
     grub-mkconfig -o "/boot/grub/grub.cfg" $NULL_VAR
 
@@ -442,9 +522,6 @@ EOF
         cd ..
         rm -rf /home/$USERNAME/yay
     fi
-
-    #### Testing (auto generate xorg nvidia config) << THIS MAY NEED TO BE RAN AFTER A REAL BOOT
-    nvidia-xconfig
 
     # Restore sudoers configuration
     #sed -i 's/%sudo ALL=(ALL) NOPASSWD: ALL/%sudo ALL=(ALL) ALL/g' /etc/sudoers
