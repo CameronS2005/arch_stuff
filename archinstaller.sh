@@ -4,10 +4,11 @@
 
 # fully disable ipv6 (easy) (disable in both sysctl and kernel args)
 # Optional detached luks header
+# Add support for installing multiple desktop environments (should be able to choose in sddm or switch to lxde?)
 
 ###VARIABLES_START
 # Version info
-rel_date="UPDATE TIME; May 15, 06:24 PM EDT (2025)"
+rel_date="UPDATE TIME; May 15, 06:42 PM EDT (2025)"
 SCRIPT_VERSION="v1.9b"
 ARCH_VERSION="2025.05.01"
 
@@ -23,6 +24,7 @@ CPU_TYPE="intel" # (intel, amd)
 enable_32b_mlib=true # required for some software like steam aswell as 32bit nvidia drivers
 use_LUKS=false # use luks encryption for root partition
 use_SWAP=true
+use_RICER=true
 
 # Login
 HOSTNAME="archlinux-box"
@@ -38,9 +40,9 @@ root_size_gb="10"
 
 # Packages
 yay_packages="sublime-text-4"
-base_packages="base base-devel linux-firmware grub efibootmgr networkmanager "$CPU_TYPE"-ucode sudo"
-t2_base_packages="base linux-t2 linux-t2-headers apple-t2-audio-config apple-bcm-firmware linux-firmware iwd grub efibootmgr t2fanrd networkmanager intel-ucode sudo"
-custom_packages="wget git curl screen nano konsole thunar net-tools openssh bc jq go htop neofetch firefox"
+base_packages="base linux-firmware iwd networkmanager grub efibootmgr "$CPU_TYPE"-ucode sudo konsole"
+t2_base_packages="base linux-firmware iwd networkmanager grub efibootmgr intel-ucode sudo konsole linux-t2 linux-t2-headers apple-t2-audio-config apple-bcm-firmware t2fanrd" # we could just add these onto base_packages if is t2-mac
+custom_packages="base-devel wget git curl screen nano thunar net-tools openssh bc jq go htop neofetch firefox feh python-pywall"
 DESKTOP_ENVIRONMENT="i3" # (cinnamon, gnome, plasma, lxde, mate, xfce) ****ALSO**** (budgie, cosmic, cutefish, deepin, enlightment, gnome-flashback, pantheon, phosh, sugar, ukui)
 # SOON TO BE SUPPORT TILING MANAGERS # (dwm, i3) ****ALSO**** (awesome, bspwm, frankenwm, herbsluftwm, leftwm, notion, qtile, ratpoison, snapwm, spectrwm, stumpwm, xmonad)
 
@@ -527,6 +529,25 @@ EOF
 
     # Restore sudoers configuration
     #sed -i 's/%sudo ALL=(ALL) NOPASSWD: ALL/%sudo ALL=(ALL) ALL/g' /etc/sudoers
+
+    if [[ $use_RICER == "true" ]]; then
+        cd /home/$USERNAME/
+        sudo -u $USERNAME curl -LO "https://github.com/CameronS2005/arch_stuff/raw/refs/heads/main/wallpapers.zip"
+        sudo -u $USERNAME unzip wallpapers.zip && rm wallpapers.zip
+
+        if command -v "feh" &> /dev/null; then
+            sudo -u $USERNAME feh "/home/$USERNAME/wallpapers/3840x2160/lone-samurai.jpg"
+        else
+            echo "ERRRO! feh not found.."
+        fi
+
+        if command -v "wal" &> /dev/null; then
+            sudo -u $USERNAME wal -i "/home/$USERNAME/wallpapers/3840x2160/lone-samurai.jpg"
+        else
+            echo "ERRRO! wal not found.."
+        fi
+
+    fi
 
     if [[ $DESKTOP_ENVIRONMENT == "i3" ]]; then
         echo "exec i3" >> /home/$USERNAME/.xinitrc
