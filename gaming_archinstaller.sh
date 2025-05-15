@@ -2,55 +2,64 @@
 
 #### TDL;
 
-### FIX/TEST GPU Support (NVIDIA (RTX4060/MX250 dGPUS), AMD(LAPTOP dGPU), INTEL(LAPTOP iGPU))
+# partitioning change! (currently we insist on zapping the drive and creating a new parition table which destroys all data!)
+## ^ need to add option to instead of using automatic patitioning we use an already formatted boot partition and simply format a given root partition as ext4 (to support dual booting!)
 
-# Setup auto partition sizing: Boot Patition (512-1024MB), Swap (15-20%), Root (Rest)
+# Implement tiling managers (aswell as the option to preinstall rice dotfiles!)
 
-# Optionally fully disable ipv6 (easy) (disable in both sysctl and kernel args)
-# Optional detached luks header (mid) << THIS NEEDS TO BE DONE ASAP!!! (IN THE EVENT OF HEADER CORRUPTION DATA RECOVERY WOULD BE IMPOSSIBLE WITHOUT BACKUP!)
+# fully disable ipv6 (easy) (disable in both sysctl and kernel args)
+# Optional detached luks header (mid) << THIS NEEDS TO BE DONE ASAP!!! (IN THE EVENT OF HEADER CORRUPTION DATA RECOVERY WOULD BE IMPOSSIBLE WITHOUT BACKUP!) (BACKUP TO USB DURING FIRST INSTALL!)
 
 
 ###VARIABLES_START
+# Version info
+rel_date="UPDATE TIME; May 14, 09:02 PM EDT (2025)"
+SCRIPT_VERSION="v1.9b"
+ARCH_VERSION="2025.05.01"
+
 # Configuration Variables
-WIFI_SSID="redacted" # not required when ethernet is connected
-KERNEL="linux-zen" # linux/linux-lts/linux-zen/linux-hardened # linux-rt/linux-rt-lts
-DRIVE_ID="/dev/sda"; part_prefix="" # sda=noprefix, nvme/mmcblk=p
+WIFI_SSID="redacted"
+KERNEL="linux-zen" # linux/linux-lts/linux-zen/linux-hardened
+DRIVE_ID="/dev/mmcblk0"; part_prefix="p" # sda=noprefix, nvme/mmcblk=p
+is_ssd="true" # enable ssd trim
 gamermode="true"; GPU_TYPE="nvidia" # (nvidia, intel, amd)
-CPU_TYPE="intel" # (intel, amd)
-auto_login="false" # untested
-HOSTNAME="Archie-Kefka"
+CPU_TYPE="amd" # (intel, amd)
+#auto_login="false" # untested
+enable_32b_mlib=true # required for some software like steam aswell as 32bit nvidia drivers
+use_LUKS=true # use luks encryption for root partition
+use_SWAP=true
+
+# Login
+HOSTNAME="archlinux-box"
 USERNAME="archie"
 USER_PASSWD="redacted"
 ROOT_PASSWD="redacted"
-DESKTOP_ENVIRONMENT="xfce" # (plasma,xfce, others...)
-additonal_pacman_packages="firefox"
-yay_packages="sublime-text-4"
 
 # Drive Patition Sizes
-boot_size_mb="1024"
-swap_size_gb="15" 
+boot_size_mb="512"
+swap_size_gb="20" 
 root_size_gb="220"
 #auto_part_sizing=false # NOT IMPLEMENTED!
 
-# Global variables
-rel_date="UPDATE TIME; May 08, 11:14 PM EDT (2025)"
-SCRIPT_VERSION="v1.9a"
-ARCH_VERSION="2025.05.01"
+# Packages
+yay_packages="sublime-text-4 librewolf"
+base_packages="base base-devel linux-firmware nano grub efibootmgr networkmanager "$CPU_TYPE"-ucode sudo"
+custom_packages="wget git curl screen nano konsole thunar net-tools bc jq go htop neofetch"
+#env_type="" # desktop/tiling # not used yet...
+DESKTOP_ENVIRONMENT="plasma" # (cinnamon, gnome, plasma, lxde, mate, xfce) ****ALSO**** (budgie, cosmic, cutefish, deepin, enlightment, gnome-flashback, pantheon, phosh, sugar, ukui)
+#TILING_ENVIRONMENT="" # (dwm, i3) ****ALSO**** (awesome, bspwm, frankenwm, herbsluftwm, leftwm, notion, qtile, ratpoison, snapwm, spectrwm, stumpwm, xmonad)
+
+# Boring shit (should't usually need changed.)
 lang="en_US.UTF-8"
 timezone="America/New_York"
-enable_32b_mlib=true
-use_LUKS=true # luks encryption for root partition
-use_SWAP=true
 ROOT_ID="root_crypt"
 GRUB_ID="GRUB"
-base_packages="base base-devel linux-firmware nano grub efibootmgr networkmanager "$CPU_TYPE"-ucode sudo"
-custom_packages="wget git curl screen nano konsole thunar net-tools openssh bc go "$additonal_pacman_packages"" # AUDIO PACKAGES (sof-firmware pulseaudio pavucontrol)
-yay_aur_helper=true
-SILENCE=false # appends '>/dev/null 2>&1' to the end of noisy commands ## UNTESTED!
+yay_aur_helper=true # automatically installs yay aur helper
+#SILENCE=false # appends '>/dev/null 2>&1' to the end of noisy commands ## UNTESTED!
 ###VARIABLES_END
 
-# Function to handle WiFi connection
-sanity_check() { #### THIS SHOULD ALSO VERIFY VARIABLES!!
+# Function to check for internet connection
+sanity_check() {
     if [[ $SILENCE == true ]]; then
         NULL_VAR=">/dev/null 2>&1"
     else
@@ -72,6 +81,11 @@ sanity_check() { #### THIS SHOULD ALSO VERIFY VARIABLES!!
         local_ipv4=$(ip -4 addr show up | grep -oP '(?<=inet\s)\d+(\.\d+){3}' | grep -v '127.0.0.1' | head -n 1)
         echo "Local IPv4 address: $local_ipv4"
     fi
+
+    if [[ $USER_PASSWD == "redacted" || $ROOT_PASSWD == "redacted" ]]; then
+        echo "it seems to forgot to set the user or root password, be sure to change it from redacted!"
+        exit 1
+    fi
 }
 
 # Function to rank Pacman mirrors
@@ -85,14 +99,17 @@ rank_mirrors() {
 # Function to automate disk partitioning
 auto_partition() {
     echo "Automating disk partitioning for $DRIVE_ID..."
-    read -p "PRESS ENTER TO PARTITION ($DRIVE_ID) DANGER!!!"
+    read -p "PRESS ENTER TO PARTITION ($DRIVE_ID) DANGER!!! (ELSE PRESS CTRL+C TO EXIT)"
 
+    # Convert gb to mb
     swap_size_mb=$((swap_size_gb * 1024))
     root_size_mb=$((root_size_gb * 1024))
 
+    # Clear drive and create new gpt partition table (REMOVES ALL DATA)
     sgdisk --zap-all "$DRIVE_ID" $NULL_VAR
     parted "$DRIVE_ID" mklabel gpt $NULL_VAR
 
+    # Create and format first partition for grub bootloader
     parted "$DRIVE_ID" mkpart ESP fat32 1MiB "${boot_size_mb}MiB" $NULL_VAR
     parted "$DRIVE_ID" set 1 boot on $NULL_VAR
 
@@ -138,7 +155,7 @@ auto_mount() {
 # Function to perform pacstrap installation
 pacstrap_install() {
     echo "Installing Base System Packages..."
-    case $DESKTOP_ENVIRONMENT in # surely theres a more efficient way to do this...
+    case $DESKTOP_ENVIRONMENT in
         budgie)
             desktop_packages="budgie sddm" # untested
             ;;
@@ -214,7 +231,9 @@ pacstrap_install() {
             gpu_drivers="nvidia-dkms libglvnd nvidia-utils nvidia-settings lib32-libglvnd lib32-nvidia-utils lib32-opencl-nvidia"
         if [[ $GPU_TYPE == "intel" ]]; then
             gpu_drivers="mesa vulkan-intel lib32-vulkan-intel lib32-mesa"
-    fi; fi; fi
+        if [[ $GPU_TYPE == "amd" ]]; then
+            gpu_drivers="mesa vulkan-radeon lib32-vulkan-radeon lib32-mesa" # may needs to use (amdvlk and lib32-amdvlk)
+    fi; fi; fi; fi
 
     pacstrap -i /mnt $base_packages $desktop_packages $custom_packages $gpu_drivers --noconfirm
 }
@@ -229,7 +248,7 @@ generate_fstab() {
 chroot_setup() {
     echo "Finalizing Installation in chroot environment!"
 
-    seed="#" # we must use a seed or these lines are caught by sed
+    seed="#" # we must use a seed or sed detects its own lines as triggers
     sed -n "/$seed##VARIABLES_START/,/$seed##VARIABLES_END/p" "$0" > /mnt/variables
     sed -n "/$seed##PART2_START/,/$seed##PART2_END/p" "$0" > /mnt/setup.sh
 
@@ -284,7 +303,7 @@ chroot_setup
 post_chroot
 
 # End of script
-exit
+exit; exit; exit; exit; exit # (just making sure we exitied, as everything past here is strictly meant for the chroot environment!)
 
 ######### PART 2
 
@@ -322,7 +341,9 @@ arch_chroot() {
     echo "$HOSTNAME" > "/etc/hostname"
 
     # Enable SSD trimming if necessary
-    #systemctl enable fstrim.timer $NULL_VAR
+    if [[ $is_ssd == "true" ]]; then
+        systemctl enable fstrim.timer $NULL_VAR
+    fi
 
     # Enable 32-bit multilib if necessary
     if [[ $enable_32b_mlib == true ]]; then
