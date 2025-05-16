@@ -8,13 +8,13 @@
 
 ###VARIABLES_START
 # Version info
-rel_date="UPDATE TIME; May 15, 07:41 PM EDT (2025)"
+rel_date="UPDATE TIME; May 15, 10:40 PM EDT (2025)"
 SCRIPT_VERSION="v1.9b"
 ARCH_VERSION="2025.05.01"
 
 # Configuration Variables
 WIFI_SSID="redacted"
-KERNEL="linux-zen" # linux/linux-lts/linux-zen/linux-hardened
+KERNEL="linux" # linux/linux-lts/linux-zen/linux-hardened
 DRIVE_ID="/dev/mmcblk0"; part_prefix="p" # sda=noprefix, nvme/mmcblk=p
 is_ssd="true" # enable ssd trim
 is_t2mac="false" # use for intel based macs with the t2 security implementation
@@ -534,7 +534,7 @@ EOF
     # Restore sudoers configuration
     #sed -i 's/%sudo ALL=(ALL) NOPASSWD: ALL/%sudo ALL=(ALL) ALL/g' /etc/sudoers
 
-    if [[ $use_RICER == "true" ]]; then
+    if [[ $use_RICER == "true" && $DESKTOP_ENVIRONMENT == "i3-wm" ]]; then
         cd /home/$USERNAME/
         sudo -u $USERNAME curl -LO "https://github.com/CameronS2005/arch_stuff/raw/refs/heads/main/wallpapers.zip"
         sudo -u $USERNAME unzip wallpapers.zip && rm wallpapers.zip
