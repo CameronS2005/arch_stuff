@@ -8,7 +8,7 @@
 
 ###VARIABLES_START
 # Version info
-rel_date="UPDATE TIME; May 15, 10:40 PM EDT (2025)"
+rel_date="UPDATE TIME; May 15, 10:53 PM EDT (2025)"
 SCRIPT_VERSION="v1.9b"
 ARCH_VERSION="2025.05.01"
 
@@ -540,13 +540,13 @@ EOF
         sudo -u $USERNAME unzip wallpapers.zip && rm wallpapers.zip
 
         if command -v "feh" &> /dev/null; then
-            sudo -u $USERNAME feh --bg-scale "/home/$USERNAME/wallpapers/3840x2160/lone-samurai.jpg"
+            sudo -u $USERNAME feh --bg-scale "/home/$USERNAME/wallpapers/3840x2160/moon_1.jpg"
         else
             echo "ERRRO! feh not found.."
         fi
 
         if command -v "wal" &> /dev/null; then
-            sudo -u $USERNAME wal -i "/home/$USERNAME/wallpapers/3840x2160/lone-samurai.jpg"
+            sudo -u $USERNAME wal -i "/home/$USERNAME/wallpapers/3840x2160/moon_1.jpg"
             sudo -u $USERNAME echo "exec_always --no-startup-id wal -R" >> "/home/$USERNAME/.config/i3/config"
         else
             echo "ERRRO! wal not found.."
