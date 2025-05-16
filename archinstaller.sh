@@ -8,7 +8,7 @@
 
 ###VARIABLES_START
 # Version info
-rel_date="UPDATE TIME; May 15, 10:53 PM EDT (2025)"
+rel_date="UPDATE TIME; May 15, 11:05 PM EDT (2025)"
 SCRIPT_VERSION="v1.9b"
 ARCH_VERSION="2025.05.01"
 
@@ -329,6 +329,7 @@ post_chroot() {
             swapoff "$DRIVE_ID""$part_prefix"3 $NULL_VAR
         else
             swapoff "$DRIVE_ID""$part_prefix"2 $NULL_VAR
+        fi
     fi
 
     echo "Installation completed successfully. You can now reboot your system."
