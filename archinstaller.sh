@@ -8,7 +8,7 @@
 
 ###VARIABLES_START
 # Version info
-rel_date="UPDATE TIME; May 15, 11:05 PM EDT (2025)"
+rel_date="UPDATE TIME; May 19, 08:04 PM EDT (2025)"
 SCRIPT_VERSION="v1.9b"
 ARCH_VERSION="2025.05.01"
 
@@ -18,14 +18,14 @@ KERNEL="linux" # linux/linux-lts/linux-zen/linux-hardened
 DRIVE_ID="/dev/mmcblk0"; part_prefix="p" # sda=noprefix, nvme/mmcblk=p
 is_ssd="true" # enable ssd trim
 is_t2mac="false" # use for intel based macs with the t2 security implementation
-gamermode="true"; GPU_TYPE="intel" # (nvidia, intel, amd)
-DESKTOP_ENVIRONMENT="i3-wm" # (gnome, plasma, xfce, i3-wm, etc...)
+gamermode="true"; GPU_TYPE="nvidia" # (nvidia, intel, amd)
+DESKTOP_ENVIRONMENT="plasma" # (gnome, plasma, xfce, i3-wm, etc...)
 CPU_TYPE="intel" # (intel, amd)
 #auto_login="false" # untested
 enable_32b_mlib=true # required for some software like steam aswell as 32bit drivers
 use_LUKS=false # use luks encryption for root partition
 use_SWAP=true
-use_RICER=true
+use_RICER=false # currently only support i3-wm
 
 # Login
 HOSTNAME="archlinux-box"
