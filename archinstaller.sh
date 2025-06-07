@@ -8,14 +8,14 @@
 
 ###VARIABLES_START
 # Version info
-rel_date="UPDATE TIME; May 19, 08:04 PM EDT (2025)"
+rel_date="UPDATE TIME; Jun 07, 05:42 PM EDT (2025)"
 SCRIPT_VERSION="v1.9b"
 ARCH_VERSION="2025.05.01"
 
 # Configuration Variables
 WIFI_SSID="redacted"
 KERNEL="linux" # linux/linux-lts/linux-zen/linux-hardened
-DRIVE_ID="/dev/mmcblk0"; part_prefix="p" # sda=noprefix, nvme/mmcblk=p
+DRIVE_ID="/dev/nvme0n1"; part_prefix="p" # sda=noprefix, nvme/mmcblk=p
 is_ssd="true" # enable ssd trim
 is_t2mac="false" # use for intel based macs with the t2 security implementation
 gamermode="true"; GPU_TYPE="nvidia" # (nvidia, intel, amd)
@@ -28,22 +28,22 @@ use_SWAP=true
 use_RICER=false # currently only support i3-wm
 
 # Login
-HOSTNAME="archlinux-box"
+hostname="archlinux-box"
 USERNAME="archie"
 USER_PASSWD="redacted"
 ROOT_PASSWD="redacted"
 
 # Drive Patition Sizes
 boot_size_mb="512"
-swap_size_gb="4" 
-root_size_gb="10"
+swap_size_gb="8" 
+root_size_gb="225"
 #auto_part_sizing=false # NOT IMPLEMENTED!
 
 # Packages
 yay_packages="sublime-text-4"
 base_packages="base linux-firmware iwd networkmanager grub efibootmgr "$CPU_TYPE"-ucode sudo konsole"
 t2_base_packages="base linux-firmware iwd networkmanager grub efibootmgr intel-ucode sudo konsole linux-t2 linux-t2-headers apple-t2-audio-config apple-bcm-firmware t2fanrd" # we could just add these onto base_packages if is t2-mac
-custom_packages="base-devel wget git curl screen nano zip unzip thunar net-tools openssh bc jq go htop neofetch firefox feh python-pywal"
+custom_packages="base-devel wget git curl screen nano zip unzip thunar net-tools openssh bc jq go htop fastfetch firefox feh python-pywal"
 
 # Boring shit (should't usually need changed.)
 lang="en_US.UTF-8"
@@ -415,7 +415,7 @@ arch_chroot() {
     # Set system time and hostname
     ln -sf "/usr/share/zoneinfo/$timezone" "/etc/localtime" $NULL_VAR
     hwclock --systohc $NULL_VAR
-    echo "$HOSTNAME" > "/etc/hostname"
+    echo "$hostname" > "/etc/hostname"
 
     # Enable SSD trimming if necessary
     if [[ $is_ssd == "true" ]]; then
@@ -431,7 +431,7 @@ arch_chroot() {
     # Configure hosts file
     echo "127.0.0.1 localhost
 ::1 localhost
-127.0.1.1 $HOSTNAME.localdomain $HOSTNAME" >> "/etc/hosts"
+127.0.1.1 $hostname.localdomain $hostname" >> "/etc/hosts"
 
     # Create and configure non-root user
     groupadd sudo $NULL_VAR
