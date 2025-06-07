@@ -8,13 +8,13 @@
 
 ###VARIABLES_START
 # Version info
-rel_date="UPDATE TIME; Jun 07, 05:42 PM EDT (2025)"
+rel_date="UPDATE TIME; Jun 07, 07:22 PM EDT (2025)"
 SCRIPT_VERSION="v1.9b"
 ARCH_VERSION="2025.05.01"
 
 # Configuration Variables
 WIFI_SSID="redacted"
-KERNEL="linux" # linux/linux-lts/linux-zen/linux-hardened
+KERNEL="linux-zen" # linux/linux-lts/linux-zen/linux-hardened
 DRIVE_ID="/dev/nvme0n1"; part_prefix="p" # sda=noprefix, nvme/mmcblk=p
 is_ssd="true" # enable ssd trim
 is_t2mac="false" # use for intel based macs with the t2 security implementation
@@ -183,8 +183,8 @@ auto_mount() {
     else
         mount "$DRIVE_ID""$root_part" /mnt $NULL_VAR
     fi
-    mkdir -p /mnt/boot
-    mount "$DRIVE_ID""$part_prefix"1 /mnt/boot $NULL_VAR
+    mkdir -p /mnt/boot/efi
+    mount "$DRIVE_ID""$part_prefix"1 /mnt/boot/efi
     sleep 10
 }
 
@@ -466,9 +466,9 @@ arch_chroot() {
     mkinitcpio -P $KERNEL
 
     if [[ $is_t2mac == "false" ]]; then
-        grub-install --target=x86_64-efi --efi-directory=/boot --bootloader-id="$GRUB_ID" $NULL_VAR
+        grub-install --target=x86_64-efi --efi-directory=/boot/efi --bootloader-id="$GRUB_ID" $NULL_VAR
     else
-        grub-install --target=x86_64-efi --efi-directory=/boot --bootloader-id="$GRUB_ID" --removable $NULL_VAR # i dunno shown in the t2 wiki
+        grub-install --target=x86_64-efi --efi-directory=/boot/efi --bootloader-id="$GRUB_ID" --removable $NULL_VAR # i dunno shown in the t2 wiki
     fi
 
     # Set up cryptdevice if using LUKS and home partition
