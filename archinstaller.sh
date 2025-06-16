@@ -8,17 +8,17 @@
 
 ###VARIABLES_START
 # Version info
-rel_date="UPDATE TIME; Jun 07, 07:22 PM EDT (2025)"
+rel_date="UPDATE TIME; Jun 16, 03:25 PM EDT (2025)"
 SCRIPT_VERSION="v1.9b"
 ARCH_VERSION="2025.05.01"
 
 # Configuration Variables
 WIFI_SSID="redacted"
-KERNEL="linux-zen" # linux/linux-lts/linux-zen/linux-hardened
+KERNEL="linux-t2" # linux/linux-lts/linux-zen/linux-hardened
 DRIVE_ID="/dev/nvme0n1"; part_prefix="p" # sda=noprefix, nvme/mmcblk=p
 is_ssd="true" # enable ssd trim
-is_t2mac="false" # use for intel based macs with the t2 security implementation
-gamermode="true"; GPU_TYPE="nvidia" # (nvidia, intel, amd)
+is_t2mac="true" # use for intel based macs with the t2 security implementation
+gamermode="true"; GPU_TYPE="intel" # (nvidia, intel, amd)
 DESKTOP_ENVIRONMENT="plasma" # (gnome, plasma, xfce, i3-wm, etc...)
 CPU_TYPE="intel" # (intel, amd)
 #auto_login="false" # untested
