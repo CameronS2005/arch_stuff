@@ -8,7 +8,7 @@
 
 ###VARIABLES_START
 # Version info
-rel_date="UPDATE TIME; Jun 16, 03:25 PM EDT (2025)"
+rel_date="UPDATE TIME; Jun 16, 04:14 PM EDT (2025)"
 SCRIPT_VERSION="v1.9b"
 ARCH_VERSION="2025.05.01"
 
@@ -146,17 +146,17 @@ mac_partition() {
 
     # Determine root and home partitions based on conditions
     if [[ $use_SWAP == true ]]; then
-        if [[ $is_t2mac == true ]]; then
-            root_part=""$part_prefix"4" # t2 with swap
-        else
+        #if [[ $is_t2mac == true ]]; then
+        #    root_part=""$part_prefix"4" # t2 with swap
+        #else
             root_part=""$part_prefix"3" # non t2 with swap
-        fi
+        #fi
     else
-        if [[ $is_t2mac == "true" ]]; then
-            root_part=""$part_prefix"3" # t2 no swap
-        else
+        #if [[ $is_t2mac == "true" ]]; then
+        #    root_part=""$part_prefix"3" # t2 no swap
+        #else
             root_part=""$part_prefix"2" # non t2 no swap
-        fi
+        #fi
     fi
 
     # Encrypt partitions if LUKS is enabled
@@ -325,11 +325,11 @@ post_chroot() {
 
     umount -R /mnt
     if [[ $use_SWAP == "true" ]]; then
-        if [[ $is_t2mac == "true" ]]; then
-            swapoff "$DRIVE_ID""$part_prefix"3 $NULL_VAR
-        else
+        #if [[ $is_t2mac == "true" ]]; then
+        #    swapoff "$DRIVE_ID""$part_prefix"3 $NULL_VAR
+        #else
             swapoff "$DRIVE_ID""$part_prefix"2 $NULL_VAR
-        fi
+        #fi
     fi
 
     echo "Installation completed successfully. You can now reboot your system."
@@ -349,12 +349,12 @@ sanity_check
 # Rank Pacman mirrors
 #rank_mirrors
 
-if [[ $is_t2mac == "false" ]]; then
+#if [[ $is_t2mac == "false" ]]; then
     # Perform auto partitioning
     auto_partition
-else
-    mac_partition # unlike auto partition we expect there to already be a boot loader in the first partition and the root partition for both mac and linux to already exist. (boot=p1, macroot=p2, linuxswap=p3, linuxroot=p4)
-fi
+#else
+#    mac_partition # unlike auto partition we expect there to already be a boot loader in the first partition and the root partition for both mac and linux to already exist. (boot=p1, macroot=p2, linuxswap=p3, linuxroot=p4)
+#fi
 
 # Mount partitions
 auto_mount
@@ -388,17 +388,17 @@ fi
 
 # Determine root and home partitions based on conditions
 if [[ $use_SWAP == true ]]; then
-    if [[ $is_t2mac == true ]]; then
-        root_part=""$part_prefix"4" # t2 with swap
-    else
+    #if [[ $is_t2mac == true ]]; then
+    #    root_part=""$part_prefix"4" # t2 with swap
+    #else
         root_part=""$part_prefix"3" # non t2 with swap
-    fi
+    #fi
 else
-    if [[ $is_t2mac == "true" ]]; then
-        root_part=""$part_prefix"3" # t2 no swap
-    else
+    #if [[ $is_t2mac == "true" ]]; then
+    #    root_part=""$part_prefix"3" # t2 no swap
+    #else
         root_part=""$part_prefix"2" # non t2 no swap
-    fi
+    #fi
 fi
 
 # Function for setting up the Arch Linux environment inside chroot
