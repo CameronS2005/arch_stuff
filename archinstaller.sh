@@ -8,17 +8,17 @@
 
 ###VARIABLES_START
 # Version info
-rel_date="UPDATE TIME; Jun 16, 04:14 PM EDT (2025)"
+rel_date="UPDATE TIME; Aug 07, 03:36 PM EDT (2025)"
 SCRIPT_VERSION="v1.9b"
-ARCH_VERSION="2025.05.01"
+ARCH_VERSION="2025.08.01"
 
 # Configuration Variables
 WIFI_SSID="redacted"
-KERNEL="linux-t2" # linux/linux-lts/linux-zen/linux-hardened
+KERNEL="linux-hardend" # linux/linux-lts/linux-zen/linux-hardened
 DRIVE_ID="/dev/nvme0n1"; part_prefix="p" # sda=noprefix, nvme/mmcblk=p
 is_ssd="true" # enable ssd trim
-is_t2mac="true" # use for intel based macs with the t2 security implementation
-gamermode="true"; GPU_TYPE="intel" # (nvidia, intel, amd)
+is_t2mac="false" # use for intel based macs with the t2 security implementation
+gamermode="true"; GPU_TYPE="nvidia" # (nvidia, intel, amd)
 DESKTOP_ENVIRONMENT="plasma" # (gnome, plasma, xfce, i3-wm, etc...)
 CPU_TYPE="intel" # (intel, amd)
 #auto_login="false" # untested
@@ -35,8 +35,8 @@ ROOT_PASSWD="redacted"
 
 # Drive Patition Sizes
 boot_size_mb="512"
-swap_size_gb="8" 
-root_size_gb="225"
+swap_size_gb="20" 
+root_size_gb="200"
 #auto_part_sizing=false # NOT IMPLEMENTED!
 
 # Packages
