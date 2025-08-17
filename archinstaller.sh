@@ -8,22 +8,22 @@
 
 ###VARIABLES_START
 # Version info
-rel_date="UPDATE TIME; Aug 07, 03:36 PM EDT (2025)"
+rel_date="UPDATE TIME; Aug 17, 12:08 AM EDT (2025)"
 SCRIPT_VERSION="v1.9b"
 ARCH_VERSION="2025.08.01"
 
 # Configuration Variables
 WIFI_SSID="redacted"
-KERNEL="linux-hardend" # linux/linux-lts/linux-zen/linux-hardened
+KERNEL="linux-hardened" # linux/linux-lts/linux-zen/linux-hardened
 DRIVE_ID="/dev/nvme0n1"; part_prefix="p" # sda=noprefix, nvme/mmcblk=p
 is_ssd="true" # enable ssd trim
 is_t2mac="false" # use for intel based macs with the t2 security implementation
 gamermode="true"; GPU_TYPE="nvidia" # (nvidia, intel, amd)
 DESKTOP_ENVIRONMENT="plasma" # (gnome, plasma, xfce, i3-wm, etc...)
-CPU_TYPE="intel" # (intel, amd)
+CPU_TYPE="amd" # (intel, amd)
 #auto_login="false" # untested
 enable_32b_mlib=true # required for some software like steam aswell as 32bit drivers
-use_LUKS=false # use luks encryption for root partition
+use_LUKS=true # use luks encryption for root partition
 use_SWAP=true
 use_RICER=false # currently only support i3-wm
 
@@ -34,16 +34,16 @@ USER_PASSWD="redacted"
 ROOT_PASSWD="redacted"
 
 # Drive Patition Sizes
-boot_size_mb="512"
-swap_size_gb="20" 
-root_size_gb="200"
+boot_size_mb="1024"
+swap_size_gb="30" 
+root_size_gb="900"
 #auto_part_sizing=false # NOT IMPLEMENTED!
 
 # Packages
 yay_packages="sublime-text-4"
 base_packages="base linux-firmware iwd networkmanager grub efibootmgr "$CPU_TYPE"-ucode sudo konsole"
 t2_base_packages="base linux-firmware iwd networkmanager grub efibootmgr intel-ucode sudo konsole linux-t2 linux-t2-headers apple-t2-audio-config apple-bcm-firmware t2fanrd" # we could just add these onto base_packages if is t2-mac
-custom_packages="base-devel wget git curl screen nano zip unzip thunar net-tools openssh bc jq go htop fastfetch firefox feh python-pywal"
+custom_packages="base-devel wget git curl screen nano zip unzip thunar net-tools openssh bc jq go htop fastfetch firefox" # feh python-pywal"
 
 # Boring shit (should't usually need changed.)
 lang="en_US.UTF-8"
@@ -451,6 +451,7 @@ arch_chroot() {
     # Configure bootloader
     if [[ $use_LUKS == true ]]; then
         sed -i '/^HOOKS=/ s/)$/ encrypt)/' "/etc/mkinitcpio.conf"
+        sed -i 's/^#\s*\(GRUB_ENABLE_CRYPTODISK=y\)/\1/' /etc/default/grub
     fi
 
     if [[ $gamermode == "true" ]]; then
